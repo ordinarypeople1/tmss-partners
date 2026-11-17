@@ -1,0 +1,12 @@
+[package]
+name = "app-commands"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Command surface the Tauri shell and the wasm host share."
+
+[dependencies]
+content-db = { path = "../content-db" }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+sim-core = { path = "../sim-core" }
