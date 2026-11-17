@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { useIntl } from "react-intl";
 import { AtlasMap } from "../AtlasMap";
 import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { Books, CompanyPage } from "../game/types";
+import { useMotionReady } from "../motion";
 import { joinBase } from "../publicPath";
-import { AssetCard, DataTable } from "../widgets";
+import { AssetCard, DataTable, Skeleton } from "../widgets";
 
 interface HistQuarter {
   period: string;
@@ -26,6 +28,7 @@ const CF = ["cfo", "cfi", "cff", "dividend", "net"] as const;
 export function CompanyScreen({ id }: { id: string }) {
   const intl = useIntl();
   const { epoch, run } = useGame();
+  const motionReady = useMotionReady();
   const [page, setPage] = useState<CompanyPage | null>(null);
   const [history, setHistory] = useState<HistQuarter[]>([]);
   const [tab, setTab] = useState<"is" | "bs" | "cf">("is");
@@ -64,7 +67,7 @@ export function CompanyScreen({ id }: { id: string }) {
   }, [id, page?.company.revealed]);
 
   if (!page) {
-    return <p>{intl.formatMessage({ id: "company.loading" })}</p>;
+    return <Skeleton label={intl.formatMessage({ id: "company.loading" })} />;
   }
   const company = page.company;
   const lines = page.books ? mergeLines(history, page.generated, page.books).slice(-12) : [];
@@ -74,7 +77,7 @@ export function CompanyScreen({ id }: { id: string }) {
 
   return (
     <div className="workspace">
-      <header>
+      <motion.header className="hero" layoutId={motionReady ? `company-${id}` : undefined}>
         <p className="eyebrow">{intl.formatMessage({ id: "company.legal" })}</p>
         <h2>{company.legal_name_ko}</h2>
         <p className="muted">{shortName(company.name_ko, company.legal_name_ko)}</p>
@@ -88,7 +91,7 @@ export function CompanyScreen({ id }: { id: string }) {
           {" · "}
           {intl.formatMessage({ id: `seller.${page.owner_kind}` })}
         </p>
-      </header>
+      </motion.header>
       <dl className="facts">
         <div>
           <dt>{intl.formatMessage({ id: "fact.revenue" }, { period: company.period })}</dt>

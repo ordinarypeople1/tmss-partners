@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { motion, useDragControls } from "motion/react";
 import { useIntl } from "react-intl";
 import { money, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { CompaniesPage } from "../game/types";
+import { itemVariants, listVariants, press, spring, useMotionReady } from "../motion";
 import { Monogram, Pager, SectorMark } from "../widgets";
 
 const SECTORS = [
@@ -86,6 +88,8 @@ export function CompaniesScreen() {
   const [sheet, setSheet] = useState(false);
   const [bounds, setBounds] = useState<Bounds>(EMPTY_BOUNDS);
   const [applied, setApplied] = useState<Bounds>(EMPTY_BOUNDS);
+  const motionReady = useMotionReady();
+  const drag = useDragControls();
 
   useEffect(() => {
     let cancel = false;
@@ -189,20 +193,32 @@ export function CompaniesScreen() {
         ))}
       </div>
       {rows.length === 0 ? <p>{intl.formatMessage({ id: "company.empty" })}</p> : null}
-      <ol className="card-list">
+      <motion.ol
+        className="card-list"
+        initial={motionReady ? "hidden" : false}
+        animate="show"
+        variants={listVariants}
+      >
         {rows.map((row) => {
           const name = shortName(row.name_ko, row.legal_name_ko);
           return (
-            <li key={row.id}>
-              <a className="hit-card" href={`#/company/${row.id}`}>
+            <motion.li key={row.id} variants={motionReady ? itemVariants : undefined}>
+              <motion.a
+                className="hit-card"
+                href={`#/company/${row.id}`}
+                layoutId={motionReady ? `company-${row.id}` : undefined}
+                {...(motionReady ? press : {})}
+              >
                 <Monogram name={name} />
                 <span className="grow">
-                  <strong>{name}</strong>
-                  <span className="muted">
+                  <strong className="clamp">{name}</strong>
+                  <span className="meta-line">
                     <SectorMark id={row.sector_id} />
-                    {intl.formatMessage({ id: `sector.${row.sector_id}` })}
-                    {" · "}
-                    {row.region_label_ko}
+                    <span className="clamp">
+                      {intl.formatMessage({ id: `sector.${row.sector_id}` })}
+                      {" · "}
+                      {row.region_label_ko}
+                    </span>
                   </span>
                 </span>
                 <span className="row-side">
@@ -214,11 +230,11 @@ export function CompaniesScreen() {
                   {row.on_market ? <span className="badge key">{intl.formatMessage({ id: "company.onMarket" })}</span> : null}
                   {row.held ? <span className="badge">{intl.formatMessage({ id: "nav.portfolio" })}</span> : null}
                 </span>
-              </a>
-            </li>
+              </motion.a>
+            </motion.li>
           );
         })}
-      </ol>
+      </motion.ol>
       <Pager
         page={Math.floor(offset / 20)}
         pages={pages}
@@ -228,10 +244,21 @@ export function CompaniesScreen() {
       {sheet ? (
         <>
           <button type="button" className="sheet-back" aria-label={intl.formatMessage({ id: "filter.close" })} onClick={() => setSheet(false)} />
-          <form
-            className="sheet"
+          <motion.form
+            className="sheet glass"
             role="dialog"
             aria-label={intl.formatMessage({ id: "filter.title" })}
+            drag="y"
+            dragControls={drag}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.18}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 96) {
+                setSheet(false);
+              }
+            }}
+            transition={spring}
             onSubmit={(event) => {
               event.preventDefault();
               setApplied(bounds);
@@ -239,6 +266,12 @@ export function CompaniesScreen() {
               setSheet(false);
             }}
           >
+            <button
+              type="button"
+              className="sheet-handle"
+              aria-label={intl.formatMessage({ id: "sheet.handle" })}
+              onPointerDown={(event) => drag.start(event)}
+            />
             <h2>{intl.formatMessage({ id: "filter.title" })}</h2>
             {(
               [
@@ -298,7 +331,7 @@ export function CompaniesScreen() {
                 {intl.formatMessage({ id: "filter.close" })}
               </button>
             </div>
-          </form>
+          </motion.form>
         </>
       ) : null}
     </div>

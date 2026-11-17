@@ -3,7 +3,7 @@ import { useIntl } from "react-intl";
 import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { PortfolioPage } from "../game/types";
-import { DataTable } from "../widgets";
+import { ChoiceBar, DataTable, Skeleton, Stat } from "../widgets";
 
 const ACTIONS = ["cost", "pricing", "capex", "asset_sale"] as const;
 const BOARD = ["capex_up", "dividend_up", "dividend_down"] as const;
@@ -15,6 +15,7 @@ export function PortfolioScreen() {
   const [selected, setSelected] = useState("");
   const [candidate, setCandidate] = useState("");
   const [payout, setPayout] = useState("1000");
+  const [view, setView] = useState("board");
   useEffect(() => {
     let cancel = false;
     void run({ op: "portfolio" }).then((result) => {
@@ -31,13 +32,70 @@ export function PortfolioScreen() {
   }, [run, epoch]);
 
   if (!page) {
-    return <p>{intl.formatMessage({ id: "company.loading" })}</p>;
+    return <Skeleton label={intl.formatMessage({ id: "company.loading" })} />;
   }
   const holding = page.rows.find((row) => row.company_id === selected) ?? page.rows[0];
 
+  const summary = page.summary;
+  const span = Math.max(1, ...page.rows.map((row) => Math.abs(row.created ?? row.mark - row.cost)));
   return (
     <div className="workspace">
+      {summary ? (
+        <div className="stat-strip">
+          <Stat label={intl.formatMessage({ id: "port.deployed" })} value={money(intl, summary.deployed)} amount={summary.deployed} format={(next) => money(intl, Math.round(next))} />
+          <Stat label={intl.formatMessage({ id: "port.value" })} value={money(intl, summary.value)} amount={summary.value} format={(next) => money(intl, Math.round(next))} tone="key" />
+          <Stat label={intl.formatMessage({ id: "port.moic" })} value={multiple(intl, summary.moic_millis)} />
+          <Stat label={intl.formatMessage({ id: "port.monthly" })} value={money(intl, summary.monthly)} />
+        </div>
+      ) : null}
+      <ChoiceBar
+        label={intl.formatMessage({ id: "port.board" })}
+        layoutId="portfolio-view"
+        value={view}
+        onChange={setView}
+        options={[
+          { value: "board", label: intl.formatMessage({ id: "port.board" }) },
+          { value: "cards", label: intl.formatMessage({ id: "port.cards" }) },
+        ]}
+      />
       {page.rows.length === 0 ? <p>{intl.formatMessage({ id: "company.noneHeld" })}</p> : null}
+      <ol className="created-list">
+        {page.rows.map((row) => {
+          const created = row.created ?? row.mark - row.cost;
+          return (
+            <li key={row.company_id}>
+              <span className="clamp">{shortName(row.legal_name_ko)}</span>
+              <span className="bar-track" aria-hidden="true">
+                <span className={created < 0 ? "bar-fill down" : "bar-fill"} style={{ transform: `scaleX(${Math.min(1, Math.abs(created) / span)})` }} />
+              </span>
+              <span className="num">{money(intl, created)}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {view === "cards" ? (
+        <ol className="card-list">
+          {page.rows.map((row) => (
+            <li key={row.company_id}>
+              <button type="button" className="hit-card" onClick={() => setSelected(row.company_id)}>
+                <span className="grow">
+                  <strong>{shortName(row.legal_name_ko)}</strong>
+                  <span className="meta-line">
+                    <span>{intl.formatMessage({ id: "port.entry" }, { week: row.entry_week ?? 0 })}</span>
+                    {row.sector_id ? <span>{intl.formatMessage({ id: `sector.${row.sector_id}` })}</span> : null}
+                    {row.issue ? <span className="badge">{intl.formatMessage({ id: row.issue === "vacant" ? "port.vacant" : "port.issue" })}</span> : null}
+                    <span className="badge">{intl.formatMessage({ id: `port.${row.safety || "healthy"}` })}</span>
+                  </span>
+                </span>
+                <span className="row-side">
+                  <span className="num">{money(intl, row.mark)}</span>
+                  <span className="num">{money(intl, row.ebit ?? null)}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      ) : (
       <DataTable
         columns={[
           { id: "name", label: intl.formatMessage({ id: "table.name" }) },
@@ -58,6 +116,7 @@ export function PortfolioScreen() {
           },
         }))}
       />
+      )}
       {holding ? (
         <section className="stack">
           <h2>{shortName(holding.legal_name_ko)}</h2>

@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { useIntl } from "react-intl";
 import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { Agent, DealPage, Terms } from "../game/types";
+import { useMotionReady } from "../motion";
+import { Skeleton } from "../widgets";
 
 const INSTRUMENTS = ["buyout", "common", "rcps", "cb_mezz", "senior_loan"] as const;
 
@@ -13,6 +16,7 @@ export function DealScreen({ id }: { id: string }) {
   const [sis, setSis] = useState<Agent[]>([]);
   const [form, setForm] = useState<Terms | null>(null);
   const loadedId = useRef("");
+  const motionReady = useMotionReady();
 
   useEffect(() => {
     let cancel = false;
@@ -42,7 +46,7 @@ export function DealScreen({ id }: { id: string }) {
   }, [run, id, epoch]);
 
   if (!deal || !form) {
-    return <p>{intl.formatMessage({ id: "company.loading" })}</p>;
+    return <Skeleton label={intl.formatMessage({ id: "company.loading" })} />;
   }
 
   const locked = deal.locked;
@@ -61,7 +65,7 @@ export function DealScreen({ id }: { id: string }) {
 
   return (
     <div className="workspace">
-      <header>
+      <motion.header className="hero" layoutId={motionReady ? `deal-${id}` : undefined}>
         <p className="eyebrow">{intl.formatMessage({ id: `stage.${deal.stage}` })}</p>
         <h2>{shortName(deal.name_ko, deal.legal_name_ko)}</h2>
         <p className="muted">
@@ -75,7 +79,7 @@ export function DealScreen({ id }: { id: string }) {
           {" · "}
           {intl.formatMessage({ id: `status.${deal.status}` })}
         </p>
-      </header>
+      </motion.header>
       {locked ? <p className="banner">{intl.formatMessage({ id: "deal.locked" })}</p> : null}
       {deal.conditions ? <p className="banner">{intl.formatMessage({ id: "deal.conditions" })}</p> : null}
       <dl className="facts">
@@ -93,10 +97,17 @@ export function DealScreen({ id }: { id: string }) {
             <dd>{money(intl, deal.ask_ev)}</dd>
           </div>
         ) : null}
-        <div>
-          <dt>{intl.formatMessage({ id: "deal.size" })}</dt>
-          <dd>{money(intl, deal.ask_size)}</dd>
-        </div>
+        {deal.revealed ? (
+          <div>
+            <dt>{intl.formatMessage({ id: "deal.size" })}</dt>
+            <dd>{money(intl, deal.ask_size)}</dd>
+          </div>
+        ) : (
+          <div>
+            <dt>{intl.formatMessage({ id: "deal.ddNeed" })}</dt>
+            <dd>{intl.formatMessage({ id: "deal.ddNeed" })}</dd>
+          </div>
+        )}
         <div>
           <dt>{intl.formatMessage({ id: "deal.weeks" })}</dt>
           <dd className="num">{intl.formatNumber(deal.weeks_left)}</dd>

@@ -21,6 +21,10 @@ export function applyTheme(choice: ThemeChoice) {
   } else {
     root.setAttribute("data-theme", choice);
   }
+  const dark =
+    choice === "dark" ||
+    (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#12100E" : "#F6F3EE");
   window.dispatchEvent(new Event("deal-atlas-theme"));
 }
 

@@ -19,7 +19,7 @@ interface GameContextValue {
   reset: () => Promise<void>;
 }
 
-const READS = new Set(["dashboard", "deals", "deal", "companies", "company", "fund", "portfolio"]);
+const READS = new Set(["dashboard", "deals", "deal", "companies", "company", "fund", "portfolio", "market"]);
 
 let turn: Promise<unknown> = Promise.resolve();
 

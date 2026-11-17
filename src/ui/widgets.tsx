@@ -1,19 +1,108 @@
+import { motion } from "motion/react";
 import { useIntl } from "react-intl";
 import type { AlertItem, NewsItem } from "./game/types";
+import { CountUp, itemVariants, listVariants, spring, useMotionReady } from "./motion";
 
 export function Stat({
   label,
   value,
+  amount,
+  format,
   tone,
 }: {
   label: string;
   value: string;
+  amount?: number | null;
+  format?: (next: number) => string;
   tone?: "key" | "loss";
 }) {
+  const shown = amount != null && format ? <CountUp value={amount} format={format} /> : value;
   return (
     <div className="stat">
       <span>{label}</span>
-      <strong className={tone}>{value}</strong>
+      <strong className={tone}>{shown}</strong>
+    </div>
+  );
+}
+
+export function Skeleton({ label }: { label: string }) {
+  return (
+    <div className="skeleton-stack" role="status" aria-label={label}>
+      <span className="skeleton tall" />
+      <span className="skeleton" />
+      <span className="skeleton short" />
+    </div>
+  );
+}
+
+export function ChoiceBar({
+  value,
+  options,
+  onChange,
+  label,
+  layoutId,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+  label: string;
+  layoutId: string;
+}) {
+  const motionReady = useMotionReady();
+  return (
+    <div className="segment" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {value === option.value ? (
+            <motion.span
+              className="segment-indicator"
+              layoutId={motionReady ? layoutId : undefined}
+              transition={spring}
+            />
+          ) : null}
+          <span className="segment-label">{option.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Segment({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: number;
+  options: { value: number; label: string }[];
+  onChange: (value: number) => void;
+  label: string;
+}) {
+  const motionReady = useMotionReady();
+  return (
+    <div className="segment" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {value === option.value ? (
+            <motion.span
+              className="segment-indicator"
+              layoutId={motionReady ? "segment-speed" : undefined}
+              transition={spring}
+            />
+          ) : null}
+          <span className="segment-label">{option.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -70,20 +159,25 @@ export function DataTable({
 
 export function NewsList({ items }: { items: NewsItem[] }) {
   const intl = useIntl();
+  const motionReady = useMotionReady();
   if (items.length === 0) {
     return <p className="muted">{intl.formatMessage({ id: "news.empty" })}</p>;
   }
   return (
-    <ol className="news">
+    <motion.ol className="news" initial={motionReady ? "hidden" : false} animate="show" variants={listVariants}>
       {[...items].reverse().map((item) => (
-        <li key={item.id} className={item.tone === "down" ? "loss" : undefined}>
+        <motion.li
+          key={item.id}
+          className={item.tone === "down" ? "loss" : undefined}
+          variants={motionReady ? itemVariants : undefined}
+        >
           {intl.formatMessage(
             { id: item.template },
             { company: item.company_ko, period: item.period },
           )}
-        </li>
+        </motion.li>
       ))}
-    </ol>
+    </motion.ol>
   );
 }
 
@@ -95,19 +189,20 @@ export function AlertList({
   onOpen: (item: AlertItem) => void;
 }) {
   const intl = useIntl();
+  const motionReady = useMotionReady();
   if (items.length === 0) {
     return <p className="muted">{intl.formatMessage({ id: "alert.empty" })}</p>;
   }
   return (
-    <ul className="alerts">
+    <motion.ul className="alerts" initial={motionReady ? "hidden" : false} animate="show" variants={listVariants}>
       {items.map((item, index) => (
-        <li key={`${item.template}-${item.company_id}-${index}`}>
+        <motion.li key={`${item.template}-${item.company_id}-${index}`} variants={motionReady ? itemVariants : undefined}>
           <button type="button" onClick={() => onOpen(item)}>
             {intl.formatMessage({ id: item.template }, { company: item.company_ko })}
           </button>
-        </li>
+        </motion.li>
       ))}
-    </ul>
+    </motion.ul>
   );
 }
 
@@ -257,17 +352,15 @@ export function ClockBar({
       <button type="button" onClick={onToggle}>
         {intl.formatMessage({ id: paused ? "clock.play" : "clock.pause" })}
       </button>
-      {[1, 2, 4].map((value) => (
-        <button
-          key={value}
-          type="button"
-          className={speed === value && !paused ? "btn-primary" : undefined}
-          aria-pressed={speed === value}
-          onClick={() => onSpeed(value)}
-        >
-          {intl.formatMessage({ id: "clock.speed" }, { speed: value })}
-        </button>
-      ))}
+      <Segment
+        label={intl.formatMessage({ id: "clock.speeds" })}
+        value={paused ? 0 : speed}
+        options={[1, 2, 3].map((value) => ({
+          value,
+          label: intl.formatMessage({ id: "clock.speed" }, { speed: value }),
+        }))}
+        onChange={onSpeed}
+      />
     </div>
   );
 }

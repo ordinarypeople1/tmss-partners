@@ -4,12 +4,14 @@ export function MapPin({
   ariaLabel,
   onSelect,
   kind = "factory",
+  live = false,
 }: {
   selected: boolean;
   glyph: string;
   ariaLabel: string;
   onSelect: () => void;
   kind?: string;
+  live?: boolean;
 }) {
   return (
     <button
@@ -17,6 +19,7 @@ export function MapPin({
       className="pin"
       data-kind={kind}
       data-selected={selected ? "true" : "false"}
+      data-live={live ? "true" : "false"}
       aria-label={ariaLabel}
       onClick={onSelect}
     >
@@ -31,6 +34,7 @@ export function mountMapPin(options: {
   ariaLabel: string;
   onSelect: () => void;
   kind?: string;
+  live?: boolean;
 }): { host: HTMLDivElement } {
   const host = document.createElement("div");
   host.className = "pin-host";
@@ -39,6 +43,7 @@ export function mountMapPin(options: {
   button.className = "pin";
   button.dataset.kind = options.kind ?? "factory";
   button.dataset.selected = options.selected ? "true" : "false";
+  button.dataset.live = options.live ? "true" : "false";
   button.setAttribute("aria-label", options.ariaLabel);
   button.addEventListener("click", options.onSelect);
   const label = document.createElement("span");

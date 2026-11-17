@@ -259,6 +259,16 @@ pub struct Game {
     pub parked: Vec<ParkedFund>,
     #[serde(default)]
     pub active_slot: u8,
+    #[serde(default)]
+    pub activity: Vec<NewsItem>,
+    #[serde(default)]
+    pub index_window: Vec<i64>,
+    #[serde(default = "default_inflation")]
+    pub inflation_bps: i64,
+}
+
+fn default_inflation() -> i64 {
+    220
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -423,6 +433,9 @@ impl Game {
             event_seq: 0,
             parked: Vec::new(),
             active_slot: 0,
+            activity: Vec::new(),
+            index_window: Vec::new(),
+            inflation_bps: default_inflation(),
         };
         for company in &game.companies {
             if company.books.total_assets()
@@ -432,6 +445,8 @@ impl Game {
             }
         }
         game.opening_news();
+        let index = game.market_index();
+        game.index_window = vec![index; 8];
         Ok(game)
     }
 
@@ -457,6 +472,7 @@ impl Game {
             "company" => self.page_company(&cmd),
             "fund" => Ok(self.page_fund()),
             "portfolio" => Ok(self.page_portfolio()),
+            "market" => Ok(self.page_market()),
             "advance_weeks" => {
                 let weeks = cmd.get("weeks").and_then(|v| v.as_i64()).unwrap_or(1);
                 self.advance_weeks(weeks.clamp(1, 13) as i32);
@@ -480,6 +496,20 @@ impl Game {
             "resolve_event" => self.resolve_event(&cmd),
             _ => Err("bad_state"),
         };
+        if result.is_ok()
+            && !matches!(
+                op,
+                "dashboard" | "deals" | "deal" | "companies" | "company" | "fund" | "portfolio" | "market"
+            )
+        {
+            let company_id = json_str(&cmd, "company_id");
+            let name = if company_id.is_empty() {
+                String::new()
+            } else {
+                self.company_name(&company_id)
+            };
+            self.note(&format!("activity.{op}"), &name);
+        }
         match result {
             Ok(page) => self.ok(page),
             Err(code) => self.err(code, Value::Null),
@@ -591,6 +621,9 @@ impl Game {
                 holding.action_used = false;
             }
         }
+        let step = (self.clock.absolute_week / 13) as i64;
+        self.inflation_bps = (180 + (step % 8) * 15).clamp(80, 400);
+        self.remember_index();
     }
 
     fn close_company(&mut self, id: &str, period: &str) -> Option<(String, i64, i64)> {
@@ -1967,6 +2000,9 @@ impl Game {
             "ask_ev": company.filter(|c| self.revealed(&c.id)).map(|_| deal.ask_ev),
             "revenue": company.map(|c| c.books.revenue).unwrap_or(0),
             "total_assets": company.map(|c| c.books.total_assets()).unwrap_or(0),
+            "ebit": company.map(|c| c.books.ebit).unwrap_or(0),
+            "margin_bps": company.map(operating_margin_bps).unwrap_or(0),
+            "motive": motive(deal),
             "ask_size": deal.ask_size,
             "ask_coupon_bps": deal.ask_coupon_bps,
             "weeks_left": deal.weeks_left,
@@ -2132,24 +2168,135 @@ impl Game {
             .map(|h| {
                 let name = self.company_name(&h.company_id);
                 let mark = self.mark(h);
+                let company = self.companies.iter().find(|c| c.id == h.company_id);
+                let issue = if self.open_events.iter().any(|e| !e.resolved && e.company_id == h.company_id) {
+                    "issue"
+                } else if company.is_some_and(|c| !c.management.iter().any(|m| m.role == "ceo")) {
+                    "vacant"
+                } else {
+                    ""
+                };
+                let safety = if h.breached {
+                    "breach"
+                } else if company.is_some_and(|c| debt_ratio_bps(c) > 6_000) {
+                    "watch"
+                } else {
+                    "healthy"
+                };
                 json!({
                     "company_id": h.company_id,
                     "legal_name_ko": name,
+                    "sector_id": company.map(|c| c.sector_id.as_str()).unwrap_or(""),
                     "instrument": h.instrument,
                     "ownership_bps": h.ownership_bps,
                     "cost": h.cost,
                     "distributions": h.distributions,
                     "mark": mark,
+                    "created": mark - h.cost,
+                    "ebit": company.map(|c| c.books.ebit).unwrap_or(0),
+                    "entry_week": h.invested_week,
                     "moic_millis": if h.cost > 0 { (h.distributions + mark) * 1000 / h.cost } else { 0 },
                     "board_seats": h.board_seats,
                     "pending_agm": h.pending_agm,
                     "breached": h.breached,
                     "action_used": h.action_used,
-                    "control": self.is_control(&h.company_id)
+                    "control": self.is_control(&h.company_id),
+                    "issue": issue,
+                    "safety": safety
                 })
             })
             .collect();
-        json!({"kind": "portfolio", "rows": rows, "candidates": self.candidates})
+        let deployed: i64 = self.holdings.iter().filter(|h| h.fund_slot == self.active_slot).map(|h| h.cost).sum();
+        let value: i64 = self.holdings.iter().filter(|h| h.fund_slot == self.active_slot).map(|h| self.mark(h)).sum();
+        let distributed: i64 = self.holdings.iter().filter(|h| h.fund_slot == self.active_slot).map(|h| h.distributions).sum();
+        let inflow: i64 = self
+            .flows
+            .iter()
+            .filter(|f| f.week + 13 >= self.clock.absolute_week)
+            .filter(|f| f.kind == "dividend" || f.kind == "coupon")
+            .map(|f| f.amount.max(0))
+            .sum();
+        json!({
+            "kind": "portfolio",
+            "rows": rows,
+            "candidates": self.candidates,
+            "summary": {
+                "deployed": deployed,
+                "value": value,
+                "moic_millis": if deployed > 0 { (value + distributed) * 1000 / deployed } else { 0 },
+                "monthly": inflow / 3
+            }
+        })
+    }
+
+    fn page_market(&self) -> Value {
+        let mut sectors: Vec<Value> = Vec::new();
+        let mut ids: Vec<String> = self.companies.iter().map(|c| c.sector_id.clone()).collect();
+        ids.sort();
+        ids.dedup();
+        for id in ids {
+            let members: Vec<&Company> = self.companies.iter().filter(|c| c.sector_id == id).collect();
+            let revenue: i64 = members.iter().map(|c| c.books.revenue.max(0)).sum();
+            let index = self.index_of(members.iter().copied());
+            let growth = if revenue > 0 {
+                members.iter().map(|c| c.books.revenue.max(0).saturating_mul(c.drivers.growth_bps)).sum::<i64>() / revenue
+            } else {
+                0
+            };
+            let mut ranked = members.clone();
+            ranked.sort_by_key(|c| -c.books.revenue);
+            let bars: Vec<Value> = ranked
+                .iter()
+                .take(6)
+                .map(|c| {
+                    json!({
+                        "id": c.id,
+                        "name": if c.name_ko.is_empty() { c.legal_name_ko.clone() } else { c.name_ko.clone() },
+                        "bps": if revenue > 0 { c.books.revenue.max(0) * 10_000 / revenue } else { 0 },
+                        "held": self.holdings.iter().any(|h| h.company_id == c.id)
+                    })
+                })
+                .collect();
+            sectors.push(json!({
+                "id": id,
+                "index": index,
+                "revenue": revenue,
+                "growth_bps": growth,
+                "bars": bars
+            }));
+        }
+        let held: Vec<Value> = self
+            .holdings
+            .iter()
+            .filter(|h| h.fund_slot == self.active_slot)
+            .filter_map(|h| {
+                let company = self.companies.iter().find(|c| c.id == h.company_id)?;
+                let peers: Vec<&Company> = self.companies.iter().filter(|c| c.sector_id == company.sector_id).collect();
+                let ahead = peers.iter().filter(|c| c.books.revenue > company.books.revenue).count() as i64;
+                Some(json!({
+                    "id": company.id,
+                    "name": self.company_name(&company.id),
+                    "sector_id": company.sector_id,
+                    "rank": ahead + 1,
+                    "of": peers.len() as i64
+                }))
+            })
+            .collect();
+        let index = self.market_index();
+        json!({
+            "kind": "market",
+            "index": index,
+            "spark": self.index_window,
+            "policy_bps": self.policy_rate_bps,
+            "neutral_bps": self.neutral_rate_bps,
+            "inflation_bps": self.inflation_bps,
+            "ipo": if index >= 108 { "open" } else if index >= 96 { "narrow" } else { "shut" },
+            "lbo_bps": self.policy_rate_bps.saturating_add(450),
+            "live": self.deals.iter().filter(|d| !matches!(d.status.as_str(), "dead" | "closed")).count(),
+            "companies": self.companies.len(),
+            "sectors": sectors,
+            "held": held
+        })
     }
 
     fn fund_summary(&self) -> Value {
@@ -2179,7 +2326,10 @@ impl Game {
             "term_years": self.fund.term_years,
             "vintage_year": self.fund.vintage_year,
             "fund_ii_commitments": self.fund.fund_ii_commitments,
-            "fee_payable": self.fund.fee_payable
+            "fee_payable": self.fund.fee_payable,
+            "overhead_month": (quarterly_management_fee(self.fee_base(), self.fund.fee_bps).unwrap_or(0)
+                + self.fund.expenses_per_quarter)
+                / 3
         })
     }
 
@@ -2192,7 +2342,19 @@ impl Game {
             "holdings": self.holdings.len(),
             "deals": self.deals.iter().filter(|d| !matches!(d.status.as_str(), "dead" | "closed")).count(),
             "seed": self.seed,
-            "events": self.open_events.iter().filter(|e| !e.resolved).collect::<Vec<_>>()
+            "events": self.open_events.iter().filter(|e| !e.resolved).collect::<Vec<_>>(),
+            "activity": self.activity,
+            "economy": {
+                "index": self.market_index(),
+                "spark": self.index_window,
+                "policy_bps": self.policy_rate_bps,
+                "neutral_bps": self.neutral_rate_bps,
+                "inflation_bps": self.inflation_bps
+            },
+            "funds": {
+                "active": self.fund.name_ko,
+                "parked": self.parked.iter().map(|f| f.name_ko.clone()).collect::<Vec<_>>()
+            }
         })
     }
 
@@ -2427,8 +2589,58 @@ impl Game {
                 company_ko: company_ko.into(),
                 period: period.into(),
                 tone: tone.into(),
+                lane: lane_for(template).into(),
             },
         );
+    }
+
+    fn note(&mut self, template: &str, company_ko: &str) {
+        self.news_seq += 1;
+        let period = format!("{}Q{}", self.clock.year, self.clock.quarter);
+        push_news(
+            &mut self.activity,
+            NewsItem {
+                id: self.news_seq,
+                template: template.into(),
+                week: self.clock.absolute_week,
+                company_id: String::new(),
+                company_ko: company_ko.into(),
+                period,
+                tone: "neutral".into(),
+                lane: "ops".into(),
+            },
+        );
+    }
+
+    fn remember_index(&mut self) {
+        self.index_window.push(self.market_index());
+        if self.index_window.len() > 8 {
+            let drop_count = self.index_window.len() - 8;
+            self.index_window.drain(0..drop_count);
+        }
+    }
+
+    fn market_index(&self) -> i64 {
+        self.index_of(self.companies.iter())
+    }
+
+    fn index_of<'a>(&self, companies: impl Iterator<Item = &'a Company>) -> i64 {
+        let mut weighted = 0i64;
+        let mut base = 0i64;
+        for company in companies {
+            let revenue = company.books.revenue.max(0);
+            let floor = company.drivers.base_multiple_millis;
+            if revenue == 0 || floor <= 0 {
+                continue;
+            }
+            weighted = weighted.saturating_add(revenue.saturating_mul(company.books.model_multiple_millis));
+            base = base.saturating_add(revenue.saturating_mul(floor));
+        }
+        if base <= 0 {
+            100
+        } else {
+            (weighted * 100 / base).clamp(40, 180)
+        }
     }
 
     fn record_flow(&mut self, kind: &str, amount: i64, company_id: &str) {
@@ -2522,6 +2734,37 @@ fn json_opt_i64(cmd: &Value, key: &str) -> Option<i64> {
 
 fn in_range(value: i64, low: Option<i64>, high: Option<i64>) -> bool {
     low.is_none_or(|floor| value >= floor) && high.is_none_or(|cap| value <= cap)
+}
+
+fn motive(deal: &Deal) -> &'static str {
+    if deal.seller_kind == "court" || deal.weeks_left <= 8 {
+        "urgent"
+    } else if matches!(deal.seller_kind.as_str(), "pe_exit" | "conglomerate" | "family") {
+        "need"
+    } else {
+        "market"
+    }
+}
+
+fn lane_for(template: &str) -> &'static str {
+    match template {
+        "news.quarter" | "news.opening" | "news.fee" | "news.fund_ii" | "news.distribution" | "news.roadshow" => "macro",
+        "news.ebitda_up" | "news.ebitda_down" | "news.deal_listed" | "news.auction" | "news.auction_lost" => "markets",
+        "news.fraud"
+        | "news.strike"
+        | "news.down_round"
+        | "news.poach"
+        | "news.antitrust"
+        | "news.earnout"
+        | "news.continuation"
+        | "news.stalking"
+        | "news.refi"
+        | "news.covenant"
+        | "news.agm"
+        | "news.agm_missed"
+        | "news.agm_done" => "companies",
+        _ => "deals",
+    }
 }
 
 fn operating_margin_bps(company: &Company) -> i64 {
@@ -2799,6 +3042,31 @@ mod tests {
         assert_eq!(loaded.fund.cash, 2_500);
         assert_eq!(loaded.fund.commitments, 50_000);
         assert_eq!(loaded.news.len(), game.news.len());
+    }
+
+    #[test]
+    fn the_board_hides_the_price_and_the_index_stays_a_multiple() {
+        let mut game = boot_two();
+        for company in &mut game.companies {
+            company.dd_ready_week = 0;
+        }
+        game.clock.absolute_week = 0;
+        let raw = game.handle(r#"{"op":"deals","limit":20}"#);
+        let parsed: Value = serde_json::from_str(&raw).unwrap();
+        let row = &parsed["page"]["rows"][0];
+        assert!(row["ask_ev"].is_null());
+        assert!(row["ebit"].as_i64().is_some());
+        assert!(row["motive"].as_str().is_some());
+        let market = game.handle(r#"{"op":"market"}"#);
+        let page: Value = serde_json::from_str(&market).unwrap();
+        let index = page["page"]["index"].as_i64().unwrap();
+        assert!((40..=180).contains(&index));
+        assert!(page["page"]["spark"].as_array().unwrap().len() <= 8);
+        assert!(page["page"]["lbo_bps"].as_i64().unwrap() > page["page"]["policy_bps"].as_i64().unwrap());
+        for _ in 0..20 {
+            game.handle(r#"{"op":"call_capital","amount":1}"#);
+        }
+        assert!(game.activity.len() <= 16);
     }
 
     #[test]

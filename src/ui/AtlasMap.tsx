@@ -17,7 +17,7 @@ export function AtlasMap({
   onSelect,
   hud,
 }: {
-  pins: { id: string; name: string; lat: number; lon: number; kind: string }[];
+  pins: { id: string; name: string; lat: number; lon: number; kind: string; live?: boolean }[];
   selectedId: string;
   onSelect: (id: string) => void;
   hud?: string;
@@ -45,7 +45,7 @@ export function AtlasMap({
           {
             id: "paper",
             type: "background",
-            paint: { "background-color": "#f3f3f3" },
+            paint: { "background-color": "#f6f3ee" },
           },
         ],
       },
@@ -66,13 +66,13 @@ export function AtlasMap({
       if (!map.getLayer("paper")) {
         return;
       }
-      map.setPaintProperty("paper", "background-color", read("--page", "#f3f3f3"));
+      map.setPaintProperty("paper", "background-color", read("--page", "#f6f3ee"));
       if (map.getLayer("land")) {
-        map.setPaintProperty("land", "fill-color", read("--surface", "#ffffff"));
-        map.setPaintProperty("coast", "line-color", read("--ink", "#000000"));
+        map.setPaintProperty("land", "fill-color", read("--surface", "#fffdfb"));
+        map.setPaintProperty("coast", "line-color", read("--ink", "#1c1714"));
       }
       if (map.getLayer("admin")) {
-        map.setPaintProperty("admin", "line-color", read("--grey", "#8a8a8a"));
+        map.setPaintProperty("admin", "line-color", read("--grey", "#8d847a"));
       }
     };
 
@@ -113,21 +113,21 @@ export function AtlasMap({
             type: "fill",
             source: "world",
             filter: ["==", ["get", "kind"], "land"],
-            paint: { "fill-color": "#ffffff" },
+            paint: { "fill-color": "#fffdfb" },
           });
           map.addLayer({
             id: "coast",
             type: "line",
             source: "world",
             filter: ["==", ["get", "kind"], "land"],
-            paint: { "line-color": "#000000", "line-width": 0.6 },
+            paint: { "line-color": "#1c1714", "line-width": 0.6 },
           });
           map.addLayer({
             id: "admin",
             type: "line",
             source: "world",
             filter: ["==", ["get", "kind"], "admin"],
-            paint: { "line-color": "#8a8a8a", "line-width": 0.7 },
+            paint: { "line-color": "#8d847a", "line-width": 0.7 },
           });
           paint();
           refreshLabels();
@@ -162,6 +162,7 @@ export function AtlasMap({
         kind,
         glyph: intl.formatMessage({ id: `pin.${kind}` }),
         ariaLabel: intl.formatMessage({ id: "pin.select" }, { name: pin.name }),
+        live: pin.live,
         onSelect: () => selectRef.current(pin.id),
       });
       const marker = new maplibregl.Marker({ element: mounted.host }).setLngLat([pin.lon, pin.lat]).addTo(map);
@@ -181,8 +182,8 @@ export function AtlasMap({
   return (
     <section className="map-panel" aria-label={intl.formatMessage({ id: "map.label" })}>
       <div ref={mapNode} className="map" />
-      {hud ? <p className="map-hud">{hud}</p> : null}
-      <p className="map-note">{intl.formatMessage({ id: "map.note" })}</p>
+      {hud ? <p className="map-hud glass">{hud}</p> : null}
+      <p className="map-note glass">{intl.formatMessage({ id: "map.note" })}</p>
     </section>
   );
 }

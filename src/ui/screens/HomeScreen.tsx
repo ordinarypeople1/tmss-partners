@@ -1,7 +1,9 @@
+import { motion } from "motion/react";
 import { useIntl } from "react-intl";
 import { lossTone, money, multiple, percentFromBps } from "../game/format";
 import { useGame } from "../game/session";
 import type { AlertItem } from "../game/types";
+import { itemVariants, listVariants, useMotionReady } from "../motion";
 import { AlertList, NewsList, Stat } from "../widgets";
 
 const CHOICES: Record<string, string[]> = {
@@ -22,6 +24,7 @@ const CHOICES: Record<string, string[]> = {
 export function HomeScreen() {
   const intl = useIntl();
   const { dash, run } = useGame();
+  const motionReady = useMotionReady();
   if (!dash) {
     return null;
   }
@@ -57,22 +60,67 @@ export function HomeScreen() {
       </p>
       <p className="muted">{intl.formatMessage({ id: "fund.markNote" })}</p>
       <div className="stat-strip">
-        <Stat label={intl.formatMessage({ id: "fund.nav" })} value={money(intl, fund.nav)} tone="key" />
-        <Stat label={intl.formatMessage({ id: "fund.dryPowder" })} value={money(intl, fund.dry_powder)} />
-        <Stat label={intl.formatMessage({ id: "fund.called" })} value={money(intl, fund.paid_in)} />
-        <Stat label={intl.formatMessage({ id: "fund.uncalled" })} value={money(intl, fund.uncalled)} />
-        <Stat label={intl.formatMessage({ id: "fund.irr" })} value={percentFromBps(intl, fund.irr_bps)} />
-        <Stat label={intl.formatMessage({ id: "fund.moic" })} value={multiple(intl, fund.moic_millis)} />
-        <Stat label={intl.formatMessage({ id: "fund.dpi" })} value={multiple(intl, fund.dpi_millis)} />
-        <Stat label={intl.formatMessage({ id: "fund.tvpi" })} value={multiple(intl, fund.tvpi_millis)} />
+        <Stat
+          label={intl.formatMessage({ id: "fund.nav" })}
+          value={money(intl, fund.nav)}
+          amount={fund.nav}
+          format={(next) => money(intl, Math.round(next))}
+          tone="key"
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.dryPowder" })}
+          value={money(intl, fund.dry_powder)}
+          amount={fund.dry_powder}
+          format={(next) => money(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.called" })}
+          value={money(intl, fund.paid_in)}
+          amount={fund.paid_in}
+          format={(next) => money(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.uncalled" })}
+          value={money(intl, fund.uncalled)}
+          amount={fund.uncalled}
+          format={(next) => money(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.irr" })}
+          value={percentFromBps(intl, fund.irr_bps)}
+          amount={fund.irr_bps}
+          format={(next) => percentFromBps(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.moic" })}
+          value={multiple(intl, fund.moic_millis)}
+          amount={fund.moic_millis}
+          format={(next) => multiple(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.dpi" })}
+          value={multiple(intl, fund.dpi_millis)}
+          amount={fund.dpi_millis}
+          format={(next) => multiple(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.tvpi" })}
+          value={multiple(intl, fund.tvpi_millis)}
+          amount={fund.tvpi_millis}
+          format={(next) => multiple(intl, Math.round(next))}
+        />
         <Stat
           label={intl.formatMessage({ id: "fund.cash" })}
           value={money(intl, fund.cash)}
+          amount={fund.cash}
+          format={(next) => money(intl, Math.round(next))}
           tone={lossTone(fund.cash)}
         />
         <Stat
           label={intl.formatMessage({ id: "fund.reputation" })}
           value={intl.formatNumber(fund.reputation)}
+          amount={fund.reputation}
+          format={(next) => intl.formatNumber(Math.round(next))}
           tone="key"
         />
       </div>
@@ -89,8 +137,9 @@ export function HomeScreen() {
           )}
         </h2>
         {(dash.events ?? []).length === 0 ? <p className="muted">{intl.formatMessage({ id: "alert.empty" })}</p> : null}
+        <motion.div className="card-list" initial={motionReady ? "hidden" : false} animate="show" variants={listVariants}>
         {(dash.events ?? []).map((event) => (
-          <article key={event.id} className="event-card">
+          <motion.article key={event.id} className="event-card" variants={motionReady ? itemVariants : undefined}>
             <h3>{intl.formatMessage({ id: `news.${event.kind}` }, { company: event.company_ko, period: "" })}</h3>
             <div className="hero-actions">
               {(CHOICES[event.kind] ?? []).map((choice) => (
@@ -104,8 +153,9 @@ export function HomeScreen() {
                 </button>
               ))}
             </div>
-          </article>
+          </motion.article>
         ))}
+        </motion.div>
       </section>
       <div className="split">
         <section>

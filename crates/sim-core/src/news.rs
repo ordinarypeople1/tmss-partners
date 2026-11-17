@@ -14,6 +14,8 @@ pub struct NewsItem {
     pub company_ko: String,
     pub period: String,
     pub tone: String,
+    #[serde(default)]
+    pub lane: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -52,6 +54,7 @@ mod tests {
                     company_ko: String::new(),
                     period: String::new(),
                     tone: "neutral".into(),
+                    lane: "macro".into(),
                 },
             );
         }

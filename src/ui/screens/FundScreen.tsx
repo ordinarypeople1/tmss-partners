@@ -3,7 +3,7 @@ import { useIntl } from "react-intl";
 import { money, multiple, percentFromBps } from "../game/format";
 import { useGame } from "../game/session";
 import type { DistributionPage, FundPage } from "../game/types";
-import { DataTable, Stat } from "../widgets";
+import { DataTable, Skeleton, Stat } from "../widgets";
 
 export function FundScreen() {
   const intl = useIntl();
@@ -25,7 +25,7 @@ export function FundScreen() {
   }, [run, epoch]);
 
   if (!page) {
-    return <p>{intl.formatMessage({ id: "company.loading" })}</p>;
+    return <Skeleton label={intl.formatMessage({ id: "company.loading" })} />;
   }
   const fund = page.summary;
   const shown = split ?? null;
@@ -35,14 +35,42 @@ export function FundScreen() {
       <h2>{fund.name_ko}</h2>
       <p className="muted">{intl.formatMessage({ id: "fund.waterfallNote" })}</p>
       <div className="stat-strip">
-        <Stat label={intl.formatMessage({ id: "fund.nav" })} value={money(intl, fund.nav)} tone="key" />
-        <Stat label={intl.formatMessage({ id: "fund.cash" })} value={money(intl, fund.cash)} />
-        <Stat label={intl.formatMessage({ id: "fund.dpi" })} value={multiple(intl, fund.dpi_millis)} />
-        <Stat label={intl.formatMessage({ id: "fund.tvpi" })} value={multiple(intl, fund.tvpi_millis)} />
-        <Stat label={intl.formatMessage({ id: "fund.irr" })} value={percentFromBps(intl, fund.irr_bps)} />
+        <Stat
+          label={intl.formatMessage({ id: "fund.nav" })}
+          value={money(intl, fund.nav)}
+          amount={fund.nav}
+          format={(next) => money(intl, Math.round(next))}
+          tone="key"
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.cash" })}
+          value={money(intl, fund.cash)}
+          amount={fund.cash}
+          format={(next) => money(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.dpi" })}
+          value={multiple(intl, fund.dpi_millis)}
+          amount={fund.dpi_millis}
+          format={(next) => multiple(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.tvpi" })}
+          value={multiple(intl, fund.tvpi_millis)}
+          amount={fund.tvpi_millis}
+          format={(next) => multiple(intl, Math.round(next))}
+        />
+        <Stat
+          label={intl.formatMessage({ id: "fund.irr" })}
+          value={percentFromBps(intl, fund.irr_bps)}
+          amount={fund.irr_bps}
+          format={(next) => percentFromBps(intl, Math.round(next))}
+        />
         <Stat
           label={intl.formatMessage({ id: "fund.reputation" })}
           value={intl.formatNumber(fund.reputation)}
+          amount={fund.reputation}
+          format={(next) => intl.formatNumber(Math.round(next))}
           tone="key"
         />
       </div>

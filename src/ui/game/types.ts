@@ -30,6 +30,7 @@ export interface FundSummary {
   vintage_year: number;
   fund_ii_commitments: number;
   fee_payable: number;
+  overhead_month?: number;
 }
 
 export interface NewsItem {
@@ -40,6 +41,15 @@ export interface NewsItem {
   company_ko: string;
   period: string;
   tone: string;
+  lane?: string;
+}
+
+export interface Economy {
+  index: number;
+  spark: number[];
+  policy_bps: number;
+  neutral_bps: number;
+  inflation_bps: number;
 }
 
 export interface AlertItem {
@@ -68,6 +78,9 @@ export interface Dashboard {
   deals: number;
   seed: number;
   events?: GameEvent[];
+  activity?: NewsItem[];
+  economy?: Economy;
+  funds?: { active: string; parked: string[] };
 }
 
 export interface CommandResult {
@@ -84,6 +97,7 @@ export type PageBody =
   | CompanyPage
   | FundPage
   | PortfolioPage
+  | MarketPage
   | DistributionPage
   | ExitPage;
 
@@ -113,6 +127,9 @@ export interface DealRow {
   competing_ev: number;
   competitor_ko: string;
   locked: boolean;
+  ebit?: number;
+  margin_bps?: number;
+  motive?: string;
 }
 
 export interface Terms {
@@ -353,23 +370,75 @@ export interface FundPage {
 export interface HoldingRow {
   company_id: string;
   legal_name_ko: string;
+  sector_id?: string;
   instrument: string;
   ownership_bps: number;
   cost: number;
   distributions: number;
   mark: number;
+  created?: number;
+  ebit?: number;
+  entry_week?: number;
   moic_millis: number;
   board_seats: number;
   pending_agm: boolean;
   breached: boolean;
   action_used: boolean;
   control: boolean;
+  issue?: string;
+  safety?: string;
+}
+
+export interface PortfolioSummary {
+  deployed: number;
+  value: number;
+  moic_millis: number;
+  monthly: number;
 }
 
 export interface PortfolioPage {
   kind: "portfolio";
   rows: HoldingRow[];
   candidates: Candidate[];
+  summary?: PortfolioSummary;
+}
+
+export interface MarketBar {
+  id: string;
+  name: string;
+  bps: number;
+  held: boolean;
+}
+
+export interface MarketSector {
+  id: string;
+  index: number;
+  revenue: number;
+  growth_bps: number;
+  bars: MarketBar[];
+}
+
+export interface MarketHeld {
+  id: string;
+  name: string;
+  sector_id: string;
+  rank: number;
+  of: number;
+}
+
+export interface MarketPage {
+  kind: "market";
+  index: number;
+  spark: number[];
+  policy_bps: number;
+  neutral_bps: number;
+  inflation_bps: number;
+  ipo: string;
+  lbo_bps: number;
+  live: number;
+  companies: number;
+  sectors: MarketSector[];
+  held: MarketHeld[];
 }
 
 export interface DistributionPage {
@@ -397,14 +466,16 @@ export type Route =
   | { name: "companies" }
   | { name: "company"; id: string }
   | { name: "fund" }
-  | { name: "portfolio" };
+  | { name: "portfolio" }
+  | { name: "market" }
+  | { name: "room" };
 
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#\/?/, "");
   const [name, id] = path.split("/");
   if (name === "deal" && id) return { name: "deal", id: decodeURIComponent(id) };
   if (name === "company" && id) return { name: "company", id: decodeURIComponent(id) };
-  if (name === "deals" || name === "companies" || name === "fund" || name === "portfolio") {
+  if (name === "deals" || name === "companies" || name === "fund" || name === "portfolio" || name === "market" || name === "room") {
     return { name };
   }
   return { name: "home" };
