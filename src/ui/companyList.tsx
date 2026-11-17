@@ -1,5 +1,6 @@
 import { useIntl } from "react-intl";
 import type { CompanyCard } from "../data/page";
+import { shortName } from "./game/format";
 
 export function CompanyList({
   cards,
@@ -21,7 +22,7 @@ export function CompanyList({
             aria-pressed={card.id === selectedId}
             onClick={() => onSelect(card.id)}
           >
-            <span>{card.legal_name_ko}</span>
+            <span>{shortName(card.legal_name_ko)}</span>
             <small>
               {intl.formatMessage({ id: `sector.${card.sector_id}` })}
               {" · "}

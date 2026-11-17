@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useIntl } from "react-intl";
+import { shortName } from "../src/ui/game/format";
 import { MapPin } from "../src/ui/mapPin";
 import { sampleCards } from "./sample";
 
@@ -10,7 +11,7 @@ function PinStory({ selected, warehouse }: { selected: boolean; warehouse: boole
     <MapPin
       selected={selected}
       glyph={intl.formatMessage({ id: warehouse ? "pin.warehouse" : "pin.factory" })}
-      ariaLabel={intl.formatMessage({ id: "pin.select" }, { name: card.legal_name_ko })}
+      ariaLabel={intl.formatMessage({ id: "pin.select" }, { name: shortName(card.legal_name_ko) })}
       onSelect={() => undefined}
     />
   );

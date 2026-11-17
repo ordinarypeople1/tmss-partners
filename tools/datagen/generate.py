@@ -78,8 +78,13 @@ def model_multiple(
     return round(clamp(raw, industry.multiple_floor, industry.multiple_cap), 2)
 
 
-def make_name(rng: random.Random, sector_id: str, used: set[str]) -> str:
-    cores = NAME_CORES[sector_id]
+def make_name(
+    rng: random.Random,
+    sector_id: str,
+    used: set[str],
+    cores_by_sector: dict[str, tuple[str, ...]] | None = None,
+) -> str:
+    cores = (cores_by_sector or NAME_CORES)[sector_id]
     for _ in range(50):
         name = f"{rng.choice(NAME_STEMS)}{rng.choice(cores)}"
         if name in used:
@@ -300,14 +305,19 @@ def build_document(
     start_year: int,
     policy_rate: float,
     neutral_rate: float,
+    industries: tuple | list | None = None,
+    regions: tuple | list | None = None,
+    name_cores: dict[str, tuple[str, ...]] | None = None,
 ) -> dict:
+    industry_rows = list(industries or INDUSTRIES)
+    region_rows = list(regions or REGION_BOXES)
     rng = random.Random(seed)
     used_names: set[str] = set()
     companies = []
     for index in range(count):
-        industry = INDUSTRIES[index % len(INDUSTRIES)]
-        region = REGION_BOXES[index % len(REGION_BOXES)]
-        name = make_name(rng, industry.sector_id, used_names)
+        industry = industry_rows[index % len(industry_rows)]
+        region = region_rows[index % len(region_rows)]
+        name = make_name(rng, industry.sector_id, used_names, name_cores)
         state = opening_state(rng, industry, policy_rate)
         base_multiple = clamp(
             rng.gauss(industry.base_multiple_mean, industry.base_multiple_std),
@@ -316,6 +326,7 @@ def build_document(
         )
         lat = round(rng.uniform(*region["lat"]), 2)
         lon = round(rng.uniform(*region["lon"]), 2)
+        legal_prefix = region.get("legal_prefix", "주식회사 ")
         series = []
         for quarter_index, period in enumerate(period_labels(start_year, 1, quarters)):
             quarter, state = step_quarter(
@@ -333,7 +344,9 @@ def build_document(
             {
                 "id": f"co-{index + 1:03d}",
                 "name_ko": name,
-                "legal_name_ko": f"주식회사 {name}",
+                "legal_name_ko": f"{legal_prefix}{name}",
+                "country": region.get("country", "KR"),
+                "subindustry_id": region.get("subindustry_id", industry.sector_id),
                 "sector_id": industry.sector_id,
                 "sector_label_ko": industry.label_ko,
                 "region_label_ko": region["label_ko"],
@@ -367,12 +380,12 @@ def build_document(
             "neutral_rate": neutral_rate,
             "note": "Placeholder rate regime. Not a published Bank of Korea series.",
         },
-        "industries": [item.to_public_dict() for item in INDUSTRIES],
+        "industries": [item.to_public_dict() for item in industry_rows],
         "companies": companies,
     }
 
 
-def validate(document: dict) -> list[str]:
+def validate(document: dict, korea_box: bool = True) -> list[str]:
     errors: list[str] = []
     if document.get("placeholder_parameters") is not True:
         errors.append("placeholder flag missing")
@@ -387,8 +400,10 @@ def validate(document: dict) -> list[str]:
             errors.append(f"{company['id']} exposes a market price field")
         if any(token in company["name_ko"] for token in NAME_DENYLIST):
             errors.append(f"{company['id']} name hit the denylist")
-        if not (33.0 <= company["lat"] <= 39.5 and 124.0 <= company["lon"] <= 132.0):
+        if korea_box and not (33.0 <= company["lat"] <= 39.5 and 124.0 <= company["lon"] <= 132.0):
             errors.append(f"{company['id']} is outside the Korea box")
+        if not (-60.0 <= company["lat"] <= 75.0 and -170.0 <= company["lon"] <= 180.0):
+            errors.append(f"{company['id']} is outside the world box")
         previous_cash = None
         previous_re = None
         for quarter in company["quarters"]:

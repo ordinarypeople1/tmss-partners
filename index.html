@@ -12,6 +12,16 @@
     <link rel="icon" href="%BASE_URL%icons/icon-192.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-180.png" />
     <title>Deal Atlas</title>
+    <script>
+      try {
+        var theme = localStorage.getItem("deal-atlas-theme");
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        /* keep the system theme */
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

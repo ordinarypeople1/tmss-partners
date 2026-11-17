@@ -68,7 +68,13 @@ pub struct Manager {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Company {
     pub id: String,
+    #[serde(default)]
+    pub name_ko: String,
     pub legal_name_ko: String,
+    #[serde(default)]
+    pub country: String,
+    #[serde(default)]
+    pub subindustry_id: String,
     pub sector_id: String,
     pub region_label_ko: String,
     pub complex_name_ko: String,
@@ -92,6 +98,9 @@ pub struct Company {
     pub pending_sale: i64,
     #[serde(default)]
     pub pending_sga: i64,
+    /// Absolute week when diligence finishes. 0 means it has not started.
+    #[serde(default)]
+    pub dd_ready_week: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,6 +184,8 @@ pub struct Holding {
     pub pending_agm: bool,
     pub action_used: bool,
     pub breached: bool,
+    #[serde(default)]
+    pub fund_slot: u8,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -240,6 +251,36 @@ pub struct Game {
     pub flows: Vec<Flow>,
     pub lp_quarters: Vec<i64>,
     pub cleared: Vec<Cleared>,
+    #[serde(default)]
+    pub open_events: Vec<GameEvent>,
+    #[serde(default)]
+    pub event_seq: i64,
+    #[serde(default)]
+    pub parked: Vec<ParkedFund>,
+    #[serde(default)]
+    pub active_slot: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GameEvent {
+    pub id: i64,
+    pub kind: String,
+    pub company_id: String,
+    pub company_ko: String,
+    pub week: i64,
+    pub resolved: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParkedFund {
+    pub slot: u8,
+    pub name_ko: String,
+    pub commitments: i64,
+    pub paid_in: i64,
+    pub cash: i64,
+    pub nav: i64,
+    pub dpi_millis: i64,
+    pub lp_distributed: i64,
 }
 
 #[derive(Deserialize)]
@@ -378,6 +419,10 @@ impl Game {
             flows: Vec::new(),
             lp_quarters: vec![0],
             cleared: Vec::new(),
+            open_events: Vec::new(),
+            event_seq: 0,
+            parked: Vec::new(),
+            active_slot: 0,
         };
         for company in &game.companies {
             if company.books.total_assets()
@@ -431,6 +476,8 @@ impl Game {
             "agm" => self.resolve_agm(&cmd),
             "board" => self.board(&cmd),
             "raise_fund_ii" => self.raise_fund_ii(),
+            "start_dd" => self.start_dd(&cmd),
+            "resolve_event" => self.resolve_event(&cmd),
             _ => Err("bad_state"),
         };
         match result {
@@ -522,6 +569,8 @@ impl Game {
         self.reputation_tick();
         self.lp_quarters.push(0);
         self.push("news.quarter", "", "", &period, "neutral");
+        self.maybe_list_deal();
+        self.maybe_open_event();
         if self.clock.quarter == 1 {
             let held: Vec<String> = self
                 .holdings
@@ -627,14 +676,16 @@ impl Game {
             )
             .unwrap_or(0);
             if coupon > 0 {
-                self.fund.cash += coupon;
+                let slot = self.holdings[index].fund_slot;
+                self.credit_slot(slot, coupon);
                 self.holdings[index].distributions += coupon;
                 self.record_flow("coupon", coupon, company_id);
             }
         } else {
             let share = mul_div(dividend, self.holdings[index].ownership_bps, 10_000).unwrap_or(0);
             if share > 0 {
-                self.fund.cash += share;
+                let slot = self.holdings[index].fund_slot;
+                self.credit_slot(slot, share);
                 self.holdings[index].distributions += share;
                 self.record_flow("dividend", share, company_id);
             }
@@ -656,6 +707,16 @@ impl Game {
                 self.fund.reputation = (self.fund.reputation - 40).max(0);
                 let name = self.company_name(company_id);
                 self.push("news.covenant", company_id, &name, "", "down");
+                self.event_seq += 1;
+                let id = self.event_seq;
+                self.open_events.push(GameEvent {
+                    id,
+                    kind: "covenant".into(),
+                    company_id: company_id.into(),
+                    company_ko: name,
+                    week: self.clock.absolute_week,
+                    resolved: false,
+                });
             } else if !breach {
                 self.holdings[index].breached = false;
             }
@@ -790,6 +851,9 @@ impl Game {
         if !access_allowed(&self.deals[index].access, self.fund.reputation) {
             return Err("access");
         }
+        if !self.revealed(&self.deals[index].company_id) {
+            return Err("dd_required");
+        }
         if matches!(self.deals[index].status.as_str(), "closed" | "dead") {
             return Err("closed");
         }
@@ -829,6 +893,9 @@ impl Game {
     fn hold_ic(&mut self, cmd: &Value) -> Result<Value, &'static str> {
         let id = json_str(cmd, "id");
         let index = self.deal_index(&id).ok_or("not_found")?;
+        if !self.revealed(&self.deals[index].company_id) {
+            return Err("dd_required");
+        }
         self.apply_terms(index, cmd);
         if !matches!(self.deals[index].status.as_str(), "loi" | "ioi" | "ic_hold" | "countered") {
             return Err("bad_state");
@@ -968,6 +1035,7 @@ impl Game {
             pending_agm: false,
             action_used: false,
             breached: false,
+            fund_slot: self.active_slot,
         });
         let name = self.company_name(&deal.company_id);
         self.deals[index].status = "closed".into();
@@ -1234,14 +1302,454 @@ impl Game {
     }
 
     fn raise_fund_ii(&mut self) -> Result<Value, &'static str> {
-        if self.fund.fund_ii_commitments > 0 || !self.fund_ii_ready() {
+        if !self.fund_ii_ready() {
             return Err("bad_state");
         }
-        let size = (self.fund.commitments * self.fund.reputation / 620).clamp(20_000, 80_000);
+        let size = (self.fund.commitments * self.fund.reputation / 620).clamp(20_000, 120_000);
+        let nav = self.nav();
+        let dpi = self.dpi().unwrap_or(0);
+        self.parked.push(ParkedFund {
+            slot: self.active_slot,
+            name_ko: self.fund.name_ko.clone(),
+            commitments: self.fund.commitments,
+            paid_in: self.fund.paid_in,
+            cash: self.fund.cash,
+            nav,
+            dpi_millis: dpi,
+            lp_distributed: self.fund.lp_distributed,
+        });
+        self.active_slot = self.active_slot.saturating_add(1);
+        self.fund.name_ko = "IV호".into();
+        self.fund.commitments = size;
+        self.fund.paid_in = 0;
+        self.fund.cash = 0;
+        self.fund.lp_distributed = 0;
+        self.fund.gp_distributed = 0;
+        self.fund.roc_paid = 0;
+        self.fund.pref_accrued = 0;
+        self.fund.pref_paid = 0;
+        self.fund.gp_carry = 0;
+        self.fund.invested_cost = 0;
+        self.fund.fee_payable = 0;
+        self.fund.vintage_year = self.clock.year;
         self.fund.fund_ii_commitments = size;
         self.fund.reputation = (self.fund.reputation + 20).min(1_000);
+        self.lp_quarters = vec![0];
         self.push("news.fund_ii", "", "", "", "up");
         Ok(self.page_fund())
+    }
+
+    fn credit_slot(&mut self, slot: u8, amount: i64) {
+        if slot == self.active_slot {
+            self.fund.cash += amount;
+            return;
+        }
+        if let Some(parked) = self.parked.iter_mut().find(|row| row.slot == slot) {
+            parked.cash += amount;
+            parked.nav += amount;
+        }
+    }
+
+    fn revealed(&self, company_id: &str) -> bool {
+        if self.holdings.iter().any(|h| h.company_id == company_id) {
+            return true;
+        }
+        self.companies.iter().any(|c| {
+            c.id == company_id && c.dd_ready_week > 0 && c.dd_ready_week <= self.clock.absolute_week
+        })
+    }
+
+    fn start_dd(&mut self, cmd: &Value) -> Result<Value, &'static str> {
+        let company_id = if json_str(cmd, "company_id").is_empty() {
+            let deal_id = json_str(cmd, "id");
+            self.deals
+                .iter()
+                .find(|d| d.id == deal_id)
+                .map(|d| d.company_id.clone())
+                .ok_or("not_found")?
+        } else {
+            json_str(cmd, "company_id")
+        };
+        if self.revealed(&company_id) {
+            return Err("bad_state");
+        }
+        let index = self
+            .companies
+            .iter()
+            .position(|c| c.id == company_id)
+            .ok_or("not_found")?;
+        if self.companies[index].dd_ready_week > self.clock.absolute_week {
+            return Err("bad_state");
+        }
+        let cost = (self.companies[index].books.revenue / 200).clamp(30, 400);
+        if self.fund.cash < cost {
+            return Err("need_capital");
+        }
+        self.fund.cash -= cost;
+        self.record_flow("expense", -cost, &company_id);
+        self.companies[index].dd_ready_week = self.clock.absolute_week + 6;
+        let name = self.company_name(&company_id);
+        self.push("news.dd", &company_id, &name, "", "neutral");
+        if json_str(cmd, "id").is_empty() {
+            self.page_company_id(&company_id)
+        } else {
+            self.page_deal_id(&json_str(cmd, "id"))
+        }
+    }
+
+    fn maybe_list_deal(&mut self) {
+        let live = self
+            .deals
+            .iter()
+            .filter(|d| !matches!(d.status.as_str(), "dead" | "closed"))
+            .count();
+        let cap = (self.companies.len() / 10).clamp(5, 12);
+        if live >= cap {
+            return;
+        }
+        let candidates: Vec<String> = self
+            .companies
+            .iter()
+            .filter(|c| {
+                !self.holdings.iter().any(|h| h.company_id == c.id)
+                    && !self.deals.iter().any(|d| {
+                        d.company_id == c.id && !matches!(d.status.as_str(), "dead" | "closed")
+                    })
+            })
+            .map(|c| c.id.clone())
+            .collect();
+        if candidates.is_empty() {
+            return;
+        }
+        let pick = candidates[(self.roll() as usize) % candidates.len()].clone();
+        self.spawn_deal(&pick);
+    }
+
+    fn spawn_deal(&mut self, company_id: &str) {
+        let Some(company) = self.companies.iter().find(|c| c.id == company_id) else {
+            return;
+        };
+        let ebitda = company.books.ebitda.max(1);
+        let ask_ev = enterprise_value(ebitda, company.books.model_multiple_millis).unwrap_or(ebitda * 6);
+        let stage = company.approach_stage.clone();
+        let instrument = company.approach_instrument.clone();
+        let seller_kind = company.owner_kind.clone();
+        let coupon = if instrument == "senior_loan" { 900 } else { 0 };
+        let id = format!("dl-{:03}", self.deals.len() + 1);
+        let weeks = 20 + (self.roll() % 16) as i64;
+        let deal = DealBoot {
+            id,
+            company_id: company_id.into(),
+            stage,
+            process: if instrument == "buyout" { "auction".into() } else { "bilateral".into() },
+            access: "open".into(),
+            seller_kind,
+            broker_id: String::new(),
+            instrument,
+            ask_ev,
+            ask_size: ask_ev.max(200),
+            ask_coupon_bps: coupon,
+            weeks_left: weeks,
+            competing_ev: 0,
+            competitor_ko: String::new(),
+        };
+        let name = self.company_name(company_id);
+        self.deals.push(shape_deal(deal));
+        self.push("news.deal_listed", company_id, &name, "", "neutral");
+    }
+
+    fn maybe_open_event(&mut self) {
+        if self.open_events.iter().filter(|e| !e.resolved).count() >= 3 {
+            return;
+        }
+        let roll = self.roll() % 11;
+        let mut kind = match roll {
+            0 => "fraud",
+            1 => "strike",
+            2 => "down_round",
+            3 => "poach",
+            4 => "antitrust",
+            5 => "earnout",
+            6 => "continuation",
+            7 => "stalking",
+            8 => "auction",
+            9 => "roadshow",
+            _ => "refi",
+        };
+        let mut company_id = self.event_target(kind);
+        if company_id.is_empty() {
+            kind = "roadshow";
+            company_id = "fund".into();
+        }
+        if self.open_events.iter().any(|e| !e.resolved && e.company_id == company_id && e.kind == kind) {
+            return;
+        }
+        self.event_seq += 1;
+        let id = self.event_seq;
+        let name = self.company_name(&company_id);
+        self.open_events.push(GameEvent {
+            id,
+            kind: kind.into(),
+            company_id: company_id.clone(),
+            company_ko: name.clone(),
+            week: self.clock.absolute_week,
+            resolved: false,
+        });
+        self.push(&format!("news.{kind}"), &company_id, &name, "", "down");
+    }
+
+    fn event_target(&self, kind: &str) -> String {
+        match kind {
+            "fraud" | "strike" | "earnout" | "poach" => self
+                .holdings
+                .iter()
+                .find(|h| h.fund_slot == self.active_slot || self.parked.is_empty())
+                .map(|h| h.company_id.clone())
+                .unwrap_or_default(),
+            "down_round" => self
+                .holdings
+                .iter()
+                .find(|h| h.instrument == "rcps" || h.instrument == "common")
+                .map(|h| h.company_id.clone())
+                .unwrap_or_default(),
+            "antitrust" => self
+                .deals
+                .iter()
+                .find(|d| d.status == "loi" || d.status == "ic_ok")
+                .map(|d| d.company_id.clone())
+                .unwrap_or_default(),
+            "stalking" => self
+                .deals
+                .iter()
+                .find(|d| d.stage == "distressed" && d.status == "listed")
+                .map(|d| d.company_id.clone())
+                .unwrap_or_default(),
+            "continuation" => {
+                if self.holdings.is_empty() {
+                    String::new()
+                } else {
+                    self.holdings[0].company_id.clone()
+                }
+            }
+            "auction" => self
+                .deals
+                .iter()
+                .find(|d| d.process == "auction" && d.status == "listed")
+                .map(|d| d.company_id.clone())
+                .unwrap_or_default(),
+            "roadshow" => "fund".into(),
+            "refi" => self
+                .holdings
+                .iter()
+                .find(|h| {
+                    self.companies
+                        .iter()
+                        .find(|c| c.id == h.company_id)
+                        .is_some_and(|c| c.books.debt > c.books.ebitda * 8)
+                })
+                .map(|h| h.company_id.clone())
+                .unwrap_or_default(),
+            _ => String::new(),
+        }
+    }
+
+    fn resolve_event(&mut self, cmd: &Value) -> Result<Value, &'static str> {
+        let id = json_i64(cmd, "id");
+        let choice = json_str(cmd, "choice");
+        let index = self
+            .open_events
+            .iter()
+            .position(|e| e.id == id && !e.resolved)
+            .ok_or("not_found")?;
+        let kind = self.open_events[index].kind.clone();
+        let company_id = self.open_events[index].company_id.clone();
+        self.apply_event(&kind, &choice, &company_id)?;
+        self.open_events[index].resolved = true;
+        let name = self.company_name(&company_id);
+        self.push("news.event_done", &company_id, &name, &kind, "neutral");
+        Ok(json!({"kind": "event", "id": id, "choice": choice, "event_kind": kind}))
+    }
+
+    fn apply_event(&mut self, kind: &str, choice: &str, company_id: &str) -> Result<(), &'static str> {
+        match (kind, choice) {
+            ("fraud", "report") => {
+                self.write_off(company_id, 80);
+                self.fund.reputation = (self.fund.reputation - 10).max(0);
+            }
+            ("fraud", "hide") => {
+                self.write_off(company_id, 180);
+                self.fund.reputation = (self.fund.reputation - 40).max(0);
+            }
+            ("strike", "settle") => {
+                self.write_off(company_id, 60);
+            }
+            ("strike", "replace") => {
+                self.shock_growth(company_id, -200);
+                self.fund.reputation = (self.fund.reputation - 15).max(0);
+            }
+            ("antitrust", "conditions") => {
+                if let Some(deal) = self.deals.iter_mut().find(|d| d.company_id == company_id && d.status != "closed") {
+                    deal.weeks_left += 8;
+                    deal.conditions = true;
+                }
+                self.fund.reputation = (self.fund.reputation - 5).max(0);
+            }
+            ("antitrust", "walk") => {
+                if let Some(deal) = self.deals.iter_mut().find(|d| d.company_id == company_id && d.status != "closed") {
+                    deal.status = "dead".into();
+                }
+                self.fund.reputation = (self.fund.reputation - 8).max(0);
+            }
+            ("down_round", "follow") => {
+                self.follow_on(company_id, 7000, 400);
+            }
+            ("down_round", "hold") => {
+                if let Some(holding) = self.holdings.iter_mut().find(|h| h.company_id == company_id) {
+                    holding.ownership_bps = holding.ownership_bps * 50 / 100;
+                }
+                self.fund.reputation = (self.fund.reputation - 5).max(0);
+            }
+            ("earnout", "pay") => {
+                let cost = 150;
+                if self.fund.cash < cost {
+                    return Err("need_capital");
+                }
+                self.fund.cash -= cost;
+                self.record_flow("expense", -cost, company_id);
+            }
+            ("earnout", "litigate") => {
+                self.fund.reputation = (self.fund.reputation - 12).max(0);
+            }
+            ("poach", "pay") => {
+                let cost = 40;
+                if self.fund.cash < cost {
+                    return Err("need_capital");
+                }
+                self.fund.cash -= cost;
+                self.record_flow("expense", -cost, "");
+            }
+            ("poach", "let") => {
+                self.shock_growth(company_id, -80);
+                self.fund.reputation = (self.fund.reputation - 6).max(0);
+            }
+            ("continuation", "roll") => {
+                self.push("news.transfer", company_id, &self.company_name(company_id), "", "neutral");
+                self.cleared.push(Cleared {
+                    week: self.clock.absolute_week,
+                    company_id: company_id.into(),
+                    kind: "transfer".into(),
+                    ev: 0,
+                    proceeds: 0,
+                });
+            }
+            ("continuation", "cash") => {
+                self.fund.reputation = (self.fund.reputation + 5).min(1_000);
+            }
+            ("stalking", "bid") => {
+                if let Some(deal) = self.deals.iter_mut().find(|d| d.company_id == company_id) {
+                    deal.access = "open".into();
+                    deal.weeks_left += 6;
+                }
+            }
+            ("stalking", "pass") => {}
+            ("refi", "extend") => {
+                if let Some(company) = self.companies.iter_mut().find(|c| c.id == company_id) {
+                    company.drivers.interest_rate_bps += 80;
+                }
+                let fee = 25;
+                if self.fund.cash >= fee {
+                    self.fund.cash -= fee;
+                    self.record_flow("expense", -fee, company_id);
+                }
+            }
+            ("refi", "wait") => {
+                self.fund.reputation = (self.fund.reputation - 4).max(0);
+            }
+            ("auction", "raise") => {
+                if let Some(deal) = self.deals.iter_mut().find(|d| d.company_id == company_id && d.status != "closed") {
+                    deal.competing_ev = 0;
+                    deal.weeks_left += 4;
+                }
+                self.fund.reputation = (self.fund.reputation + 2).min(1000);
+            }
+            ("auction", "walk") => {
+                if let Some(deal) = self.deals.iter_mut().find(|d| d.company_id == company_id && d.status != "closed") {
+                    deal.status = "dead".into();
+                }
+            }
+            ("roadshow", "extend") => {
+                self.fund.reputation = (self.fund.reputation + 6).min(1000);
+            }
+            ("roadshow", "delay") => {
+                self.fund.reputation = (self.fund.reputation - 8).max(0);
+            }
+            ("covenant", "cure") => {
+                let cure = 100;
+                if self.fund.cash < cure {
+                    return Err("need_capital");
+                }
+                self.fund.cash -= cure;
+                self.record_flow("invest", -cure, company_id);
+                if let Some(company) = self.companies.iter_mut().find(|c| c.id == company_id) {
+                    company.books.cash += cure;
+                    company.books.retained += cure;
+                }
+                if let Some(holding) = self.holdings.iter_mut().find(|h| h.company_id == company_id) {
+                    holding.breached = false;
+                }
+            }
+            ("covenant", "waive") => {
+                let fee = 20;
+                if self.fund.cash < fee {
+                    return Err("need_capital");
+                }
+                self.fund.cash -= fee;
+                self.record_flow("expense", -fee, company_id);
+                self.fund.reputation = (self.fund.reputation - 8).max(0);
+                if let Some(holding) = self.holdings.iter_mut().find(|h| h.company_id == company_id) {
+                    holding.breached = false;
+                }
+            }
+            _ => return Err("bad_state"),
+        }
+        Ok(())
+    }
+
+    fn write_off(&mut self, company_id: &str, amount: i64) {
+        let Some(company) = self.companies.iter_mut().find(|c| c.id == company_id) else {
+            return;
+        };
+        let hit = amount.min(company.books.cash).max(0);
+        company.books.cash -= hit;
+        company.books.retained -= hit;
+        company.pending_sga += amount / 2;
+    }
+
+    fn shock_growth(&mut self, company_id: &str, delta: i64) {
+        if let Some(company) = self.companies.iter_mut().find(|c| c.id == company_id) {
+            company.drivers.growth_bps += delta;
+        }
+    }
+
+    fn follow_on(&mut self, company_id: &str, keep_bps: i64, cost: i64) {
+        if self.fund.cash >= cost {
+            self.fund.cash -= cost;
+            self.fund.invested_cost += cost;
+            self.record_flow("invest", -cost, company_id);
+            if let Some(holding) = self.holdings.iter_mut().find(|h| h.company_id == company_id) {
+                holding.cost += cost;
+                holding.ownership_bps = mul_div(holding.ownership_bps, keep_bps, 10_000).unwrap_or(holding.ownership_bps);
+            }
+        } else if let Some(holding) = self.holdings.iter_mut().find(|h| h.company_id == company_id) {
+            holding.ownership_bps = holding.ownership_bps * 60 / 100;
+        }
+    }
+
+    fn roll(&mut self) -> u64 {
+        self.rng ^= self.rng << 13;
+        self.rng ^= self.rng >> 7;
+        self.rng ^= self.rng << 17;
+        self.rng
     }
 
     fn response_for(&mut self, index: usize, phase: Phase) -> Result<ResponseKind, &'static str> {
@@ -1443,7 +1951,9 @@ impl Game {
         json!({
             "id": deal.id,
             "company_id": deal.company_id,
+            "name_ko": company.map(|c| if c.name_ko.is_empty() { c.legal_name_ko.as_str() } else { c.name_ko.as_str() }).unwrap_or(""),
             "legal_name_ko": company.map(|c| c.legal_name_ko.as_str()).unwrap_or(""),
+            "revealed": company.map(|c| self.revealed(&c.id)).unwrap_or(false),
             "sector_id": company.map(|c| c.sector_id.as_str()).unwrap_or(""),
             "lat": company.map(|c| c.lat).unwrap_or(0.0),
             "lon": company.map(|c| c.lon).unwrap_or(0.0),
@@ -1454,7 +1964,9 @@ impl Game {
             "seller_kind": deal.seller_kind,
             "broker_ko": broker.map(|a| a.name_ko.as_str()).unwrap_or(""),
             "instrument": deal.instrument,
-            "ask_ev": deal.ask_ev,
+            "ask_ev": company.filter(|c| self.revealed(&c.id)).map(|_| deal.ask_ev),
+            "revenue": company.map(|c| c.books.revenue).unwrap_or(0),
+            "total_assets": company.map(|c| c.books.total_assets()).unwrap_or(0),
             "ask_size": deal.ask_size,
             "ask_coupon_bps": deal.ask_coupon_bps,
             "weeks_left": deal.weeks_left,
@@ -1473,7 +1985,19 @@ impl Game {
             .companies
             .iter()
             .filter(|c| sector.is_empty() || c.sector_id == sector)
-            .filter(|c| q.is_empty() || c.legal_name_ko.contains(&q))
+            .filter(|c| q.is_empty() || c.legal_name_ko.contains(&q) || c.name_ko.contains(&q) || c.region_label_ko.contains(&q))
+            .filter(|c| in_range(c.books.revenue, json_opt_i64(cmd, "min_revenue"), json_opt_i64(cmd, "max_revenue")))
+            .filter(|c| in_range(c.books.total_assets(), json_opt_i64(cmd, "min_assets"), json_opt_i64(cmd, "max_assets")))
+            .filter(|c| in_range(c.books.ebitda, json_opt_i64(cmd, "min_ebitda"), json_opt_i64(cmd, "max_ebitda")))
+            .filter(|c| in_range(c.books.net_income, json_opt_i64(cmd, "min_ni"), json_opt_i64(cmd, "max_ni")))
+            .filter(|c| in_range(c.employees, json_opt_i64(cmd, "min_employees"), json_opt_i64(cmd, "max_employees")))
+            .filter(|c| in_range(operating_margin_bps(c), json_opt_i64(cmd, "min_margin"), json_opt_i64(cmd, "max_margin")))
+            .filter(|c| in_range(debt_ratio_bps(c), json_opt_i64(cmd, "min_debt"), json_opt_i64(cmd, "max_debt")))
+            .filter(|c| in_range(c.drivers.growth_bps, json_opt_i64(cmd, "min_growth"), json_opt_i64(cmd, "max_growth")))
+            .filter(|c| {
+                let region = json_str(cmd, "region");
+                region.is_empty() || c.region_label_ko.contains(&region)
+            })
             .filter(|c| {
                 !on_market
                     || self.deals.iter().any(|d| {
@@ -1485,6 +2009,9 @@ impl Game {
         rows.sort_by(|a, b| match sort.as_str() {
             "name" => a.legal_name_ko.cmp(&b.legal_name_ko),
             "revenue" => b.books.revenue.cmp(&a.books.revenue),
+            "assets" => b.books.total_assets().cmp(&a.books.total_assets()),
+            "employees" => b.employees.cmp(&a.employees),
+            "ni" => b.books.net_income.cmp(&a.books.net_income),
             _ => b.books.ebitda.cmp(&a.books.ebitda),
         });
         let total = rows.len();
@@ -1500,11 +2027,16 @@ impl Game {
     }
 
     fn company_row(&self, company: &Company) -> Value {
+        let revealed = self.revealed(&company.id);
         let net_debt = company.books.debt - company.books.cash;
         let ev = enterprise_value(company.books.ebitda, company.books.model_multiple_millis).unwrap_or(0);
+        let show = |value: i64| if revealed { json!(value) } else { Value::Null };
         json!({
             "id": company.id,
+            "name_ko": if company.name_ko.is_empty() { company.legal_name_ko.clone() } else { company.name_ko.clone() },
             "legal_name_ko": company.legal_name_ko,
+            "country": company.country,
+            "subindustry_id": company.subindustry_id,
             "sector_id": company.sector_id,
             "region_label_ko": company.region_label_ko,
             "complex_name_ko": company.complex_name_ko,
@@ -1514,12 +2046,19 @@ impl Game {
             "employees": company.employees,
             "period": company.books.period,
             "revenue": company.books.revenue,
-            "ebitda": company.books.ebitda,
-            "model_multiple_millis": company.books.model_multiple_millis,
-            "debt": company.books.debt,
-            "cash": company.books.cash,
-            "model_ev": ev,
-            "model_equity": ev - net_debt,
+            "total_assets": company.books.total_assets(),
+            "ebitda": show(company.books.ebitda),
+            "net_income": show(company.books.net_income),
+            "margin_bps": show(operating_margin_bps(company)),
+            "debt_ratio_bps": show(debt_ratio_bps(company)),
+            "growth_bps": show(company.drivers.growth_bps),
+            "model_multiple_millis": show(company.books.model_multiple_millis),
+            "debt": show(company.books.debt),
+            "cash": show(company.books.cash),
+            "model_ev": show(ev),
+            "model_equity": show(ev - net_debt),
+            "revealed": revealed,
+            "dd_ready_week": company.dd_ready_week,
             "site_kind": company.sites.first().map(|s| s.kind.as_str()).unwrap_or("factory"),
             "held": self.holdings.iter().any(|h| h.company_id == company.id),
             "on_market": self.deals.iter().any(|d| d.company_id == company.id && !matches!(d.status.as_str(), "dead" | "closed"))
@@ -1531,22 +2070,23 @@ impl Game {
     }
 
     fn page_company_id(&self, id: &str) -> Result<Value, &'static str> {
+        let revealed = self.revealed(id);
         let company = self.companies.iter().find(|c| c.id == id).ok_or("not_found")?;
         let holding = self.holdings.iter().find(|h| h.company_id == id);
         let mark = holding.map(|h| self.mark(h)).unwrap_or(0);
         Ok(json!({
             "kind": "company",
             "company": self.company_row(company),
-            "books": company.books,
-            "generated": company.generated,
-            "drivers": {
+            "books": if revealed { json!(company.books) } else { Value::Null },
+            "generated": if revealed { json!(company.generated) } else { json!([]) },
+            "drivers": if revealed { json!({
                 "gross_margin_bps": company.drivers.gross_margin_bps,
                 "sga_bps": company.drivers.sga_bps,
                 "growth_bps": company.drivers.growth_bps,
                 "dividend_payout_bps": company.drivers.dividend_payout_bps
-            },
+            }) } else { Value::Null },
             "sites": company.sites,
-            "cap": company.cap,
+            "cap": if revealed { json!(company.cap) } else { json!([]) },
             "management": company.management,
             "owner_kind": company.owner_kind,
             "position": holding.map(|h| json!({
@@ -1579,7 +2119,9 @@ impl Game {
             "sis": self.agents.iter().filter(|a| a.kind == "si").collect::<Vec<_>>(),
             "lenders": self.agents.iter().filter(|a| a.kind == "lender").collect::<Vec<_>>(),
             "candidates": self.candidates,
-            "fund_ii_ready": self.fund_ii_ready()
+            "fund_ii_ready": self.fund_ii_ready(),
+            "parked": self.parked,
+            "active_slot": self.active_slot
         })
     }
 
@@ -1649,7 +2191,8 @@ impl Game {
             "alerts": self.alerts(),
             "holdings": self.holdings.len(),
             "deals": self.deals.iter().filter(|d| !matches!(d.status.as_str(), "dead" | "closed")).count(),
-            "seed": self.seed
+            "seed": self.seed,
+            "events": self.open_events.iter().filter(|e| !e.resolved).collect::<Vec<_>>()
         })
     }
 
@@ -1661,6 +2204,7 @@ impl Game {
                 company_id: String::new(),
                 company_ko: String::new(),
                 deal_id: String::new(),
+                event_id: 0,
             });
         }
         for deal in &self.deals {
@@ -1670,6 +2214,7 @@ impl Game {
                     company_id: deal.company_id.clone(),
                     company_ko: self.company_name(&deal.company_id),
                     deal_id: deal.id.clone(),
+                    event_id: 0,
                 });
             } else if deal.weeks_left <= 4
                 && !matches!(deal.status.as_str(), "dead" | "closed")
@@ -1679,6 +2224,7 @@ impl Game {
                     company_id: deal.company_id.clone(),
                     company_ko: self.company_name(&deal.company_id),
                     deal_id: deal.id.clone(),
+                    event_id: 0,
                 });
             }
         }
@@ -1689,6 +2235,7 @@ impl Game {
                     company_id: holding.company_id.clone(),
                     company_ko: self.company_name(&holding.company_id),
                     deal_id: String::new(),
+                    event_id: 0,
                 });
             }
             if holding.breached {
@@ -1697,6 +2244,7 @@ impl Game {
                     company_id: holding.company_id.clone(),
                     company_ko: self.company_name(&holding.company_id),
                     deal_id: String::new(),
+                    event_id: 0,
                 });
             }
         }
@@ -1706,6 +2254,7 @@ impl Game {
                 company_id: String::new(),
                 company_ko: String::new(),
                 deal_id: String::new(),
+                event_id: 0,
             });
         }
         if self.fund_ii_ready() {
@@ -1714,6 +2263,16 @@ impl Game {
                 company_id: String::new(),
                 company_ko: String::new(),
                 deal_id: String::new(),
+                event_id: 0,
+            });
+        }
+        for event in self.open_events.iter().filter(|event| !event.resolved) {
+            alerts.push(Alert {
+                template: format!("alert.{}", event.kind),
+                company_id: event.company_id.clone(),
+                company_ko: event.company_ko.clone(),
+                deal_id: String::new(),
+                event_id: event.id,
             });
         }
         alerts.truncate(12);
@@ -1733,14 +2292,21 @@ impl Game {
     }
 
     fn fund_ii_ready(&self) -> bool {
-        self.fund.fund_ii_commitments == 0
-            && self.clock.absolute_week >= 52
-            && self.fund.reputation >= 560
-            && self.tvpi().unwrap_or(0) >= 1_050
+        if self.fund.fund_ii_commitments > 0 || self.active_slot > 0 {
+            return false;
+        }
+        let period_done = self.clock.year >= self.fund.vintage_year + self.fund.investment_period_years;
+        let deployed = self.fund.invested_cost >= self.fund.commitments && self.fund.commitments > 0;
+        period_done || deployed
     }
 
     fn nav(&self) -> i64 {
-        let marks: i64 = self.holdings.iter().map(|h| self.mark(h)).sum();
+        let marks: i64 = self
+            .holdings
+            .iter()
+            .filter(|h| h.fund_slot == self.active_slot)
+            .map(|h| self.mark(h))
+            .sum();
         (self.fund.cash + marks - self.fund.fee_payable).max(0)
     }
 
@@ -1823,7 +2389,16 @@ impl Game {
         self.companies
             .iter()
             .find(|c| c.id == id)
-            .map(|c| c.legal_name_ko.clone())
+            .map(|c| {
+                if c.name_ko.is_empty() {
+                    c.legal_name_ko
+                        .trim_start_matches("주식회사 ")
+                        .trim_end_matches(" 주식회사")
+                        .to_string()
+                } else {
+                    c.name_ko.clone()
+                }
+            })
             .unwrap_or_default()
     }
 
@@ -1941,6 +2516,29 @@ fn shape_deal(deal: DealBoot) -> Deal {
     }
 }
 
+fn json_opt_i64(cmd: &Value, key: &str) -> Option<i64> {
+    cmd.get(key).and_then(|v| v.as_i64())
+}
+
+fn in_range(value: i64, low: Option<i64>, high: Option<i64>) -> bool {
+    low.is_none_or(|floor| value >= floor) && high.is_none_or(|cap| value <= cap)
+}
+
+fn operating_margin_bps(company: &Company) -> i64 {
+    if company.books.revenue <= 0 {
+        return 0;
+    }
+    company.books.ebit * 10_000 / company.books.revenue
+}
+
+fn debt_ratio_bps(company: &Company) -> i64 {
+    let assets = company.books.total_assets();
+    if assets <= 0 {
+        return 0;
+    }
+    company.books.debt * 10_000 / assets
+}
+
 fn json_str(cmd: &Value, key: &str) -> String {
     cmd.get(key).and_then(|v| v.as_str()).unwrap_or("").to_string()
 }
@@ -2020,7 +2618,10 @@ mod tests {
     fn company(id: &str, openness: i64) -> Company {
         Company {
             id: id.into(),
+            name_ko: id.into(),
             legal_name_ko: format!("주식회사 {id}"),
+            country: "KR".into(),
+            subindustry_id: "food".into(),
             sector_id: "food_manufacturing".into(),
             region_label_ko: "경기 서부".into(),
             complex_name_ko: "가온 식품단지".into(),
@@ -2058,6 +2659,7 @@ mod tests {
             generated: Vec::new(),
             pending_sale: 0,
             pending_sga: 0,
+            dd_ready_week: 0,
         }
     }
 
@@ -2105,7 +2707,12 @@ mod tests {
                 "competitor_ko": ""
             }]
         });
-        Game::boot(&text.to_string()).unwrap()
+        let mut game = Game::boot(&text.to_string()).unwrap();
+        game.clock.absolute_week = 1;
+        for company in &mut game.companies {
+            company.dd_ready_week = 1;
+        }
+        game
     }
 
     #[test]
@@ -2211,7 +2818,14 @@ mod tests {
         }
         let text = std::fs::read_to_string(path).unwrap();
         let mut game = Game::boot(&text).unwrap();
-        assert_eq!(game.companies.len(), 40);
+        assert!(game.companies.len() >= 100);
+        let live = game
+            .deals
+            .iter()
+            .filter(|d| !matches!(d.status.as_str(), "dead" | "closed"))
+            .count();
+        assert!(live * 100 / game.companies.len() >= 5);
+        assert!(live * 100 / game.companies.len() <= 10);
         assert_eq!(game.fund.commitments, 50_000);
         assert!(game.deals.len() >= 8);
         let lp: i64 = game
@@ -2234,5 +2848,34 @@ mod tests {
         assert_eq!(game.fund.fee_bps, 200);
         assert_eq!(game.fund.hurdle_bps, 800);
         assert_eq!(game.fund.carry_bps, 2_000);
+    }
+
+    #[test]
+    fn diligence_hides_the_mark_until_the_week_arrives() {
+        let mut game = boot_two();
+        game.handle(r#"{"op":"call_capital","amount":1000}"#);
+        game.companies[0].dd_ready_week = 0;
+        let hidden: Value = serde_json::from_str(&game.handle(r#"{"op":"company","company_id":"co-001"}"#)).unwrap();
+        assert!(hidden["page"]["company"]["model_ev"].is_null());
+        let started: Value = serde_json::from_str(&game.handle(r#"{"op":"start_dd","company_id":"co-001"}"#)).unwrap();
+        assert!(started["page"]["company"]["model_ev"].is_null());
+        assert!(game.flows.iter().any(|flow| flow.kind == "expense"));
+        game.handle(r#"{"op":"advance_weeks","weeks":6}"#);
+        let shown: Value = serde_json::from_str(&game.handle(r#"{"op":"company","company_id":"co-001"}"#)).unwrap();
+        assert!(shown["page"]["company"]["model_ev"].as_i64().unwrap() > 0);
+    }
+
+    #[test]
+    fn the_next_fund_waits_for_the_investment_period() {
+        let mut game = boot_two();
+        let blocked = game.handle(r#"{"op":"raise_fund_ii"}"#);
+        assert!(blocked.contains("bad_state"));
+        game.fund.invested_cost = game.fund.commitments;
+        assert!(game.fund_ii_ready());
+        let raised = game.handle(r#"{"op":"raise_fund_ii"}"#);
+        assert!(raised.contains("\"ok\":true"), "{raised}");
+        assert_eq!(game.active_slot, 1);
+        assert_eq!(game.parked.len(), 1);
+        assert!(game.fund.commitments >= 20_000);
     }
 }

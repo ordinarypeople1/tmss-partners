@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useIntl } from "react-intl";
 import type { CompanyCard } from "../data/page";
+import { shortName } from "./game/format";
 import { formatKrwMillion } from "../i18n/money";
 import type { QuotedValue } from "../sim/wasm";
 
@@ -30,7 +31,7 @@ export function CompanyCardView({
       transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
     >
       <p className="card-kicker">{card.complex_name_ko}</p>
-      <h2>{card.legal_name_ko}</h2>
+      <h2>{shortName(card.legal_name_ko)}</h2>
       <p className="card-meta">
         {intl.formatMessage({ id: `sector.${card.sector_id}` })}
         {" · "}

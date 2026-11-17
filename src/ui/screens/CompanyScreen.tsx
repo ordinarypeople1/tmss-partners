@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import { AtlasMap } from "../AtlasMap";
-import { money, multiple, percentFromBps } from "../game/format";
+import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { Books, CompanyPage } from "../game/types";
 import { joinBase } from "../publicPath";
@@ -42,6 +42,9 @@ export function CompanyScreen({ id }: { id: string }) {
   }, [run, id, epoch]);
 
   useEffect(() => {
+    if (!page?.company.revealed) {
+      return;
+    }
     let cancel = false;
     fetch(joinBase(import.meta.env.BASE_URL, `atlas/companies/${id}.json`))
       .then((response) => (response.ok ? response.json() : null))
@@ -58,21 +61,23 @@ export function CompanyScreen({ id }: { id: string }) {
     return () => {
       cancel = true;
     };
-  }, [id]);
+  }, [id, page?.company.revealed]);
 
   if (!page) {
     return <p>{intl.formatMessage({ id: "company.loading" })}</p>;
   }
   const company = page.company;
-  const lines = mergeLines(history, page.generated, page.books).slice(-12);
+  const lines = page.books ? mergeLines(history, page.generated, page.books).slice(-12) : [];
   const columns = tab === "bs" ? BS : tab === "cf" ? CF : IS;
-  const netDebt = company.debt - company.cash;
+  const netDebt = company.debt != null && company.cash != null ? company.debt - company.cash : null;
+  const waiting = !company.revealed && (company.dd_ready_week ?? 0) > 0;
 
   return (
     <div className="workspace">
       <header>
-        <p className="eyebrow">{company.complex_name_ko}</p>
+        <p className="eyebrow">{intl.formatMessage({ id: "company.legal" })}</p>
         <h2>{company.legal_name_ko}</h2>
+        <p className="muted">{shortName(company.name_ko, company.legal_name_ko)}</p>
         <p className="muted">
           {intl.formatMessage({ id: `sector.${company.sector_id}` })}
           {" · "}
@@ -90,27 +95,58 @@ export function CompanyScreen({ id }: { id: string }) {
           <dd>{money(intl, company.revenue)}</dd>
         </div>
         <div>
-          <dt>{intl.formatMessage({ id: "fact.ebitda" })}</dt>
-          <dd>{money(intl, company.ebitda)}</dd>
+          <dt>{intl.formatMessage({ id: "fact.assets" })}</dt>
+          <dd>{money(intl, company.total_assets ?? null)}</dd>
         </div>
-        <div>
-          <dt>{intl.formatMessage({ id: "fact.multiple" })}</dt>
-          <dd>{multiple(intl, company.model_multiple_millis)}</dd>
-        </div>
-        <div>
-          <dt>{intl.formatMessage({ id: "fact.modelEv" })}</dt>
-          <dd>{money(intl, company.model_ev)}</dd>
-        </div>
-        <div>
-          <dt>{intl.formatMessage({ id: "fact.netDebt" })}</dt>
-          <dd>{money(intl, netDebt)}</dd>
-        </div>
-        <div>
-          <dt>{intl.formatMessage({ id: "fact.modelEquity" })}</dt>
-          <dd>{money(intl, company.model_equity)}</dd>
-        </div>
+        {company.revealed ? (
+          <>
+            <div>
+              <dt>{intl.formatMessage({ id: "fact.ebitda" })}</dt>
+              <dd>{money(intl, company.ebitda)}</dd>
+            </div>
+            <div>
+              <dt>{intl.formatMessage({ id: "fact.multiple" })}</dt>
+              <dd>{multiple(intl, company.model_multiple_millis)}</dd>
+            </div>
+            <div>
+              <dt>{intl.formatMessage({ id: "fact.modelEv" })}</dt>
+              <dd>{money(intl, company.model_ev)}</dd>
+            </div>
+            <div>
+              <dt>{intl.formatMessage({ id: "fact.netDebt" })}</dt>
+              <dd>{money(intl, netDebt)}</dd>
+            </div>
+            <div>
+              <dt>{intl.formatMessage({ id: "fact.modelEquity" })}</dt>
+              <dd>{money(intl, company.model_equity)}</dd>
+            </div>
+          </>
+        ) : null}
       </dl>
-      <p className="disclaimer">{intl.formatMessage({ id: "fund.markNote" })}</p>
+      {company.revealed ? (
+        <p className="disclaimer">{intl.formatMessage({ id: "fund.markNote" })}</p>
+      ) : (
+        <section className="hero">
+          <p>{waiting ? intl.formatMessage({ id: "dd.running" }) : intl.formatMessage({ id: "dd.note" })}</p>
+          <div className="hero-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={waiting}
+              onClick={() => void run({ op: "start_dd", company_id: id })}
+            >
+              {intl.formatMessage({ id: waiting ? "dd.running" : "dd.start" })}
+            </button>
+            <button
+              type="button"
+              disabled={company.on_market || company.held}
+              onClick={() => void run({ op: "approach", company_id: id })}
+            >
+              {intl.formatMessage({ id: "company.approach" })}
+            </button>
+          </div>
+        </section>
+      )}
       <div className="split">
         <section>
           <h3>{intl.formatMessage({ id: "company.sites" })}</h3>
@@ -120,7 +156,11 @@ export function CompanyScreen({ id }: { id: string }) {
                 key={site.id}
                 kind={site.kind}
                 name={site.name_ko}
-                meta={intl.formatMessage({ id: "site.book" }, { value: money(intl, site.book_value) })}
+                meta={
+                  company.revealed
+                    ? intl.formatMessage({ id: "site.book" }, { value: money(intl, site.book_value) })
+                    : company.region_label_ko
+                }
               />
             ))}
           </div>
@@ -155,6 +195,7 @@ export function CompanyScreen({ id }: { id: string }) {
           }))}
         />
       </section>
+      {company.revealed ? (
       <section>
         <h3>{intl.formatMessage({ id: "company.cap" })}</h3>
         <DataTable
@@ -173,6 +214,8 @@ export function CompanyScreen({ id }: { id: string }) {
           }))}
         />
       </section>
+      ) : null}
+      {company.revealed && page.books ? (
       <section>
         <h3>{intl.formatMessage({ id: "company.statements" })}</h3>
         <div className="tabs">
@@ -200,6 +243,9 @@ export function CompanyScreen({ id }: { id: string }) {
           }))}
         />
       </section>
+      ) : null}
+      {company.revealed ? (
+      <>
       <section>
         <h3>{intl.formatMessage({ id: "company.position" })}</h3>
         {page.position ? (
@@ -247,6 +293,8 @@ export function CompanyScreen({ id }: { id: string }) {
           ))}
         </ul>
       </section>
+      </>
+      ) : null}
     </div>
   );
 }

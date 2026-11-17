@@ -23,17 +23,27 @@ function clientSources(dir: string): string[] {
 }
 
 describe("playable atlas", () => {
-  it("boots forty companies and a 500억 fund without quarter history", () => {
+  it("boots a hundred companies and a 500억 fund without quarter history", () => {
     expect(boot.schema).toBe("atlas_boot");
     expect(boot.placeholder_parameters).toBe(true);
     expect(boot.fitted_to_real_filings).toBe(false);
-    expect(boot.companies).toHaveLength(40);
+    expect(boot.companies.length).toBeGreaterThanOrEqual(100);
+    const sectors = new Set(boot.companies.map((company: { sector_id: string }) => company.sector_id));
+    expect(sectors.size).toBe(11);
+    const live = boot.deals.length;
+    expect(live / boot.companies.length).toBeGreaterThanOrEqual(0.05);
+    expect(live / boot.companies.length).toBeLessThanOrEqual(0.1);
     expect(boot.fund.commitments).toBe(50_000);
     expect(boot.clock).toEqual({ year: 2026, quarter: 1, week_in_quarter: 0, absolute_week: 0 });
     const lps = boot.agents.filter((agent: { kind: string }) => agent.kind === "lp");
     const committed = lps.reduce((sum: number, agent: { commitment: number }) => sum + agent.commitment, 0);
     expect(committed).toBe(50_000);
     for (const company of boot.companies) {
+      expect(company.name_ko).not.toContain("주식회사");
+      expect(company.name_ko).not.toContain("(주)");
+      if (company.country === "KR") {
+        expect(company.legal_name_ko.startsWith("주식회사 ")).toBe(true);
+      }
       expect(company).not.toHaveProperty("quarters");
       const books = company.books;
       const assets = books.cash + books.ar + books.inv + books.net_ppe;
@@ -45,7 +55,9 @@ describe("playable atlas", () => {
   });
 
   it("publishes card pages of at most twenty and leaves quarters out", () => {
-    for (const name of ["cards-0.json", "cards-1.json"]) {
+    const names = readdirSync("public/atlas/pages").filter((name) => name.startsWith("cards-"));
+    expect(names.length).toBeGreaterThan(2);
+    for (const name of names) {
       const page = JSON.parse(readFileSync(`public/atlas/pages/${name}`, "utf8"));
       expect(page.cards.length).toBeGreaterThan(0);
       expect(page.cards.length).toBeLessThanOrEqual(20);

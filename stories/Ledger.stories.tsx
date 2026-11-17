@@ -31,11 +31,11 @@ export const Table: Story = {
         {
           id: "co-001",
           onOpen: () => undefined,
-          cells: { name: "주식회사 라온제분", ebitda: "43억", mark: "338억" },
+          cells: { name: "라온제분", ebitda: "43억", mark: "338억" },
         },
         {
           id: "co-002",
-          cells: { name: "주식회사 바르베어링", ebitda: "98억", mark: "662억" },
+          cells: { name: "바르베어링", ebitda: "98억", mark: "662억" },
         },
       ]}
     />
@@ -61,7 +61,7 @@ export const Headlines: Story = {
             template: "news.ebitda_down",
             week: 13,
             company_id: "co-001",
-            company_ko: "주식회사 라온제분",
+            company_ko: "라온제분",
             period: "2026Q1",
             tone: "down",
           },
@@ -69,12 +69,13 @@ export const Headlines: Story = {
       />
       <AlertList
         items={[
-          { template: "alert.fee", company_id: "", company_ko: "", deal_id: "" },
+          { template: "alert.fee", company_id: "", company_ko: "", deal_id: "", event_id: 0 },
           {
             template: "alert.counter",
             company_id: "co-001",
-            company_ko: "주식회사 라온제분",
+            company_ko: "라온제분",
             deal_id: "dl-001",
+            event_id: 0,
           },
         ]}
         onOpen={() => undefined}

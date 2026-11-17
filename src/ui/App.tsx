@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Briefcase, Building2, House, Landmark, Moon, PieChart, RotateCcw, Sun } from "lucide-react";
 import { useIntl } from "react-intl";
 import { useGame } from "./game/session";
 import { parseRoute, type Route } from "./game/types";
@@ -9,14 +10,15 @@ import { DealsScreen } from "./screens/DealsScreen";
 import { FundScreen } from "./screens/FundScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import { PortfolioScreen } from "./screens/PortfolioScreen";
+import { resolvedTheme, storeTheme } from "./theme";
 import { ClockBar } from "./widgets";
 
-const LINKS: { name: Route["name"]; href: string; label: string }[] = [
-  { name: "home", href: "#/", label: "nav.home" },
-  { name: "deals", href: "#/deals", label: "nav.deals" },
-  { name: "companies", href: "#/companies", label: "nav.companies" },
-  { name: "fund", href: "#/fund", label: "nav.fund" },
-  { name: "portfolio", href: "#/portfolio", label: "nav.portfolio" },
+const LINKS: { name: Route["name"]; href: string; label: string; icon: typeof House }[] = [
+  { name: "home", href: "#/", label: "nav.home", icon: House },
+  { name: "deals", href: "#/deals", label: "nav.deals", icon: Briefcase },
+  { name: "companies", href: "#/companies", label: "nav.companies", icon: Building2 },
+  { name: "fund", href: "#/fund", label: "nav.fund", icon: Landmark },
+  { name: "portfolio", href: "#/portfolio", label: "nav.portfolio", icon: PieChart },
 ];
 
 function useRoute(): Route {
@@ -33,10 +35,29 @@ export function App() {
   const intl = useIntl();
   const route = useRoute();
   const { dash, error, ready, failed, paused, speed, setPaused, setSpeed, reset } = useGame();
+  const [theme, setTheme] = useState<"light" | "dark">(() => resolvedTheme());
 
   useEffect(() => {
     document.title = intl.formatMessage({ id: "app.title" });
   }, [intl]);
+
+  useEffect(() => {
+    const sync = () => setTheme(resolvedTheme());
+    sync();
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    media.addEventListener("change", sync);
+    window.addEventListener("deal-atlas-theme", sync);
+    return () => {
+      media.removeEventListener("change", sync);
+      window.removeEventListener("deal-atlas-theme", sync);
+    };
+  }, []);
+
+  function toggleTheme() {
+    const next = resolvedTheme() === "dark" ? "light" : "dark";
+    storeTheme(next);
+    setTheme(next);
+  }
 
   let body = <p>{intl.formatMessage({ id: "company.loading" })}</p>;
   if (failed || (ready && !dash)) {
@@ -50,6 +71,9 @@ export function App() {
     else if (route.name === "portfolio") body = <PortfolioScreen />;
     else body = <HomeScreen />;
   }
+
+  const themeLabel = intl.formatMessage({ id: theme === "dark" ? "theme.toLight" : "theme.toDark" });
+  const ThemeIcon = theme === "dark" ? Sun : Moon;
 
   return (
     <div className="shell">
@@ -73,26 +97,38 @@ export function App() {
             }}
           />
         ) : null}
-        <button type="button" onClick={() => void reset()}>
-          {intl.formatMessage({ id: "app.reset" })}
-        </button>
-      </header>
-      <nav className="nav" aria-label={intl.formatMessage({ id: "nav.label" })}>
-        {LINKS.map((link) => (
-          <a
-            key={link.name}
-            href={link.href}
-            aria-current={route.name === link.name || (route.name === "deal" && link.name === "deals") || (route.name === "company" && link.name === "companies") ? "page" : undefined}
+        <div className="top-actions">
+          <button type="button" className="icon-btn" aria-label={themeLabel} onClick={toggleTheme}>
+            <ThemeIcon size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label={intl.formatMessage({ id: "app.reset" })}
+            onClick={() => void reset()}
           >
-            {intl.formatMessage({ id: link.label })}
-          </a>
-        ))}
-      </nav>
-      {error && dash ? (
-        <p className="banner">{intl.formatMessage({ id: `error.${error}` })}</p>
-      ) : null}
+            <RotateCcw size={18} aria-hidden="true" />
+          </button>
+        </div>
+      </header>
+      {error && dash ? <p className="banner">{intl.formatMessage({ id: `error.${error}` })}</p> : null}
       <p className="muted workspace">{intl.formatMessage({ id: "app.saved" })}</p>
       {body}
+      <nav className="nav" aria-label={intl.formatMessage({ id: "nav.label" })}>
+        {LINKS.map((link) => {
+          const Icon = link.icon;
+          const current =
+            route.name === link.name ||
+            (route.name === "deal" && link.name === "deals") ||
+            (route.name === "company" && link.name === "companies");
+          return (
+            <a key={link.name} href={link.href} aria-current={current ? "page" : undefined}>
+              <Icon size={18} aria-hidden="true" />
+              {intl.formatMessage({ id: link.label })}
+            </a>
+          );
+        })}
+      </nav>
     </div>
   );
 }

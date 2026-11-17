@@ -12,6 +12,7 @@
     "build-storybook": "node tools/build-wasm.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook"
   },
   "dependencies": {
+    "lucide-react": "^1.73.0",
     "maplibre-gl": "^5.6.1",
     "motion": "^14.14.0",
     "react": "^19.0.0",

@@ -1,4 +1,4 @@
-"""Playable book: 40 fictional companies, agents, and on-market deals.
+"""Playable book: 110 fictional companies across 11 sectors, and a thin deal list.
 
 The sample fixture stays at four companies. This writer does not replace it.
 Quarter history is one file per company. The boot file that the simulator
@@ -11,11 +11,13 @@ import json
 import sqlite3
 from pathlib import Path
 
-from distributions import INDUSTRIES, NAME_DENYLIST
+from dataclasses import asdict
+
+from distributions import INDUSTRIES, NAME_DENYLIST, IndustryDistribution
 from generate import build_document, card_from_company, validate, write_sqlite
 
-SEED = 20241117
-COUNT = 40
+SEED = 20241118
+COUNT = 110
 QUARTERS = 8
 PAGE_SIZE = 20
 
@@ -33,8 +35,94 @@ def millis(value: float) -> int:
     return int(round(value * 1_000))
 
 
+def _sector(template: IndustryDistribution, sector_id: str, label_ko: str, **overrides) -> IndustryDistribution:
+    payload = asdict(template)
+    payload["sector_id"] = sector_id
+    payload["label_ko"] = label_ko
+    payload.update(overrides)
+    return IndustryDistribution(**payload)
+
+
+def atlas_industries() -> tuple[IndustryDistribution, ...]:
+    food, parts, logistics = INDUSTRIES
+    return (
+        _sector(parts, "energy", "에너지", base_multiple_mean=6.5, multiple_floor=3.5, multiple_cap=10.0),
+        _sector(parts, "materials", "소재", base_multiple_mean=7.0),
+        _sector(parts, "industrials", "산업재", base_multiple_mean=7.4),
+        _sector(food, "discretionary", "경기소비재", base_multiple_mean=8.5, revenue_median_krw_million=70_000),
+        _sector(food, "staples", "필수소비재"),
+        _sector(food, "health", "헬스케어", base_multiple_mean=11.0, multiple_cap=16.0, gross_margin_mean=0.48),
+        _sector(logistics, "financials", "금융", ppe_to_annual_revenue=0.08, base_multiple_mean=6.0, multiple_floor=3.0),
+        _sector(parts, "information_technology", "정보기술", base_multiple_mean=12.0, multiple_cap=18.0, gross_margin_mean=0.42),
+        _sector(food, "communication", "커뮤니케이션", base_multiple_mean=9.0),
+        _sector(logistics, "utilities", "유틸리티", base_multiple_mean=8.0, quarterly_growth_mean=0.003),
+        _sector(logistics, "real_estate", "부동산", base_multiple_mean=10.0, ppe_to_annual_revenue=1.4),
+    )
+
+
+ATLAS_INDUSTRIES = atlas_industries()
+
+NAME_CORES = {
+    "energy": ("발전", "정제", "가스", "설비"),
+    "materials": ("화학", "합금", "펄프", "유리"),
+    "industrials": ("기계", "물류", "건설", "조선"),
+    "discretionary": ("의류", "자동차", "외식", "레저"),
+    "staples": ("제분", "생활", "음료", "마트"),
+    "health": ("제약", "진단", "기기", "병원"),
+    "financials": ("캐피탈", "보험", "증권", "신탁"),
+    "information_technology": ("소프트", "반도체", "장비", "데이터"),
+    "communication": ("통신", "미디어", "광고", "콘텐츠"),
+    "utilities": ("전력", "수도", "열병합", "가스망"),
+    "real_estate": ("개발", "리츠", "자산", "도시"),
+}
+
+SUBINDUSTRY = {
+    "energy": ("oil", "power_equip"),
+    "materials": ("chemicals", "metals"),
+    "industrials": ("machinery", "logistics"),
+    "discretionary": ("auto", "retail"),
+    "staples": ("food", "household"),
+    "health": ("pharma", "devices"),
+    "financials": ("bank", "insurance"),
+    "information_technology": ("software", "semiconductors"),
+    "communication": ("telecom", "media"),
+    "utilities": ("electric", "water"),
+    "real_estate": ("development", "reit"),
+}
+
+# Two-decimal boxes around real admin-1 centers. Not a survey, not a street address.
+WORLD_REGIONS = (
+    {"id": "kr-seoul", "country": "KR", "label_ko": "서울", "admin_ko": "서울특별시", "lat": (37.45, 37.65), "lon": (126.85, 127.10), "complex_ko": "가온 단지", "legal_prefix": "주식회사 "},
+    {"id": "kr-gg", "country": "KR", "label_ko": "경기", "admin_ko": "경기도", "lat": (37.20, 37.70), "lon": (126.60, 127.40), "complex_ko": "모람 단지", "legal_prefix": "주식회사 "},
+    {"id": "kr-ic", "country": "KR", "label_ko": "인천", "admin_ko": "인천광역시", "lat": (37.40, 37.55), "lon": (126.60, 126.80), "complex_ko": "북안 단지", "legal_prefix": "주식회사 "},
+    {"id": "kr-dj", "country": "KR", "label_ko": "대전", "admin_ko": "대전광역시", "lat": (36.30, 36.45), "lon": (127.30, 127.50), "complex_ko": "이든 단지", "legal_prefix": "주식회사 "},
+    {"id": "kr-bs", "country": "KR", "label_ko": "부산", "admin_ko": "부산광역시", "lat": (35.10, 35.25), "lon": (129.00, 129.20), "complex_ko": "소담 단지", "legal_prefix": "주식회사 "},
+    {"id": "kr-jb", "country": "KR", "label_ko": "전북", "admin_ko": "전북특별자치도", "lat": (35.70, 35.95), "lon": (126.90, 127.20), "complex_ko": "라온 단지", "legal_prefix": "주식회사 "},
+    {"id": "jp-tokyo", "country": "JP", "label_ko": "도쿄", "admin_ko": "東京都", "lat": (35.60, 35.75), "lon": (139.60, 139.85), "complex_ko": "도쿄 단지", "legal_prefix": ""},
+    {"id": "jp-osaka", "country": "JP", "label_ko": "오사카", "admin_ko": "大阪府", "lat": (34.60, 34.75), "lon": (135.40, 135.60), "complex_ko": "오사카 단지", "legal_prefix": ""},
+    {"id": "jp-aichi", "country": "JP", "label_ko": "아이치", "admin_ko": "愛知県", "lat": (35.05, 35.25), "lon": (136.80, 137.05), "complex_ko": "아이치 단지", "legal_prefix": ""},
+    {"id": "jp-fukuoka", "country": "JP", "label_ko": "후쿠오카", "admin_ko": "福岡県", "lat": (33.50, 33.70), "lon": (130.30, 130.50), "complex_ko": "후쿠오카 단지", "legal_prefix": ""},
+    {"id": "cn-gd", "country": "CN", "label_ko": "광둥", "admin_ko": "广东省", "lat": (22.80, 23.40), "lon": (113.10, 113.60), "complex_ko": "광둥 단지", "legal_prefix": ""},
+    {"id": "cn-js", "country": "CN", "label_ko": "장쑤", "admin_ko": "江苏省", "lat": (31.80, 32.20), "lon": (118.60, 119.10), "complex_ko": "장쑤 단지", "legal_prefix": ""},
+    {"id": "cn-zj", "country": "CN", "label_ko": "저장", "admin_ko": "浙江省", "lat": (30.10, 30.40), "lon": (120.00, 120.40), "complex_ko": "저장 단지", "legal_prefix": ""},
+    {"id": "cn-sd", "country": "CN", "label_ko": "산둥", "admin_ko": "山东省", "lat": (36.50, 36.80), "lon": (117.00, 117.40), "complex_ko": "산둥 단지", "legal_prefix": ""},
+    {"id": "tw-tpe", "country": "TW", "label_ko": "타이베이", "admin_ko": "台北市", "lat": (25.00, 25.15), "lon": (121.45, 121.60), "complex_ko": "타이베이 단지", "legal_prefix": ""},
+    {"id": "tw-khh", "country": "TW", "label_ko": "가오슝", "admin_ko": "高雄市", "lat": (22.55, 22.70), "lon": (120.25, 120.40), "complex_ko": "가오슝 단지", "legal_prefix": ""},
+    {"id": "us-ca", "country": "US", "label_ko": "캘리포니아", "admin_ko": "California", "lat": (34.00, 34.20), "lon": (-118.40, -118.15), "complex_ko": "캘리포니아 단지", "legal_prefix": ""},
+    {"id": "us-tx", "country": "US", "label_ko": "텍사스", "admin_ko": "Texas", "lat": (29.70, 29.90), "lon": (-95.50, -95.25), "complex_ko": "텍사스 단지", "legal_prefix": ""},
+    {"id": "us-ny", "country": "US", "label_ko": "뉴욕", "admin_ko": "New York", "lat": (40.70, 40.85), "lon": (-74.05, -73.90), "complex_ko": "뉴욕 단지", "legal_prefix": ""},
+    {"id": "us-il", "country": "US", "label_ko": "일리노이", "admin_ko": "Illinois", "lat": (41.80, 41.95), "lon": (-87.75, -87.60), "complex_ko": "일리노이 단지", "legal_prefix": ""},
+    {"id": "gb-eng", "country": "GB", "label_ko": "잉글랜드", "admin_ko": "England", "lat": (51.45, 51.55), "lon": (-0.20, 0.05), "complex_ko": "잉글랜드 단지", "legal_prefix": ""},
+    {"id": "gb-sct", "country": "GB", "label_ko": "스코틀랜드", "admin_ko": "Scotland", "lat": (55.90, 56.00), "lon": (-3.30, -3.15), "complex_ko": "스코틀랜드 단지", "legal_prefix": ""},
+    {"id": "fr-idf", "country": "FR", "label_ko": "일드프랑스", "admin_ko": "Île-de-France", "lat": (48.80, 48.92), "lon": (2.25, 2.45), "complex_ko": "일드프랑스 단지", "legal_prefix": ""},
+    {"id": "fr-ara", "country": "FR", "label_ko": "오베르뉴론알프", "admin_ko": "Auvergne-Rhône-Alpes", "lat": (45.70, 45.80), "lon": (4.80, 4.95), "complex_ko": "론 단지", "legal_prefix": ""},
+    {"id": "de-nw", "country": "DE", "label_ko": "노르트라인베스트팔렌", "admin_ko": "Nordrhein-Westfalen", "lat": (51.20, 51.30), "lon": (6.70, 6.85), "complex_ko": "라인 단지", "legal_prefix": ""},
+    {"id": "de-by", "country": "DE", "label_ko": "바이에른", "admin_ko": "Bayern", "lat": (48.10, 48.20), "lon": (11.50, 11.65), "complex_ko": "바이에른 단지", "legal_prefix": ""},
+)
+
+
 def industry_for(sector_id: str):
-    for industry in INDUSTRIES:
+    for industry in ATLAS_INDUSTRIES:
         if industry.sector_id == sector_id:
             return industry
     raise KeyError(sector_id)
@@ -117,12 +205,12 @@ def clamp_coord(lat: float, lon: float) -> tuple[float, float]:
 
 def sites_for(company: dict, index: int) -> list[dict]:
     sector = company["sector_id"]
-    if sector == "food_manufacturing":
+    if sector in {"staples", "discretionary", "health", "communication"}:
         kinds = ("factory", "warehouse", "store")
-    elif sector == "industrial_components":
-        kinds = ("factory", "warehouse")
+    elif sector in {"real_estate", "financials"}:
+        kinds = ("store", "warehouse")
     else:
-        kinds = ("warehouse", "warehouse", "store")
+        kinds = ("factory", "warehouse")
     offsets = ((0.0, 0.0), (0.02, -0.01), (-0.01, 0.02))
     sites = []
     net = company["quarters"][-1]["balance"]["net_ppe"]
@@ -186,7 +274,7 @@ def approach_for(company: dict, seller: str) -> tuple[str, str]:
     leverage = latest["balance"]["debt"] / (ebitda * 4)
     if leverage > 4.5 or seller == "court":
         return "distressed", "senior_loan"
-    if company["sector_id"] == "cold_chain_logistics" and leverage < 2:
+    if company["sector_id"] in {"information_technology", "health", "communication"} and leverage < 2:
         return "growth", "rcps"
     if latest["income"]["revenue"] < 8_000:
         return "vc", "rcps"
@@ -226,7 +314,9 @@ def candidates() -> list[dict]:
 
 
 def deals_for(companies: list[dict]) -> list[dict]:
-    picks = (0, 3, 7, 11, 14, 18, 22, 25, 29, 33, 36, 39)
+    # About 7% of the universe is on the market. The rest is self-sourced.
+    step = max(len(companies) // 8, 1)
+    picks = tuple(index for index in range(0, len(companies), step))[:8]
     brokers = ("ib-gaon", "ib-raon", "ib-bareu", "ib-sodam")
     rivals = ("나래 캐피탈", "바르 인베스트", "소담 홀딩", "온새 파트너스")
     deals = []
@@ -286,7 +376,10 @@ def company_record(company: dict, index: int, policy_rate: float) -> dict:
         openness = min(openness, 400)
     return {
         "id": company["id"],
+        "name_ko": company["name_ko"],
         "legal_name_ko": company["legal_name_ko"],
+        "country": company.get("country", "KR"),
+        "subindustry_id": SUBINDUSTRY[company["sector_id"]][index % 2],
         "sector_id": company["sector_id"],
         "region_label_ko": company["region_label_ko"],
         "complex_name_ko": company["complex_name_ko"],
@@ -411,8 +504,11 @@ def write_playable_book(root: Path) -> int:
         start_year=2024,
         policy_rate=0.035,
         neutral_rate=0.025,
+        industries=ATLAS_INDUSTRIES,
+        regions=WORLD_REGIONS,
+        name_cores=NAME_CORES,
     )
-    errors = validate(document)
+    errors = validate(document, korea_box=False)
     if errors:
         for error in errors:
             print(f"error: {error}")
@@ -437,8 +533,13 @@ def write_playable_book(root: Path) -> int:
         print(f"error: LP commitments {lp_sum}")
         return 1
     sectors = {row["sector_id"] for row in records}
-    if sectors != {"food_manufacturing", "industrial_components", "cold_chain_logistics"}:
+    expected = {row.sector_id for row in ATLAS_INDUSTRIES}
+    if sectors != expected:
         print(f"error: sectors {sectors}")
+        return 1
+    live = len(deal_rows) / COUNT
+    if not 0.05 <= live <= 0.10:
+        print(f"error: live deal ratio {live}")
         return 1
 
     boot = {

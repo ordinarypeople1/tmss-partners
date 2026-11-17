@@ -47,6 +47,16 @@ export interface AlertItem {
   company_id: string;
   company_ko: string;
   deal_id: string;
+  event_id: number;
+}
+
+export interface GameEvent {
+  id: number;
+  kind: string;
+  company_id: string;
+  company_ko: string;
+  week: number;
+  resolved: boolean;
 }
 
 export interface Dashboard {
@@ -57,6 +67,7 @@ export interface Dashboard {
   holdings: number;
   deals: number;
   seed: number;
+  events?: GameEvent[];
 }
 
 export interface CommandResult {
@@ -79,7 +90,11 @@ export type PageBody =
 export interface DealRow {
   id: string;
   company_id: string;
+  name_ko?: string;
   legal_name_ko: string;
+  revealed?: boolean;
+  revenue?: number;
+  total_assets?: number;
   sector_id: string;
   lat: number;
   lon: number;
@@ -90,7 +105,7 @@ export interface DealRow {
   seller_kind: string;
   broker_ko: string;
   instrument: string;
-  ask_ev: number;
+  ask_ev: number | null;
   ask_size: number;
   ask_coupon_bps: number;
   weeks_left: number;
@@ -151,7 +166,12 @@ export interface DealPage {
 
 export interface CompanyRow {
   id: string;
+  name_ko?: string;
   legal_name_ko: string;
+  country?: string;
+  subindustry_id?: string;
+  revealed?: boolean;
+  dd_ready_week?: number;
   sector_id: string;
   region_label_ko: string;
   complex_name_ko: string;
@@ -161,12 +181,17 @@ export interface CompanyRow {
   employees: number;
   period: string;
   revenue: number;
-  ebitda: number;
-  model_multiple_millis: number;
-  debt: number;
-  cash: number;
-  model_ev: number;
-  model_equity: number;
+  total_assets?: number;
+  ebitda: number | null;
+  net_income?: number | null;
+  margin_bps?: number | null;
+  debt_ratio_bps?: number | null;
+  growth_bps?: number | null;
+  model_multiple_millis: number | null;
+  debt: number | null;
+  cash: number | null;
+  model_ev: number | null;
+  model_equity: number | null;
   site_kind: string;
   held: boolean;
   on_market: boolean;
@@ -258,7 +283,7 @@ export interface Cleared {
 export interface CompanyPage {
   kind: "company";
   company: CompanyRow;
-  books: Books;
+  books: Books | null;
   generated: Books[];
   sites: Site[];
   cap: CapRow[];
@@ -300,6 +325,17 @@ export interface WaterfallPreview {
   residual_gp: number;
 }
 
+export interface ParkedFund {
+  slot: number;
+  name_ko: string;
+  commitments: number;
+  paid_in: number;
+  cash: number;
+  nav: number;
+  dpi_millis: number;
+  lp_distributed: number;
+}
+
 export interface FundPage {
   kind: "fund";
   summary: FundSummary;
@@ -310,6 +346,8 @@ export interface FundPage {
   lenders: Agent[];
   candidates: Candidate[];
   fund_ii_ready: boolean;
+  parked?: ParkedFund[];
+  active_slot?: number;
 }
 
 export interface HoldingRow {

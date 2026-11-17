@@ -4,9 +4,24 @@ import { useGame } from "../game/session";
 import type { AlertItem } from "../game/types";
 import { AlertList, NewsList, Stat } from "../widgets";
 
+const CHOICES: Record<string, string[]> = {
+  fraud: ["report", "hide"],
+  strike: ["settle", "replace"],
+  antitrust: ["conditions", "walk"],
+  down_round: ["follow", "hold"],
+  earnout: ["pay", "litigate"],
+  poach: ["pay", "let"],
+  continuation: ["roll", "cash"],
+  stalking: ["bid", "pass"],
+  refi: ["extend", "wait"],
+  covenant: ["cure", "waive"],
+  auction: ["raise", "walk"],
+  roadshow: ["extend", "delay"],
+};
+
 export function HomeScreen() {
   const intl = useIntl();
-  const { dash } = useGame();
+  const { dash, run } = useGame();
   if (!dash) {
     return null;
   }
@@ -66,6 +81,32 @@ export function HomeScreen() {
         {" · "}
         {intl.formatMessage({ id: "home.deals" }, { count: dash.deals })}
       </p>
+      <section>
+        <h2 className="section-title">
+          {intl.formatMessage(
+            { id: "home.section" },
+            { label: intl.formatMessage({ id: "home.events" }), count: dash.events?.length ?? 0 },
+          )}
+        </h2>
+        {(dash.events ?? []).length === 0 ? <p className="muted">{intl.formatMessage({ id: "alert.empty" })}</p> : null}
+        {(dash.events ?? []).map((event) => (
+          <article key={event.id} className="event-card">
+            <h3>{intl.formatMessage({ id: `news.${event.kind}` }, { company: event.company_ko, period: "" })}</h3>
+            <div className="hero-actions">
+              {(CHOICES[event.kind] ?? []).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => void run({ op: "resolve_event", id: event.id, choice })}
+                >
+                  {intl.formatMessage({ id: `choice.${event.kind}.${choice}` })}
+                </button>
+              ))}
+            </div>
+          </article>
+        ))}
+      </section>
       <div className="split">
         <section>
           <h2 className="section-label">{intl.formatMessage({ id: "home.news" })}</h2>

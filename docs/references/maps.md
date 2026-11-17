@@ -7,7 +7,7 @@
 - 주소: <https://www.naturalearthdata.com/>
 - 이용 조건: <https://www.naturalearthdata.com/about/terms-of-use/>
 - 라이선스: 퍼블릭 도메인. 허가가 필요 없고, 크레딧도 필수는 아니라고 적혀 있다. 일부 원천 데이터는 Natural Earth에만 한정된 이용 허락이 있으므로, 그 페이지의 원천 절을 읽고 우리 파이프가 그 원천을 직접 받지 않게 한다.
-- 이유: 한반도 윤곽, 해안, 주요 도시. 전략 지도의 첫 레이어로 법적 마찰이 작다.
+- 이유: 세계 육지와 한국·일본·중국·대만·미국·영국·프랑스·독일의 상위 행정구역. `public/atlas/world.json`으로 줄여 두고, 런타임에 타일을 받지 않는다.
 
 ## OpenStreetMap
 
@@ -33,7 +33,7 @@
 
 - 주소: <https://deck.gl/>
 - 라이선스: MIT.
-- 이유: 회사·자산이 많아지면 핀 레이어의 후보. v1의 40개 핀에는 MapLibre 마커로 충분하다.
+- 이유: 회사·자산이 많아지면 핀 레이어의 후보. 지금 핀은 MapLibre 마커로 그린다.
 
 ## PMTiles와 Protomaps
 

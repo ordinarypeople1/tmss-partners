@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
-import { money, multiple, percentFromBps } from "../game/format";
+import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { Agent, DealPage, Terms } from "../game/types";
 
@@ -63,7 +63,7 @@ export function DealScreen({ id }: { id: string }) {
     <div className="workspace">
       <header>
         <p className="eyebrow">{intl.formatMessage({ id: `stage.${deal.stage}` })}</p>
-        <h2>{deal.legal_name_ko}</h2>
+        <h2>{shortName(deal.name_ko, deal.legal_name_ko)}</h2>
         <p className="muted">
           {intl.formatMessage({ id: `sector.${deal.sector_id}` })}
           {" · "}
@@ -80,9 +80,19 @@ export function DealScreen({ id }: { id: string }) {
       {deal.conditions ? <p className="banner">{intl.formatMessage({ id: "deal.conditions" })}</p> : null}
       <dl className="facts">
         <div>
-          <dt>{intl.formatMessage({ id: "fact.asking" })}</dt>
-          <dd>{money(intl, deal.ask_ev)}</dd>
+          <dt>{intl.formatMessage({ id: "table.revenue" })}</dt>
+          <dd>{money(intl, deal.revenue ?? null)}</dd>
         </div>
+        <div>
+          <dt>{intl.formatMessage({ id: "fact.assets" })}</dt>
+          <dd>{money(intl, deal.total_assets ?? null)}</dd>
+        </div>
+        {deal.revealed ? (
+          <div>
+            <dt>{intl.formatMessage({ id: "fact.asking" })}</dt>
+            <dd>{money(intl, deal.ask_ev)}</dd>
+          </div>
+        ) : null}
         <div>
           <dt>{intl.formatMessage({ id: "deal.size" })}</dt>
           <dd>{money(intl, deal.ask_size)}</dd>
@@ -93,13 +103,27 @@ export function DealScreen({ id }: { id: string }) {
         </div>
         <div>
           <dt>{intl.formatMessage({ id: "deal.competing" })}</dt>
-          <dd>{deal.competing_ev > 0 ? money(intl, deal.competing_ev) : intl.formatMessage({ id: "figure.none" })}</dd>
+          <dd>
+            {deal.revealed && deal.competing_ev > 0
+              ? money(intl, deal.competing_ev)
+              : intl.formatMessage({ id: "figure.none" })}
+          </dd>
         </div>
         <div>
           <dt>{intl.formatMessage({ id: "deal.instrument" })}</dt>
           <dd>{intl.formatMessage({ id: `instrument.${deal.instrument}` })}</dd>
         </div>
       </dl>
+      {deal.revealed ? null : (
+        <section className="hero">
+          <p className="muted">{intl.formatMessage({ id: "dd.note" })}</p>
+          <button type="button" className="btn-primary" onClick={() => void run({ op: "start_dd", id })}>
+            {intl.formatMessage({ id: "dd.start" })}
+          </button>
+        </section>
+      )}
+      {deal.revealed ? (
+      <>
       <div className="form-grid">
         <label>
           {intl.formatMessage({ id: "deal.instrument" })}
@@ -256,6 +280,10 @@ export function DealScreen({ id }: { id: string }) {
         </button>
         <a href={`#/company/${deal.company_id}`}>{intl.formatMessage({ id: "deal.openCompany" })}</a>
       </div>
+      </>
+      ) : (
+        <a href={`#/company/${deal.company_id}`}>{intl.formatMessage({ id: "deal.openCompany" })}</a>
+      )}
       <section>
         <h3>{intl.formatMessage({ id: "deal.votes" })}</h3>
         <ul className="plain-list">

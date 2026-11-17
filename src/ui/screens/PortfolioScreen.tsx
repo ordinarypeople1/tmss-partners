@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
-import { money, multiple, percentFromBps } from "../game/format";
+import { money, multiple, percentFromBps, shortName } from "../game/format";
 import { useGame } from "../game/session";
 import type { PortfolioPage } from "../game/types";
 import { DataTable } from "../widgets";
@@ -50,7 +50,7 @@ export function PortfolioScreen() {
           id: row.company_id,
           onOpen: () => setSelected(row.company_id),
           cells: {
-            name: row.legal_name_ko,
+            name: shortName(row.legal_name_ko),
             instrument: intl.formatMessage({ id: `instrument.${row.instrument}` }),
             stake: percentFromBps(intl, row.ownership_bps),
             mark: money(intl, row.mark),
@@ -60,7 +60,7 @@ export function PortfolioScreen() {
       />
       {holding ? (
         <section className="stack">
-          <h2>{holding.legal_name_ko}</h2>
+          <h2>{shortName(holding.legal_name_ko)}</h2>
           <p className="muted">
             {holding.control
               ? intl.formatMessage({ id: "own.control" })

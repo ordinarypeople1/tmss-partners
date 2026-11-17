@@ -25,3 +25,14 @@ export function percentFromBps(intl: IntlShape, bps: number | null | undefined):
 export function lossTone(value: number): "loss" | undefined {
   return value < 0 ? "loss" : undefined;
 }
+
+const CORP = String.fromCharCode(0xc8fc, 0xc2dd, 0xd68c, 0xc0ac);
+
+export function shortName(name?: string | null, legal?: string | null): string {
+  const source = (name && name.trim()) || legal || "";
+  return source
+    .replace(new RegExp(`^${CORP}\\s+`), "")
+    .replace(new RegExp(`\\s+${CORP}$`), "")
+    .replace(new RegExp(`\\(${String.fromCharCode(0xc8fc)}\\)`, "g"), "")
+    .trim();
+}

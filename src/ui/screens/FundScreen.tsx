@@ -120,9 +120,32 @@ export function FundScreen() {
       </section>
       <section>
         <h3>{intl.formatMessage({ id: "fund.ii" })}</h3>
-        {fund.fund_ii_commitments > 0 ? (
-          <p>{intl.formatMessage({ id: "fund.iiSize" }, { value: money(intl, fund.fund_ii_commitments) })}</p>
-        ) : page.fund_ii_ready ? (
+        <p className="muted">
+          {intl.formatMessage({ id: "fund.active" })}
+          {" · "}
+          {fund.name_ko}
+        </p>
+        {(page.parked ?? []).map((parked) => (
+          <article key={parked.slot} className="event-card">
+            <h3>{parked.name_ko}</h3>
+            <p className="muted">{intl.formatMessage({ id: "fund.parked" })}</p>
+            <dl className="facts">
+              <div>
+                <dt>{intl.formatMessage({ id: "fund.commitment" })}</dt>
+                <dd>{money(intl, parked.commitments)}</dd>
+              </div>
+              <div>
+                <dt>{intl.formatMessage({ id: "fund.nav" })}</dt>
+                <dd>{money(intl, parked.nav)}</dd>
+              </div>
+              <div>
+                <dt>{intl.formatMessage({ id: "fund.cash" })}</dt>
+                <dd>{money(intl, parked.cash)}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+        {page.fund_ii_ready ? (
           <button type="button" className="btn-primary" onClick={() => void run({ op: "raise_fund_ii" })}>
             {intl.formatMessage({ id: "fund.iiRaise" })}
           </button>

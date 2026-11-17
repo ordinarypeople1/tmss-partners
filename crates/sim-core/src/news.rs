@@ -22,6 +22,8 @@ pub struct Alert {
     pub company_id: String,
     pub company_ko: String,
     pub deal_id: String,
+    #[serde(default)]
+    pub event_id: i64,
 }
 
 pub fn push_news(window: &mut Vec<NewsItem>, item: NewsItem) {

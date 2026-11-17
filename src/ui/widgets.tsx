@@ -39,16 +39,25 @@ export function DataTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id}>
-              {columns.map((column, index) => (
+            <tr
+              key={row.id}
+              className={row.onOpen ? "hit" : undefined}
+              tabIndex={row.onOpen ? 0 : undefined}
+              role={row.onOpen ? "link" : undefined}
+              onClick={row.onOpen}
+              onKeyDown={(event) => {
+                if (!row.onOpen) {
+                  return;
+                }
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  row.onOpen();
+                }
+              }}
+            >
+              {columns.map((column) => (
                 <td key={column.id} className={column.numeric ? "num" : undefined}>
-                  {index === 0 && row.onOpen ? (
-                    <button type="button" className="link" onClick={row.onOpen}>
-                      {row.cells[column.id] ?? ""}
-                    </button>
-                  ) : (
-                    (row.cells[column.id] ?? "")
-                  )}
+                  {row.cells[column.id] ?? ""}
                 </td>
               ))}
             </tr>
@@ -99,6 +108,46 @@ export function AlertList({
         </li>
       ))}
     </ul>
+  );
+}
+
+export function Monogram({ name }: { name: string }) {
+  const letter = Array.from(name)[0] ?? "";
+  return (
+    <span className="monogram" aria-hidden="true">
+      {letter}
+    </span>
+  );
+}
+
+export function SectorMark({ id }: { id: string }) {
+  return (
+    <svg className="sector-mark" viewBox="0 0 24 24" aria-hidden="true">
+      {id === "energy" ? <path d="M12 3 L14 10 H18 L11 21 L12 13 H8 Z" fill="currentColor" /> : null}
+      {id === "materials" ? <path d="M4 16 L12 4 L20 16 Z" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "industrials" ? <path d="M3 18 V10 L9 14 V8 L15 12 V6 L21 10 V18 Z" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "discretionary" ? <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "staples" ? <path d="M6 16 C6 8 18 8 18 16 Z" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "health" ? <path d="M10 4 H14 V10 H20 V14 H14 V20 H10 V14 H4 V10 H10 Z" fill="currentColor" /> : null}
+      {id === "financials" ? <path d="M4 18 H20 M6 18 V10 H10 V18 M14 18 V6 H18 V18" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "information_technology" ? <path d="M5 6 H19 V15 H5 Z M9 18 H15" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "communication" ? <path d="M5 15 C5 9 19 9 19 15" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "utilities" ? <path d="M12 3 V21 M7 8 H17 M8 16 H16" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id === "real_estate" ? <path d="M4 18 V10 L12 4 L20 10 V18 Z" fill="none" stroke="currentColor" strokeWidth="1.6" /> : null}
+      {id !== "energy" &&
+      id !== "materials" &&
+      id !== "industrials" &&
+      id !== "discretionary" &&
+      id !== "staples" &&
+      id !== "health" &&
+      id !== "financials" &&
+      id !== "information_technology" &&
+      id !== "communication" &&
+      id !== "utilities" &&
+      id !== "real_estate" ? (
+        <circle cx="12" cy="12" r="4" fill="currentColor" />
+      ) : null}
+    </svg>
   );
 }
 

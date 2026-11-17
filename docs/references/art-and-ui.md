@@ -49,10 +49,16 @@
 - 라이선스: 작품마다 다르다.
 - 이유: CC0와 CC BY를 거를 때의 2차 입구. 작품 페이지의 라이선스가 팩 전체의 라이선스라고 가정하지 않는다.
 
+## Natural Earth
+
+- 주소: <https://www.naturalearthdata.com/>
+- 이용 조건: 퍼블릭 도메인. <https://www.naturalearthdata.com/about/terms-of-use/>
+- 이 저장소: `public/atlas/world.json`은 110m 국가와 10m 행정구역을 좌표만 남겨 줄인 것이다. 타일 서버는 부르지 않는다. 프랑스 레지옹과 영국 구성국은 하위 경계를 합쳐 그렸다.
+
 ## 한글 글꼴
 
 - Pretendard: <https://github.com/orioncactus/pretendard> SIL Open Font License. 예약된 글꼴 이름 Pretendard. 글꼴 파일은 팔지 않고, 이름을 유지한 채 조건에 맞게 임베드한다. OFL 안내 <https://openfontlicense.org/>
 - Noto: <https://fonts.google.com/noto> 한글을 포함한 패밀리. SIL OFL로 배포된다. Pretendard가 화면 크기에서 부족할 때의 본문 대안이다.
 - 이유: 글꼴 파일은 저장소에 넣지 않는다. 화면은 Pretendard Variable 동적 서브셋을 jsDelivr로 링크하고, 실패하면 Apple SD Gothic Neo와 Malgun Gothic으로 떨어진다. 토큰은 [화면 토큰](../design/tokens.md)이다.
 
-화면은 흰색과 검정, 그리고 카민 `#9B1B30` 하나다. 1px 규칙과 직각이다. 유리 패널과 그라데이션은 쓰지 않는다.
+화면은 회색 바탕과 흰 카드, 그리고 카민 `#9B1B30` 하나다. 탭과 테마 아이콘은 Lucide다. 섹터 픽토그램, 모노그램, 사업장 선화는 이 저장소에서 그린 SVG다. 그라데이션은 쓰지 않는다.
