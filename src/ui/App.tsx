@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { sampleContent } from "../data/sample";
-import type { Company } from "../data/types";
-import { formatKrwMillion } from "../sim/format";
-import { enterpriseValue, equityValue } from "../sim/valuation";
+import { motion, useReducedMotion } from "motion/react";
+import { useIntl } from "react-intl";
+import type { CompanyCard, CompanyCardPage } from "../data/page";
+import { formatKrwMillion } from "../i18n/money";
+import { quoteCompany, type QuotedValue } from "../sim/wasm";
+import { pulseSelection } from "./haptics";
 
 const EMPTY_STYLE: maplibregl.StyleSpecification = {
   version: 8,
-  glyphs: undefined,
   sources: {},
   layers: [
     {
@@ -19,22 +20,53 @@ const EMPTY_STYLE: maplibregl.StyleSpecification = {
   ],
 };
 
-function latest(company: Company) {
-  return company.quarters[company.quarters.length - 1];
-}
-
-function netDebt(company: Company): number {
-  const balance = latest(company).balance;
-  return balance.debt - balance.cash;
-}
-
 export function App() {
+  const intl = useIntl();
+  const reduceMotion = useReducedMotion();
   const mapNode = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const [selectedId, setSelectedId] = useState(sampleContent.companies[0]?.id ?? "");
-  const selected =
-    sampleContent.companies.find((company) => company.id === selectedId) ??
-    sampleContent.companies[0];
+  const [cards, setCards] = useState<CompanyCard[] | null>(null);
+  const [seed, setSeed] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
+  const [quoted, setQuoted] = useState<(QuotedValue & { id: string }) | null>(null);
+  const [quoteError, setQuoteError] = useState(false);
+
+  const zoomIn = intl.formatMessage({ id: "map.zoomIn" });
+  const zoomOut = intl.formatMessage({ id: "map.zoomOut" });
+  const pinFactory = intl.formatMessage({ id: "pin.factory" });
+  const pinWarehouse = intl.formatMessage({ id: "pin.warehouse" });
+
+  useEffect(() => {
+    document.title = intl.formatMessage({ id: "app.title" });
+  }, [intl]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/sample-page.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("page");
+        }
+        return response.json() as Promise<CompanyCardPage>;
+      })
+      .then((page) => {
+        if (cancelled) {
+          return;
+        }
+        setCards(page.cards);
+        setSeed(page.seed);
+        setSelectedId(page.cards[0]?.id ?? "");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoadError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapNode.current || mapRef.current) {
@@ -46,6 +78,10 @@ export function App() {
       center: [127.6, 36.4],
       zoom: 6.1,
       attributionControl: false,
+      locale: {
+        "NavigationControl.ZoomIn": zoomIn,
+        "NavigationControl.ZoomOut": zoomOut,
+      },
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
     mapRef.current = map;
@@ -53,117 +89,176 @@ export function App() {
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [zoomIn, zoomOut]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) {
+    if (!map || !cards) {
       return;
     }
-    const markers = sampleContent.companies.map((company) => {
+    const markers = cards.map((card) => {
       const pin = document.createElement("button");
       pin.type = "button";
       pin.className = "pin";
-      pin.dataset.selected = company.id === selectedId ? "true" : "false";
-      pin.title = company.legal_name_ko;
+      pin.dataset.selected = card.id === selectedId ? "true" : "false";
+      pin.setAttribute(
+        "aria-label",
+        intl.formatMessage({ id: "pin.select" }, { name: card.legal_name_ko }),
+      );
       const label = document.createElement("span");
       label.className = "pin-label";
-      label.textContent = company.sector_id === "cold_chain_logistics" ? "창" : "공";
+      label.textContent = card.sector_id === "cold_chain_logistics" ? pinWarehouse : pinFactory;
       pin.append(label);
-      pin.addEventListener("click", () => setSelectedId(company.id));
-      return new maplibregl.Marker({ element: pin })
-        .setLngLat([company.lon, company.lat])
-        .addTo(map);
+      pin.addEventListener("click", () => choose(card.id));
+      return new maplibregl.Marker({ element: pin }).setLngLat([card.lon, card.lat]).addTo(map);
     });
     return () => {
       for (const marker of markers) {
         marker.remove();
       }
     };
-  }, [selectedId]);
+  }, [cards, selectedId, pinFactory, pinWarehouse, intl]);
 
-  if (!selected) {
-    return <p>샘플 회사가 없습니다.</p>;
+  const selected = cards?.find((card) => card.id === selectedId) ?? cards?.[0];
+
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
+    let cancelled = false;
+    setQuoted(null);
+    setQuoteError(false);
+    quoteCompany(selected.ebitda, selected.model_multiple_millis, selected.debt, selected.cash)
+      .then((value) => {
+        if (!cancelled) {
+          setQuoted({ id: selected.id, ...value });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQuoteError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
+
+  function choose(id: string) {
+    setSelectedId(id);
+    pulseSelection(reduceMotion === true);
   }
 
-  const quarter = latest(selected);
-  const ebitda = quarter.income.ebitda;
-  const multiple = quarter.model_multiple;
-  const ev = enterpriseValue(ebitda, multiple);
-  const equity = equityValue(ebitda, multiple, netDebt(selected));
+  const model = quoted && selected && quoted.id === selected.id ? quoted : null;
+  const netDebt = selected ? selected.debt - selected.cash : 0;
 
   return (
     <div className="shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">TMSS Partners · Fund III</p>
-          <h1>Deal Atlas</h1>
+          <p className="eyebrow">{intl.formatMessage({ id: "app.house" })}</p>
+          <h1>{intl.formatMessage({ id: "app.title" })}</h1>
         </div>
-        <p className="era">2024–2026 고금리 · 샘플 시나리오</p>
+        <p className="era">{intl.formatMessage({ id: "app.era" })}</p>
       </header>
       <main className="stage">
-        <section className="map-panel" aria-label="대한민국 지도">
+        <section className="map-panel" aria-label={intl.formatMessage({ id: "map.label" })}>
           <div ref={mapNode} className="map" />
-          <p className="map-note">
-            밑그림만 있는 지도입니다. 지명 레이어는 아직 없고, 핀은 가공의 단지 안에 있습니다.
-          </p>
+          <p className="map-note">{intl.formatMessage({ id: "map.note" })}</p>
         </section>
         <section className="dossier" aria-live="polite">
-          <ol className="company-list">
-            {sampleContent.companies.map((company) => (
-              <li key={company.id}>
-                <button
-                  type="button"
-                  className="company-button"
-                  aria-pressed={company.id === selected.id}
-                  onClick={() => setSelectedId(company.id)}
-                >
-                  <span>{company.legal_name_ko}</span>
-                  <small>
-                    {company.sector_label_ko} · {company.region_label_ko}
-                  </small>
-                </button>
-              </li>
-            ))}
-          </ol>
-          <article className="card">
-            <p className="card-kicker">{selected.complex_name_ko}</p>
-            <h2>{selected.legal_name_ko}</h2>
-            <p className="card-meta">
-              {selected.sector_label_ko} · 설립 {selected.founded_year} · 직원{" "}
-              {selected.employees.toLocaleString("ko-KR")}명
-            </p>
-            <dl className="facts">
-              <div>
-                <dt>{quarter.period} 매출</dt>
-                <dd>{formatKrwMillion(quarter.income.revenue)}</dd>
-              </div>
-              <div>
-                <dt>EBITDA</dt>
-                <dd>{formatKrwMillion(ebitda)}</dd>
-              </div>
-              <div>
-                <dt>모델 배수</dt>
-                <dd>{multiple.toFixed(2)}x</dd>
-              </div>
-              <div>
-                <dt>모델 기업가치</dt>
-                <dd>{formatKrwMillion(ev)}</dd>
-              </div>
-              <div>
-                <dt>순차입금</dt>
-                <dd>{formatKrwMillion(netDebt(selected))}</dd>
-              </div>
-              <div>
-                <dt>모델 지분가치</dt>
-                <dd>{formatKrwMillion(equity)}</dd>
-              </div>
-            </dl>
-            <p className="disclaimer">
-              거래 가격이 아닙니다. 자리표시자 분포로 만든 가공 회사의 모델 가치이며, 단위는{" "}
-              {sampleContent.unit_label_ko}입니다. 시드 {sampleContent.seed}.
-            </p>
-          </article>
+          {loadError ? <p>{intl.formatMessage({ id: "company.loadError" })}</p> : null}
+          {!loadError && !cards ? <p>{intl.formatMessage({ id: "company.loading" })}</p> : null}
+          {cards && cards.length === 0 ? <p>{intl.formatMessage({ id: "company.empty" })}</p> : null}
+          {cards && selected ? (
+            <>
+              <ol className="company-list">
+                {cards.map((card) => (
+                  <li key={card.id}>
+                    <button
+                      type="button"
+                      className="company-button"
+                      aria-pressed={card.id === selected.id}
+                      onClick={() => choose(card.id)}
+                    >
+                      <span>{card.legal_name_ko}</span>
+                      <small>
+                        {intl.formatMessage({ id: `sector.${card.sector_id}` })}
+                        {" · "}
+                        {card.region_label_ko}
+                      </small>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <motion.article
+                key={selected.id}
+                className="card"
+                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }
+                }
+              >
+                <p className="card-kicker">{selected.complex_name_ko}</p>
+                <h2>{selected.legal_name_ko}</h2>
+                <p className="card-meta">
+                  {intl.formatMessage({ id: `sector.${selected.sector_id}` })}
+                  {" · "}
+                  {intl.formatMessage(
+                    { id: "company.meta" },
+                    { year: selected.founded_year, employees: selected.employees },
+                  )}
+                </p>
+                <dl className="facts">
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.revenue" }, { period: selected.period })}</dt>
+                    <dd>{formatKrwMillion(intl, selected.revenue)}</dd>
+                  </div>
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.ebitda" })}</dt>
+                    <dd>{formatKrwMillion(intl, selected.ebitda)}</dd>
+                  </div>
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.multiple" })}</dt>
+                    <dd>
+                      {intl.formatMessage(
+                        { id: "fact.multipleValue" },
+                        { multiple: selected.model_multiple_millis / 1000 },
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.modelEv" })}</dt>
+                    <dd>
+                      {quoteError
+                        ? intl.formatMessage({ id: "fact.error" })
+                        : model
+                          ? formatKrwMillion(intl, model.enterpriseValue)
+                          : intl.formatMessage({ id: "fact.pending" })}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.netDebt" })}</dt>
+                    <dd>{formatKrwMillion(intl, model ? model.netDebt : netDebt)}</dd>
+                  </div>
+                  <div>
+                    <dt>{intl.formatMessage({ id: "fact.modelEquity" })}</dt>
+                    <dd>
+                      {quoteError
+                        ? intl.formatMessage({ id: "fact.error" })
+                        : model
+                          ? formatKrwMillion(intl, model.equityValue)
+                          : intl.formatMessage({ id: "fact.pending" })}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="disclaimer">
+                  {intl.formatMessage({ id: "card.disclaimer" }, { seed })}
+                </p>
+              </motion.article>
+            </>
+          ) : null}
         </section>
       </main>
     </div>

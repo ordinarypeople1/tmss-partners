@@ -1,0 +1,21 @@
+[workspace]
+
+[package]
+name = "deal-atlas"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Tauri 2 shell. Not built in the bootstrap environment (no WebKit)."
+
+[lib]
+name = "deal_atlas_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.1.0", features = [] }
+
+[dependencies]
+app-commands = { path = "../crates/app-commands" }
+content-db = { path = "../content-db" }
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "=2.1.0", features = [] }

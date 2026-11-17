@@ -6,8 +6,9 @@ and are explicitly marked as placeholders.
 
 Outputs
   JSON document of companies and quarters
-  SQLite database with the same facts
-  optional fixture copy for the hello-world client
+  SQLite database with the same facts, plus a company_cards table
+  fixture copy for the generator check
+  one card page for the web client, without quarter history
 
 Run
   python3 tools/datagen/generate.py --check
@@ -472,6 +473,25 @@ def write_sqlite(path: Path, document: dict) -> None:
               payload TEXT NOT NULL,
               PRIMARY KEY (company_id, period)
             );
+            CREATE INDEX idx_quarters_company ON quarters(company_id);
+            CREATE TABLE company_cards (
+              id TEXT PRIMARY KEY,
+              legal_name_ko TEXT NOT NULL,
+              sector_id TEXT NOT NULL,
+              region_label_ko TEXT NOT NULL,
+              complex_name_ko TEXT NOT NULL,
+              lat REAL NOT NULL,
+              lon REAL NOT NULL,
+              founded_year INTEGER NOT NULL,
+              employees INTEGER NOT NULL,
+              period TEXT NOT NULL,
+              revenue INTEGER NOT NULL,
+              ebitda INTEGER NOT NULL,
+              model_multiple_millis INTEGER NOT NULL,
+              debt INTEGER NOT NULL,
+              cash INTEGER NOT NULL
+            );
+            CREATE INDEX idx_company_cards_sector ON company_cards(sector_id);
             """
         )
         connection.executemany(
@@ -521,9 +541,71 @@ def write_sqlite(path: Path, document: dict) -> None:
                         json.dumps(quarter, ensure_ascii=False),
                     ),
                 )
+            latest = company["quarters"][-1]
+            connection.execute(
+                """
+                INSERT INTO company_cards (
+                  id, legal_name_ko, sector_id, region_label_ko, complex_name_ko,
+                  lat, lon, founded_year, employees, period, revenue, ebitda,
+                  model_multiple_millis, debt, cash
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    company["id"],
+                    company["legal_name_ko"],
+                    company["sector_id"],
+                    company["region_label_ko"],
+                    company["complex_name_ko"],
+                    company["lat"],
+                    company["lon"],
+                    company["founded_year"],
+                    company["employees"],
+                    latest["period"],
+                    latest["income"]["revenue"],
+                    latest["income"]["ebitda"],
+                    int(round(latest["model_multiple"] * 1000)),
+                    latest["balance"]["debt"],
+                    latest["balance"]["cash"],
+                ),
+            )
         connection.commit()
     finally:
         connection.close()
+
+
+def card_from_company(company: dict) -> dict:
+    latest = company["quarters"][-1]
+    return {
+        "id": company["id"],
+        "legal_name_ko": company["legal_name_ko"],
+        "sector_id": company["sector_id"],
+        "region_label_ko": company["region_label_ko"],
+        "complex_name_ko": company["complex_name_ko"],
+        "lat": company["lat"],
+        "lon": company["lon"],
+        "founded_year": company["founded_year"],
+        "employees": company["employees"],
+        "period": latest["period"],
+        "revenue": latest["income"]["revenue"],
+        "ebitda": latest["income"]["ebitda"],
+        "model_multiple_millis": int(round(latest["model_multiple"] * 1000)),
+        "debt": latest["balance"]["debt"],
+        "cash": latest["balance"]["cash"],
+    }
+
+
+def write_card_page(path: Path, document: dict, page_size: int = 20) -> None:
+    page = {
+        "schema": "company_card_page",
+        "seed": document["seed"],
+        "unit": document["unit"],
+        "page": 0,
+        "page_size": page_size,
+        "placeholder_parameters": True,
+        "cards": [card_from_company(company) for company in document["companies"][:page_size]],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(page, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
@@ -549,6 +631,12 @@ def parse_args() -> argparse.Namespace:
         "--fixture",
         type=Path,
         default=root / "src" / "data" / "fixtures" / "sample-companies.json",
+    )
+    parser.add_argument(
+        "--page",
+        type=Path,
+        default=root / "public" / "sample-page.json",
+        help="One card page for the web client. Quarter history is not included.",
     )
     parser.add_argument(
         "--check",
@@ -578,6 +666,7 @@ def main() -> int:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text + "\n", encoding="utf-8")
     write_sqlite(args.sqlite, document)
+    write_card_page(args.page, document)
     print(
         f"wrote {len(document['companies'])} companies x {args.quarters} quarters "
         f"seed={args.seed} unit={UNIT}"
@@ -585,6 +674,7 @@ def main() -> int:
     print(f"json {args.json}")
     print(f"sqlite {args.sqlite}")
     print(f"fixture {args.fixture}")
+    print(f"page {args.page}")
     return 0
 
 

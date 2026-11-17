@@ -1,0 +1,10 @@
+[package]
+name = "content-db"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Paged SQLite access for Deal Atlas company cards."
+
+[dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }

@@ -1,0 +1,16 @@
+[package]
+name = "sim-core"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Deal Atlas simulation core. Money is an integer count of million KRW."
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[features]
+default = []
+wasm = ["dep:wasm-bindgen"]
+
+[dependencies]
+wasm-bindgen = { version = "=0.2.100", optional = true }

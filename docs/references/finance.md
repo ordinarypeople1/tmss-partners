@@ -7,7 +7,7 @@ LBO와 워터폴은 게임 규칙으로 직접 짠다. 기성 라이브러리가
 - 문서: <https://numpy.org/numpy-financial/>
 - 저장소: <https://github.com/numpy/numpy-financial>
 - 라이선스: BSD. 저작권 고지와 조건 유지.
-- 이유: IRR, NPV의 검산. 생성기 적합 스크립트에서만 쓰고, 게임 런타임은 TypeScript로 같은 정의를 구현한다.
+- 이유: IRR, NPV의 검산. 생성기 적합 스크립트에서만 쓰고, 게임 런타임은 Rust로 같은 정의를 구현한다.
 
 ## QuantLib
 

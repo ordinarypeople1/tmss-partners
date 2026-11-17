@@ -10,7 +10,8 @@ python3 tools/datagen/generate.py --check
 
 - `tools/datagen/out/companies.json` (깃에 올리지 않음)
 - `tools/datagen/out/content.sqlite` (깃에 올리지 않음)
-- `src/data/fixtures/sample-companies.json` (헬로 월드가 읽는 샘플)
+- `src/data/fixtures/sample-companies.json` (생성기 검사용 전체 이력. 클라이언트가 import하지 않음)
+- `public/sample-page.json` (웹 클라이언트가 가져가는 카드 한 페이지. 분기 이력 없음)
 
 시드 2024, 회사 4곳, 2024Q1–2025Q4. 단위는 백만 원 정수다. 주가 필드는 없고, 모델 배수만 있다.
 

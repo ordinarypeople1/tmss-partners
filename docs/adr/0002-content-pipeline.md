@@ -13,10 +13,10 @@
 
 ## 이유
 
-서버가 없다. 플레이어의 세이브와 콘텐츠 DB는 기기 안에 있다. JSON은 사람이 읽고 테스트가 비교하기 좋고, SQLite는 40개 회사의 분기와 나중 에셋 메타를 묻기 좋다. 생성기가 둘 다 쓴다.
+서버가 없다. 플레이어의 세이브와 콘텐츠 DB는 기기 안에 있다. JSON은 생성기가 검증하고 사람이 diff를 볼 때 쓴다. 게임이 읽는 저장은 SQLite다. 목록과 지도는 `company_cards` 한 페이지다. 행에는 최신 분기의 매출, EBITDA, 천분율 배수, 부채, 현금이 이미 들어 있다. 이력은 `quarters`에 있고, 회사를 열 때 그 키만 읽는다. 조회는 인덱스와 `LIMIT`/`OFFSET`이다. 페이지 상한은 50장이다.
 
 시드를 고정하면 버그를 다시 만들 수 있다. 검증이 항등식을 통과하지 못하면 파일을 쓰지 않는다.
 
 ## 결과
 
-`tools/datagen/generate.py`가 그 계약의 첫 구현이다. 샘플 픽스처는 `src/data/fixtures/sample-companies.json`이다. `tools/datagen/out/`은 깃에 올리지 않는다.
+`tools/datagen/generate.py`가 그 계약의 첫 구현이다. 전체 이력 픽스처는 `src/data/fixtures/sample-companies.json`이고, 생성기 검사용이다. 클라이언트가 그 파일을 import하지 않는다. 웹 개발 빌드가 가져가는 파일은 `public/sample-page.json` 한 장이다. `tools/datagen/out/`과 `content.sqlite`는 깃에 올리지 않는다. 네이티브 페이지 조회는 `crates/content-db`다.

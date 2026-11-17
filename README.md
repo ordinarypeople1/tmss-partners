@@ -49,9 +49,16 @@ TMSS Partners의 딜을 지도 위에서 고르는, 한 사람의 커리어 시�
 | `docs/finance/` | 3제표, 밸류에이션, LBO, 변제 순위 |
 | `docs/legal/` | 데이터 사용 메모. 법률 자문이 아니다 |
 | `docs/adr/` | 기술 결정 |
+| `docs/i18n/` | 문자열 절차. 소스 로케일은 한국어 하나 |
+| `docs/ux/` | 손맛 |
 | `docs/references/` | 확인된 참고 자료 |
-| `src/sim/` | 순수 시뮬레이션 |
-| `src/data/` | 콘텐츠 로딩과 샘플 |
+| `crates/sim-core/` | 시뮬. 네이티브와 wasm |
+| `crates/content-db/` | SQLite 카드 페이지 |
+| `crates/app-commands/` | Tauri가 부를 커맨드 |
+| `src-tauri/` | Tauri 2.1 껍질. 이 환경에서는 링크하지 않음 |
+| `src/sim/` | wasm 로더. 식을 다시 짜지 않음 |
+| `src/i18n/` | 한국어 카탈로그와 검사 |
+| `src/data/` | 페이지 타입. 전체 이력 JSON은 클라이언트가 읽지 않음 |
 | `src/ui/` | 화면 |
 | `assets/` | 직접 만든 에셋만. 큰 외부 에셋은 넣지 않는다 |
 | `tools/datagen/` | 가공 회사와 3제표 생성 |
@@ -64,7 +71,7 @@ TMSS Partners의 딜을 지도 위에서 고르는, 한 사람의 커리어 시�
 python3 tools/datagen/generate.py --check
 ```
 
-화면:
+화면과 시뮬:
 
 ```bash
 npm install
@@ -72,9 +79,9 @@ npm test
 npm run dev
 ```
 
-브라우저에서 `http://127.0.0.1:5173/` 을 연다. 샘플 4개 회사는 자리표시자 분포로 만든 가공의 회사다.
+`npm test`는 wasm 바인딩, `cargo test`, TypeScript, Vitest를 순서대로 돌린다. rustc와 `wasm32-unknown-unknown`, `wasm-bindgen` 0.2.100이 필요하다. 브라우저에서 `http://127.0.0.1:5173/` 을 연다. 샘플 4개 회사는 자리표시자 분포로 만든 가공의 회사다. 화면은 카드 페이지 한 장을 가져오고, 기업가치는 Rust wasm이 계산한다.
 
-데스크톱과 모바일 패키징은 Tauri 2로 정했다. 이 커밋의 실행 가능한 골격은 그 껍질이 감쌀 웹 클라이언트다. 이유는 [ADR 0001](docs/adr/0001-tech-stack.md)에 있다.
+데스크톱과 모바일 패키징은 Tauri 2로 정했다. `src-tauri`는 2.1 소스이고, WebKit이 있는 머신에서 링크한다. 이유는 [ADR 0001](docs/adr/0001-tech-stack.md)에 있다. 문자열은 한국어만 외부화해 두었고, 다른 언어는 문장이 잠긴 뒤에 넣는다. [절차](docs/i18n/workflow.md).
 
 ## 라이선스
 

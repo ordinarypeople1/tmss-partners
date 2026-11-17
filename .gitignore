@@ -15,3 +15,5 @@ tools/datagen/out/
 .idea/
 .vscode/
 src-tauri/target/
+/target/
+src/sim/pkg/
