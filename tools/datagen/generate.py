@@ -342,6 +342,7 @@ def build_document(
                 "lon": lon,
                 "founded_year": rng.randint(1988, 2016),
                 "employees": state["employees"],
+                "base_multiple": round(base_multiple, 4),
                 "identity": {
                     "fictional": True,
                     "ticker": None,
@@ -643,11 +644,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Validate and write outputs. Exit 1 if an accounting identity fails.",
     )
+    parser.add_argument(
+        "--atlas",
+        action="store_true",
+        help="Write the 40-company playable book. Does not replace the 4-company sample fixture.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    if args.atlas:
+        from atlas import write_playable_book
+
+        return write_playable_book(Path(__file__).resolve().parents[2])
     document = build_document(
         seed=args.seed,
         count=args.count,

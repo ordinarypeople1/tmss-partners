@@ -1,0 +1,5135 @@
+{
+  "schema": "atlas_boot",
+  "seed": 20241117,
+  "placeholder_parameters": true,
+  "fitted_to_real_filings": false,
+  "unit": "krw_million",
+  "clock": {
+    "year": 2026,
+    "quarter": 1,
+    "week_in_quarter": 0,
+    "absolute_week": 0
+  },
+  "policy_rate_bps": 350,
+  "neutral_rate_bps": 250,
+  "fund": {
+    "name_ko": "III호",
+    "commitments": 50000,
+    "fee_bps": 200,
+    "hurdle_bps": 800,
+    "carry_bps": 2000,
+    "investment_period_years": 5,
+    "term_years": 10,
+    "vintage_year": 2022,
+    "expenses_per_quarter": 15,
+    "reputation": 620
+  },
+  "agents": [
+    {
+      "id": "lp-seorin",
+      "name_ko": "서린 공제회",
+      "kind": "lp",
+      "subtype": "pension",
+      "commitment": 20000
+    },
+    {
+      "id": "lp-bukan",
+      "name_ko": "북안 은행",
+      "kind": "lp",
+      "subtype": "bank",
+      "commitment": 12000
+    },
+    {
+      "id": "lp-house",
+      "name_ko": "하우스 약정",
+      "kind": "lp",
+      "subtype": "gp",
+      "commitment": 2000
+    },
+    {
+      "id": "lp-ideun",
+      "name_ko": "이든 장학재단",
+      "kind": "lp",
+      "subtype": "endowment",
+      "commitment": 8000
+    },
+    {
+      "id": "lp-moram",
+      "name_ko": "모람 산업",
+      "kind": "lp",
+      "subtype": "corporate",
+      "commitment": 8000
+    },
+    {
+      "id": "ib-gaon",
+      "name_ko": "가온 증권",
+      "kind": "ib",
+      "subtype": "bank",
+      "commitment": 0
+    },
+    {
+      "id": "ib-raon",
+      "name_ko": "라온 자문",
+      "kind": "ib",
+      "subtype": "advisor",
+      "commitment": 0
+    },
+    {
+      "id": "ib-bareu",
+      "name_ko": "바르 마켓",
+      "kind": "ib",
+      "subtype": "bank",
+      "commitment": 0
+    },
+    {
+      "id": "ib-sodam",
+      "name_ko": "소담 파트너스",
+      "kind": "ib",
+      "subtype": "advisor",
+      "commitment": 0
+    },
+    {
+      "id": "si-onsae",
+      "name_ko": "온새 식품",
+      "kind": "si",
+      "subtype": "strategic",
+      "commitment": 0
+    },
+    {
+      "id": "si-jion",
+      "name_ko": "지온 부품",
+      "kind": "si",
+      "subtype": "strategic",
+      "commitment": 0
+    },
+    {
+      "id": "si-aram",
+      "name_ko": "아람 로지스",
+      "kind": "si",
+      "subtype": "strategic",
+      "commitment": 0
+    },
+    {
+      "id": "len-narae",
+      "name_ko": "나래 은행",
+      "kind": "lender",
+      "subtype": "bank",
+      "commitment": 0
+    },
+    {
+      "id": "len-daon",
+      "name_ko": "다온 캐피탈",
+      "kind": "lender",
+      "subtype": "private_credit",
+      "commitment": 0
+    },
+    {
+      "id": "len-aram",
+      "name_ko": "아람 크레딧",
+      "kind": "lender",
+      "subtype": "private_credit",
+      "commitment": 0
+    }
+  ],
+  "candidates": [
+    {
+      "id": "cand-0",
+      "name_ko": "배온새",
+      "trait_id": "operator"
+    },
+    {
+      "id": "cand-1",
+      "name_ko": "문이든",
+      "trait_id": "grower"
+    },
+    {
+      "id": "cand-2",
+      "name_ko": "류지온",
+      "trait_id": "cutter"
+    },
+    {
+      "id": "cand-3",
+      "name_ko": "정하람",
+      "trait_id": "operator"
+    },
+    {
+      "id": "cand-4",
+      "name_ko": "서가온",
+      "trait_id": "grower"
+    },
+    {
+      "id": "cand-5",
+      "name_ko": "모나래",
+      "trait_id": "cutter"
+    },
+    {
+      "id": "cand-6",
+      "name_ko": "라다온",
+      "trait_id": "operator"
+    },
+    {
+      "id": "cand-7",
+      "name_ko": "온라온",
+      "trait_id": "grower"
+    }
+  ],
+  "companies": [
+    {
+      "id": "co-001",
+      "legal_name_ko": "주식회사 라온제분",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.29,
+      "lon": 126.65,
+      "founded_year": 1992,
+      "employees": 1113,
+      "owner_kind": "founder",
+      "owner_openness": 320,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2489,
+        "sga_bps": 1741,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8108,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 57877,
+        "cogs": 43474,
+        "gross_profit": 14403,
+        "sga": 10075,
+        "ebitda": 4328,
+        "da": 1978,
+        "ebit": 2350,
+        "interest": 447,
+        "ebt": 1903,
+        "tax": 419,
+        "net_income": 1484,
+        "cash": 19183,
+        "ar": 27009,
+        "inv": 18356,
+        "gross_ppe": 177532,
+        "accum_dep": 79148,
+        "net_ppe": 98384,
+        "ap": 16907,
+        "debt": 27975,
+        "share_capital": 44059,
+        "retained": 73991,
+        "dividends": 148,
+        "cfo": 3106,
+        "cfi": -1447,
+        "cff": -574,
+        "net_change": 1085,
+        "model_multiple_millis": 7820
+      },
+      "sites": [
+        {
+          "id": "co-001-f0",
+          "kind": "factory",
+          "name_ko": "라온제분 1",
+          "lat": 37.29,
+          "lon": 126.65,
+          "book_value": 32794,
+          "capacity": 8
+        },
+        {
+          "id": "co-001-w1",
+          "kind": "warehouse",
+          "name_ko": "라온제분 2",
+          "lat": 37.31,
+          "lon": 126.64,
+          "book_value": 32794,
+          "capacity": 9
+        },
+        {
+          "id": "co-001-s2",
+          "kind": "store",
+          "name_ko": "라온제분 3",
+          "lat": 37.28,
+          "lon": 126.67,
+          "book_value": 32794,
+          "capacity": 10
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "라온제분 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "라온제분 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-0-ceo",
+          "name_ko": "서가온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-0-cfo",
+          "name_ko": "문바르",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-002",
+      "legal_name_ko": "주식회사 바르베어링",
+      "sector_id": "industrial_components",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.7,
+      "lon": 127.0,
+      "founded_year": 1994,
+      "employees": 614,
+      "owner_kind": "family",
+      "owner_openness": 367,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3411,
+        "sga_bps": 1172,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6981,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 43991,
+        "cogs": 28985,
+        "gross_profit": 15006,
+        "sga": 5157,
+        "ebitda": 9849,
+        "da": 1650,
+        "ebit": 8199,
+        "interest": 1070,
+        "ebt": 7129,
+        "tax": 1640,
+        "net_income": 5489,
+        "cash": 29406,
+        "ar": 28350,
+        "inv": 22544,
+        "gross_ppe": 162617,
+        "accum_dep": 71307,
+        "net_ppe": 91310,
+        "ap": 15459,
+        "debt": 62616,
+        "share_capital": 30924,
+        "retained": 62611,
+        "dividends": 439,
+        "cfo": 5549,
+        "cfi": -1320,
+        "cff": -1717,
+        "net_change": 2512,
+        "model_multiple_millis": 6720
+      },
+      "sites": [
+        {
+          "id": "co-002-f0",
+          "kind": "factory",
+          "name_ko": "바르베어링 1",
+          "lat": 36.7,
+          "lon": 127.0,
+          "book_value": 45655,
+          "capacity": 9
+        },
+        {
+          "id": "co-002-w1",
+          "kind": "warehouse",
+          "name_ko": "바르베어링 2",
+          "lat": 36.72,
+          "lon": 126.99,
+          "book_value": 45655,
+          "capacity": 10
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르베어링 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "바르베어링 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-1-ceo",
+          "name_ko": "모나래",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-1-cfo",
+          "name_ko": "류소담",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-003",
+      "legal_name_ko": "주식회사 바르냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.75,
+      "lon": 126.72,
+      "founded_year": 1999,
+      "employees": 429,
+      "owner_kind": "conglomerate",
+      "owner_openness": 414,
+      "approach_stage": "growth",
+      "approach_instrument": "rcps",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2528,
+        "sga_bps": 1194,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9305,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 18502,
+        "cogs": 13824,
+        "gross_profit": 4678,
+        "sga": 2209,
+        "ebitda": 2469,
+        "da": 895,
+        "ebit": 1574,
+        "interest": 298,
+        "ebt": 1276,
+        "tax": 281,
+        "net_income": 995,
+        "cash": 6372,
+        "ar": 10279,
+        "inv": 1229,
+        "gross_ppe": 104631,
+        "accum_dep": 45188,
+        "net_ppe": 59443,
+        "ap": 6144,
+        "debt": 19625,
+        "share_capital": 12367,
+        "retained": 39187,
+        "dividends": 50,
+        "cfo": 1810,
+        "cfi": -648,
+        "cff": -288,
+        "net_change": 874,
+        "model_multiple_millis": 8780
+      },
+      "sites": [
+        {
+          "id": "co-003-w0",
+          "kind": "warehouse",
+          "name_ko": "바르냉장 1",
+          "lat": 35.75,
+          "lon": 126.72,
+          "book_value": 19814,
+          "capacity": 10
+        },
+        {
+          "id": "co-003-w1",
+          "kind": "warehouse",
+          "name_ko": "바르냉장 2",
+          "lat": 35.77,
+          "lon": 126.71,
+          "book_value": 19814,
+          "capacity": 11
+        },
+        {
+          "id": "co-003-s2",
+          "kind": "store",
+          "name_ko": "바르냉장 3",
+          "lat": 35.74,
+          "lon": 126.74,
+          "book_value": 19814,
+          "capacity": 12
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르냉장 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "바르냉장 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "바르냉장 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-2-ceo",
+          "name_ko": "라다온",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-2-cfo",
+          "name_ko": "정아람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-004",
+      "legal_name_ko": "주식회사 온새발효",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.24,
+      "lon": 128.56,
+      "founded_year": 2000,
+      "employees": 525,
+      "owner_kind": "pe_exit",
+      "owner_openness": 461,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3166,
+        "sga_bps": 1890,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8261,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 31019,
+        "cogs": 21199,
+        "gross_profit": 9820,
+        "sga": 5864,
+        "ebitda": 3956,
+        "da": 939,
+        "ebit": 3017,
+        "interest": 334,
+        "ebt": 2683,
+        "tax": 590,
+        "net_income": 2093,
+        "cash": 14300,
+        "ar": 14476,
+        "inv": 8951,
+        "gross_ppe": 84146,
+        "accum_dep": 37352,
+        "net_ppe": 46794,
+        "ap": 8244,
+        "debt": 20861,
+        "share_capital": 20786,
+        "retained": 34630,
+        "dividends": 209,
+        "cfo": 2931,
+        "cfi": -775,
+        "cff": -527,
+        "net_change": 1629,
+        "model_multiple_millis": 7970
+      },
+      "sites": [
+        {
+          "id": "co-004-f0",
+          "kind": "factory",
+          "name_ko": "온새발효 1",
+          "lat": 35.24,
+          "lon": 128.56,
+          "book_value": 15598,
+          "capacity": 11
+        },
+        {
+          "id": "co-004-w1",
+          "kind": "warehouse",
+          "name_ko": "온새발효 2",
+          "lat": 35.26,
+          "lon": 128.55,
+          "book_value": 15598,
+          "capacity": 12
+        },
+        {
+          "id": "co-004-s2",
+          "kind": "store",
+          "name_ko": "온새발효 3",
+          "lat": 35.23,
+          "lon": 128.58,
+          "book_value": 15598,
+          "capacity": 13
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "온새발효 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "온새발효 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-3-ceo",
+          "name_ko": "온라온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-3-cfo",
+          "name_ko": "서온새",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-005",
+      "legal_name_ko": "주식회사 아람밸브",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.37,
+      "lon": 126.82,
+      "founded_year": 2006,
+      "employees": 197,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2865,
+        "sga_bps": 1619,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6585,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 15286,
+        "cogs": 10906,
+        "gross_profit": 4380,
+        "sga": 2475,
+        "ebitda": 1905,
+        "da": 532,
+        "ebit": 1373,
+        "interest": 246,
+        "ebt": 1127,
+        "tax": 259,
+        "net_income": 868,
+        "cash": 4524,
+        "ar": 9851,
+        "inv": 8482,
+        "gross_ppe": 52426,
+        "accum_dep": 22926,
+        "net_ppe": 29500,
+        "ap": 5817,
+        "debt": 14365,
+        "share_capital": 9939,
+        "retained": 22236,
+        "dividends": 69,
+        "cfo": 1045,
+        "cfi": -459,
+        "cff": -362,
+        "net_change": 224,
+        "model_multiple_millis": 6340
+      },
+      "sites": [
+        {
+          "id": "co-005-f0",
+          "kind": "factory",
+          "name_ko": "아람밸브 1",
+          "lat": 37.37,
+          "lon": 126.82,
+          "book_value": 14750,
+          "capacity": 12
+        },
+        {
+          "id": "co-005-w1",
+          "kind": "warehouse",
+          "name_ko": "아람밸브 2",
+          "lat": 37.39,
+          "lon": 126.81,
+          "book_value": 14750,
+          "capacity": 13
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "아람밸브 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-4-ceo",
+          "name_ko": "배모람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-4-cfo",
+          "name_ko": "모이든",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-006",
+      "legal_name_ko": "주식회사 다온창고",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.62,
+      "lon": 126.66,
+      "founded_year": 2009,
+      "employees": 558,
+      "owner_kind": "founder",
+      "owner_openness": 555,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2776,
+        "sga_bps": 1243,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9340,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 24579,
+        "cogs": 17756,
+        "gross_profit": 6823,
+        "sga": 3056,
+        "ebitda": 3767,
+        "da": 1167,
+        "ebit": 2600,
+        "interest": 544,
+        "ebt": 2056,
+        "tax": 452,
+        "net_income": 1604,
+        "cash": 11144,
+        "ar": 13655,
+        "inv": 1578,
+        "gross_ppe": 136190,
+        "accum_dep": 58687,
+        "net_ppe": 77503,
+        "ap": 7892,
+        "debt": 35810,
+        "share_capital": 16057,
+        "retained": 44121,
+        "dividends": 80,
+        "cfo": 2905,
+        "cfi": -860,
+        "cff": -515,
+        "net_change": 1530,
+        "model_multiple_millis": 8810
+      },
+      "sites": [
+        {
+          "id": "co-006-w0",
+          "kind": "warehouse",
+          "name_ko": "다온창고 1",
+          "lat": 36.62,
+          "lon": 126.66,
+          "book_value": 25834,
+          "capacity": 13
+        },
+        {
+          "id": "co-006-w1",
+          "kind": "warehouse",
+          "name_ko": "다온창고 2",
+          "lat": 36.64,
+          "lon": 126.65,
+          "book_value": 25834,
+          "capacity": 14
+        },
+        {
+          "id": "co-006-s2",
+          "kind": "store",
+          "name_ko": "다온창고 3",
+          "lat": 36.61,
+          "lon": 126.68,
+          "book_value": 25834,
+          "capacity": 15
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "다온창고 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "다온창고 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-5-ceo",
+          "name_ko": "문바르",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-5-cfo",
+          "name_ko": "라지온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-007",
+      "legal_name_ko": "주식회사 다온발효",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.91,
+      "lon": 127.27,
+      "founded_year": 1989,
+      "employees": 874,
+      "owner_kind": "family",
+      "owner_openness": 602,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3156,
+        "sga_bps": 1556,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8326,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 52623,
+        "cogs": 36017,
+        "gross_profit": 16606,
+        "sga": 8189,
+        "ebitda": 8417,
+        "da": 1568,
+        "ebit": 6849,
+        "interest": 709,
+        "ebt": 6140,
+        "tax": 1351,
+        "net_income": 4789,
+        "cash": 30253,
+        "ar": 24557,
+        "inv": 15207,
+        "gross_ppe": 140399,
+        "accum_dep": 62239,
+        "net_ppe": 78160,
+        "ap": 14007,
+        "debt": 44364,
+        "share_capital": 34623,
+        "retained": 55183,
+        "dividends": 479,
+        "cfo": 5971,
+        "cfi": -1316,
+        "cff": -1155,
+        "net_change": 3500,
+        "model_multiple_millis": 8040
+      },
+      "sites": [
+        {
+          "id": "co-007-f0",
+          "kind": "factory",
+          "name_ko": "다온발효 1",
+          "lat": 35.91,
+          "lon": 127.27,
+          "book_value": 26053,
+          "capacity": 14
+        },
+        {
+          "id": "co-007-w1",
+          "kind": "warehouse",
+          "name_ko": "다온발효 2",
+          "lat": 35.93,
+          "lon": 127.26,
+          "book_value": 26053,
+          "capacity": 15
+        },
+        {
+          "id": "co-007-s2",
+          "kind": "store",
+          "name_ko": "다온발효 3",
+          "lat": 35.9,
+          "lon": 127.29,
+          "book_value": 26053,
+          "capacity": 16
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "다온발효 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "다온발효 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-6-ceo",
+          "name_ko": "류소담",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-6-cfo",
+          "name_ko": "온하람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-008",
+      "legal_name_ko": "주식회사 바르정밀",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.62,
+      "lon": 128.2,
+      "founded_year": 1995,
+      "employees": 400,
+      "owner_kind": "conglomerate",
+      "owner_openness": 649,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2563,
+        "sga_bps": 1338,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 7468,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 27040,
+        "cogs": 20109,
+        "gross_profit": 6931,
+        "sga": 3619,
+        "ebitda": 3312,
+        "da": 1077,
+        "ebit": 2235,
+        "interest": 320,
+        "ebt": 1915,
+        "tax": 440,
+        "net_income": 1475,
+        "cash": 11353,
+        "ar": 17426,
+        "inv": 15640,
+        "gross_ppe": 106071,
+        "accum_dep": 46476,
+        "net_ppe": 59595,
+        "ap": 10725,
+        "debt": 18740,
+        "share_capital": 20152,
+        "retained": 54397,
+        "dividends": 118,
+        "cfo": 4008,
+        "cfi": -811,
+        "cff": -500,
+        "net_change": 2697,
+        "model_multiple_millis": 7190
+      },
+      "sites": [
+        {
+          "id": "co-008-f0",
+          "kind": "factory",
+          "name_ko": "바르정밀 1",
+          "lat": 35.62,
+          "lon": 128.2,
+          "book_value": 29797,
+          "capacity": 15
+        },
+        {
+          "id": "co-008-w1",
+          "kind": "warehouse",
+          "name_ko": "바르정밀 2",
+          "lat": 35.64,
+          "lon": 128.19,
+          "book_value": 29797,
+          "capacity": 16
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르정밀 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "바르정밀 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "바르정밀 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-7-ceo",
+          "name_ko": "정아람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-7-cfo",
+          "name_ko": "배가온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-009",
+      "legal_name_ko": "주식회사 아람운송",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.57,
+      "lon": 126.98,
+      "founded_year": 2004,
+      "employees": 357,
+      "owner_kind": "pe_exit",
+      "owner_openness": 696,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2450,
+        "sga_bps": 1132,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9393,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 15494,
+        "cogs": 11698,
+        "gross_profit": 3796,
+        "sga": 1754,
+        "ebitda": 2042,
+        "da": 745,
+        "ebit": 1297,
+        "interest": 256,
+        "ebt": 1041,
+        "tax": 229,
+        "net_income": 812,
+        "cash": 5468,
+        "ar": 8608,
+        "inv": 1040,
+        "gross_ppe": 86952,
+        "accum_dep": 37521,
+        "net_ppe": 49431,
+        "ap": 5199,
+        "debt": 16862,
+        "share_capital": 10268,
+        "retained": 32218,
+        "dividends": 41,
+        "cfo": 1419,
+        "cfi": -542,
+        "cff": -246,
+        "net_change": 631,
+        "model_multiple_millis": 8860
+      },
+      "sites": [
+        {
+          "id": "co-009-w0",
+          "kind": "warehouse",
+          "name_ko": "아람운송 1",
+          "lat": 37.57,
+          "lon": 126.98,
+          "book_value": 16477,
+          "capacity": 16
+        },
+        {
+          "id": "co-009-w1",
+          "kind": "warehouse",
+          "name_ko": "아람운송 2",
+          "lat": 37.59,
+          "lon": 126.97,
+          "book_value": 16477,
+          "capacity": 17
+        },
+        {
+          "id": "co-009-s2",
+          "kind": "store",
+          "name_ko": "아람운송 3",
+          "lat": 37.56,
+          "lon": 127.0,
+          "book_value": 16477,
+          "capacity": 18
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "아람운송 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "아람운송 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-8-ceo",
+          "name_ko": "서온새",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-8-cfo",
+          "name_ko": "문나래",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-010",
+      "legal_name_ko": "주식회사 하람소스",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.56,
+      "lon": 126.53,
+      "founded_year": 2003,
+      "employees": 438,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2997,
+        "sga_bps": 1620,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7550,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 29303,
+        "cogs": 20520,
+        "gross_profit": 8783,
+        "sga": 4747,
+        "ebitda": 4036,
+        "da": 790,
+        "ebit": 3246,
+        "interest": 359,
+        "ebt": 2887,
+        "tax": 635,
+        "net_income": 2252,
+        "cash": 12999,
+        "ar": 13675,
+        "inv": 8664,
+        "gross_ppe": 70601,
+        "accum_dep": 31173,
+        "net_ppe": 39428,
+        "ap": 7980,
+        "debt": 22435,
+        "share_capital": 17332,
+        "retained": 27019,
+        "dividends": 225,
+        "cfo": 2433,
+        "cfi": -733,
+        "cff": -567,
+        "net_change": 1133,
+        "model_multiple_millis": 7290
+      },
+      "sites": [
+        {
+          "id": "co-010-f0",
+          "kind": "factory",
+          "name_ko": "하람소스 1",
+          "lat": 36.56,
+          "lon": 126.53,
+          "book_value": 13142,
+          "capacity": 17
+        },
+        {
+          "id": "co-010-w1",
+          "kind": "warehouse",
+          "name_ko": "하람소스 2",
+          "lat": 36.58,
+          "lon": 126.52,
+          "book_value": 13142,
+          "capacity": 18
+        },
+        {
+          "id": "co-010-s2",
+          "kind": "store",
+          "name_ko": "하람소스 3",
+          "lat": 36.55,
+          "lon": 126.55,
+          "book_value": 13142,
+          "capacity": 19
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "하람소스 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-9-ceo",
+          "name_ko": "모이든",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-9-cfo",
+          "name_ko": "류다온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-011",
+      "legal_name_ko": "주식회사 이든밸브",
+      "sector_id": "industrial_components",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.72,
+      "lon": 126.82,
+      "founded_year": 2003,
+      "employees": 236,
+      "owner_kind": "founder",
+      "owner_openness": 790,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2848,
+        "sga_bps": 1165,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 8462,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 17663,
+        "cogs": 12632,
+        "gross_profit": 5031,
+        "sga": 2057,
+        "ebitda": 2974,
+        "da": 637,
+        "ebit": 2337,
+        "interest": 396,
+        "ebt": 1941,
+        "tax": 446,
+        "net_income": 1495,
+        "cash": 8386,
+        "ar": 11383,
+        "inv": 9825,
+        "gross_ppe": 62744,
+        "accum_dep": 27438,
+        "net_ppe": 35306,
+        "ap": 6737,
+        "debt": 23142,
+        "share_capital": 11895,
+        "retained": 23126,
+        "dividends": 120,
+        "cfo": 2169,
+        "cfi": -530,
+        "cff": -592,
+        "net_change": 1047,
+        "model_multiple_millis": 8150
+      },
+      "sites": [
+        {
+          "id": "co-011-f0",
+          "kind": "factory",
+          "name_ko": "이든밸브 1",
+          "lat": 35.72,
+          "lon": 126.82,
+          "book_value": 17653,
+          "capacity": 18
+        },
+        {
+          "id": "co-011-w1",
+          "kind": "warehouse",
+          "name_ko": "이든밸브 2",
+          "lat": 35.74,
+          "lon": 126.81,
+          "book_value": 17653,
+          "capacity": 19
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "이든밸브 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "이든밸브 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-10-ceo",
+          "name_ko": "라지온",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-10-cfo",
+          "name_ko": "정라온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-012",
+      "legal_name_ko": "주식회사 하람운송",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.42,
+      "lon": 128.56,
+      "founded_year": 2016,
+      "employees": 460,
+      "owner_kind": "family",
+      "owner_openness": 837,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3002,
+        "sga_bps": 895,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 11196,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 19137,
+        "cogs": 13392,
+        "gross_profit": 5745,
+        "sga": 1713,
+        "ebitda": 4032,
+        "da": 961,
+        "ebit": 3071,
+        "interest": 563,
+        "ebt": 2508,
+        "tax": 552,
+        "net_income": 1956,
+        "cash": 14120,
+        "ar": 10632,
+        "inv": 1190,
+        "gross_ppe": 112216,
+        "accum_dep": 48428,
+        "net_ppe": 63788,
+        "ap": 5952,
+        "debt": 37090,
+        "share_capital": 13252,
+        "retained": 33436,
+        "dividends": 98,
+        "cfo": 2889,
+        "cfi": -670,
+        "cff": -548,
+        "net_change": 1671,
+        "model_multiple_millis": 10570
+      },
+      "sites": [
+        {
+          "id": "co-012-w0",
+          "kind": "warehouse",
+          "name_ko": "하람운송 1",
+          "lat": 35.42,
+          "lon": 128.56,
+          "book_value": 21262,
+          "capacity": 19
+        },
+        {
+          "id": "co-012-w1",
+          "kind": "warehouse",
+          "name_ko": "하람운송 2",
+          "lat": 35.44,
+          "lon": 128.55,
+          "book_value": 21262,
+          "capacity": 20
+        },
+        {
+          "id": "co-012-s2",
+          "kind": "store",
+          "name_ko": "하람운송 3",
+          "lat": 35.41,
+          "lon": 128.58,
+          "book_value": 21262,
+          "capacity": 21
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "하람운송 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "하람운송 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-11-ceo",
+          "name_ko": "온하람",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-11-cfo",
+          "name_ko": "서모람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-013",
+      "legal_name_ko": "주식회사 라온발효",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.6,
+      "lon": 126.65,
+      "founded_year": 2015,
+      "employees": 450,
+      "owner_kind": "conglomerate",
+      "owner_openness": 364,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2743,
+        "sga_bps": 1219,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 9171,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 25847,
+        "cogs": 18758,
+        "gross_profit": 7089,
+        "sga": 3152,
+        "ebitda": 3937,
+        "da": 803,
+        "ebit": 3134,
+        "interest": 387,
+        "ebt": 2747,
+        "tax": 604,
+        "net_income": 2143,
+        "cash": 15927,
+        "ar": 12062,
+        "inv": 7920,
+        "gross_ppe": 72021,
+        "accum_dep": 32035,
+        "net_ppe": 39986,
+        "ap": 7295,
+        "debt": 24181,
+        "share_capital": 17828,
+        "retained": 26591,
+        "dividends": 214,
+        "cfo": 2389,
+        "cfi": -646,
+        "cff": -582,
+        "net_change": 1161,
+        "model_multiple_millis": 8850
+      },
+      "sites": [
+        {
+          "id": "co-013-f0",
+          "kind": "factory",
+          "name_ko": "라온발효 1",
+          "lat": 37.6,
+          "lon": 126.65,
+          "book_value": 13328,
+          "capacity": 20
+        },
+        {
+          "id": "co-013-w1",
+          "kind": "warehouse",
+          "name_ko": "라온발효 2",
+          "lat": 37.62,
+          "lon": 126.64,
+          "book_value": 13328,
+          "capacity": 21
+        },
+        {
+          "id": "co-013-s2",
+          "kind": "store",
+          "name_ko": "라온발효 3",
+          "lat": 37.59,
+          "lon": 126.67,
+          "book_value": 13328,
+          "capacity": 22
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "라온발효 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "라온발효 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "라온발효 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-12-ceo",
+          "name_ko": "배가온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-12-cfo",
+          "name_ko": "모바르",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-014",
+      "legal_name_ko": "주식회사 다온정밀",
+      "sector_id": "industrial_components",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.68,
+      "lon": 126.59,
+      "founded_year": 2003,
+      "employees": 473,
+      "owner_kind": "pe_exit",
+      "owner_openness": 411,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2751,
+        "sga_bps": 1233,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6910,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 34001,
+        "cogs": 24647,
+        "gross_profit": 9354,
+        "sga": 4193,
+        "ebitda": 5161,
+        "da": 1275,
+        "ebit": 3886,
+        "interest": 677,
+        "ebt": 3209,
+        "tax": 738,
+        "net_income": 2471,
+        "cash": 14580,
+        "ar": 21912,
+        "inv": 19170,
+        "gross_ppe": 125535,
+        "accum_dep": 54947,
+        "net_ppe": 70588,
+        "ap": 13145,
+        "debt": 39604,
+        "share_capital": 23819,
+        "retained": 49682,
+        "dividends": 198,
+        "cfo": 3007,
+        "cfi": -1020,
+        "cff": -1006,
+        "net_change": 981,
+        "model_multiple_millis": 6660
+      },
+      "sites": [
+        {
+          "id": "co-014-f0",
+          "kind": "factory",
+          "name_ko": "다온정밀 1",
+          "lat": 36.68,
+          "lon": 126.59,
+          "book_value": 35294,
+          "capacity": 21
+        },
+        {
+          "id": "co-014-w1",
+          "kind": "warehouse",
+          "name_ko": "다온정밀 2",
+          "lat": 36.7,
+          "lon": 126.58,
+          "book_value": 35294,
+          "capacity": 22
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "다온정밀 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "다온정밀 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-13-ceo",
+          "name_ko": "문나래",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-13-cfo",
+          "name_ko": "라소담",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-015",
+      "legal_name_ko": "주식회사 나래냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 36.0,
+      "lon": 127.21,
+      "founded_year": 2012,
+      "employees": 591,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2485,
+        "sga_bps": 1284,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 10040,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 25257,
+        "cogs": 18980,
+        "gross_profit": 6277,
+        "sga": 3242,
+        "ebitda": 3035,
+        "da": 1233,
+        "ebit": 1802,
+        "interest": 462,
+        "ebt": 1340,
+        "tax": 295,
+        "net_income": 1045,
+        "cash": 9181,
+        "ar": 14032,
+        "inv": 1687,
+        "gross_ppe": 144030,
+        "accum_dep": 62189,
+        "net_ppe": 81841,
+        "ap": 8436,
+        "debt": 30433,
+        "share_capital": 17020,
+        "retained": 50852,
+        "dividends": 52,
+        "cfo": 2251,
+        "cfi": -884,
+        "cff": -422,
+        "net_change": 945,
+        "model_multiple_millis": 9470
+      },
+      "sites": [
+        {
+          "id": "co-015-w0",
+          "kind": "warehouse",
+          "name_ko": "나래냉장 1",
+          "lat": 36.0,
+          "lon": 127.21,
+          "book_value": 27280,
+          "capacity": 22
+        },
+        {
+          "id": "co-015-w1",
+          "kind": "warehouse",
+          "name_ko": "나래냉장 2",
+          "lat": 36.02,
+          "lon": 127.2,
+          "book_value": 27280,
+          "capacity": 23
+        },
+        {
+          "id": "co-015-s2",
+          "kind": "store",
+          "name_ko": "나래냉장 3",
+          "lat": 35.99,
+          "lon": 127.23,
+          "book_value": 27280,
+          "capacity": 24
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "나래냉장 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-14-ceo",
+          "name_ko": "류다온",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-14-cfo",
+          "name_ko": "온아람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-016",
+      "legal_name_ko": "주식회사 이든냉동식품",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.4,
+      "lon": 128.53,
+      "founded_year": 2000,
+      "employees": 185,
+      "owner_kind": "founder",
+      "owner_openness": 505,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3552,
+        "sga_bps": 1611,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7901,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 10154,
+        "cogs": 6547,
+        "gross_profit": 3607,
+        "sga": 1636,
+        "ebitda": 1971,
+        "da": 332,
+        "ebit": 1639,
+        "interest": 172,
+        "ebt": 1467,
+        "tax": 323,
+        "net_income": 1144,
+        "cash": 8460,
+        "ar": 4739,
+        "inv": 2764,
+        "gross_ppe": 29664,
+        "accum_dep": 13154,
+        "net_ppe": 16510,
+        "ap": 2546,
+        "debt": 10763,
+        "share_capital": 7317,
+        "retained": 11847,
+        "dividends": 114,
+        "cfo": 1744,
+        "cfi": -254,
+        "cff": -278,
+        "net_change": 1212,
+        "model_multiple_millis": 7620
+      },
+      "sites": [
+        {
+          "id": "co-016-f0",
+          "kind": "factory",
+          "name_ko": "이든냉동식품 1",
+          "lat": 35.4,
+          "lon": 128.53,
+          "book_value": 5503,
+          "capacity": 23
+        },
+        {
+          "id": "co-016-w1",
+          "kind": "warehouse",
+          "name_ko": "이든냉동식품 2",
+          "lat": 35.42,
+          "lon": 128.52,
+          "book_value": 5503,
+          "capacity": 24
+        },
+        {
+          "id": "co-016-s2",
+          "kind": "store",
+          "name_ko": "이든냉동식품 3",
+          "lat": 35.39,
+          "lon": 128.55,
+          "book_value": 5503,
+          "capacity": 25
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "이든냉동식품 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "이든냉동식품 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-15-ceo",
+          "name_ko": "정라온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-15-cfo",
+          "name_ko": "배온새",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-017",
+      "legal_name_ko": "주식회사 가온정밀",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.47,
+      "lon": 126.64,
+      "founded_year": 1998,
+      "employees": 580,
+      "owner_kind": "family",
+      "owner_openness": 552,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3323,
+        "sga_bps": 584,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6701,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 41213,
+        "cogs": 27518,
+        "gross_profit": 13695,
+        "sga": 2407,
+        "ebitda": 11288,
+        "da": 1564,
+        "ebit": 9724,
+        "interest": 1374,
+        "ebt": 8350,
+        "tax": 1920,
+        "net_income": 6430,
+        "cash": 37939,
+        "ar": 26559,
+        "inv": 21403,
+        "gross_ppe": 153994,
+        "accum_dep": 67436,
+        "net_ppe": 86558,
+        "ap": 14676,
+        "debt": 80368,
+        "share_capital": 29236,
+        "retained": 48179,
+        "dividends": 514,
+        "cfo": 8045,
+        "cfi": -1236,
+        "cff": -2154,
+        "net_change": 4655,
+        "model_multiple_millis": 6450
+      },
+      "sites": [
+        {
+          "id": "co-017-f0",
+          "kind": "factory",
+          "name_ko": "가온정밀 1",
+          "lat": 37.47,
+          "lon": 126.64,
+          "book_value": 43279,
+          "capacity": 24
+        },
+        {
+          "id": "co-017-w1",
+          "kind": "warehouse",
+          "name_ko": "가온정밀 2",
+          "lat": 37.49,
+          "lon": 126.63,
+          "book_value": 43279,
+          "capacity": 25
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "가온정밀 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "가온정밀 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-16-ceo",
+          "name_ko": "서모람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-16-cfo",
+          "name_ko": "문이든",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-018",
+      "legal_name_ko": "주식회사 아람냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.67,
+      "lon": 126.98,
+      "founded_year": 2001,
+      "employees": 358,
+      "owner_kind": "conglomerate",
+      "owner_openness": 599,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2551,
+        "sga_bps": 1045,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 8609,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 16317,
+        "cogs": 12154,
+        "gross_profit": 4163,
+        "sga": 1705,
+        "ebitda": 2458,
+        "da": 750,
+        "ebit": 1708,
+        "interest": 321,
+        "ebt": 1387,
+        "tax": 305,
+        "net_income": 1082,
+        "cash": 6489,
+        "ar": 9065,
+        "inv": 1080,
+        "gross_ppe": 87492,
+        "accum_dep": 37664,
+        "net_ppe": 49828,
+        "ap": 5402,
+        "debt": 21128,
+        "share_capital": 10304,
+        "retained": 29628,
+        "dividends": 54,
+        "cfo": 1859,
+        "cfi": -571,
+        "cff": -311,
+        "net_change": 977,
+        "model_multiple_millis": 8120
+      },
+      "sites": [
+        {
+          "id": "co-018-w0",
+          "kind": "warehouse",
+          "name_ko": "아람냉장 1",
+          "lat": 36.67,
+          "lon": 126.98,
+          "book_value": 16609,
+          "capacity": 25
+        },
+        {
+          "id": "co-018-w1",
+          "kind": "warehouse",
+          "name_ko": "아람냉장 2",
+          "lat": 36.69,
+          "lon": 126.97,
+          "book_value": 16609,
+          "capacity": 26
+        },
+        {
+          "id": "co-018-s2",
+          "kind": "store",
+          "name_ko": "아람냉장 3",
+          "lat": 36.66,
+          "lon": 127.0,
+          "book_value": 16609,
+          "capacity": 27
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "아람냉장 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "아람냉장 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "아람냉장 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-17-ceo",
+          "name_ko": "모바르",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-17-cfo",
+          "name_ko": "류지온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-019",
+      "legal_name_ko": "주식회사 모람냉동식품",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.75,
+      "lon": 126.98,
+      "founded_year": 2011,
+      "employees": 296,
+      "owner_kind": "pe_exit",
+      "owner_openness": 646,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3365,
+        "sga_bps": 1945,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8142,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 16145,
+        "cogs": 10713,
+        "gross_profit": 5432,
+        "sga": 3141,
+        "ebitda": 2291,
+        "da": 529,
+        "ebit": 1762,
+        "interest": 188,
+        "ebt": 1574,
+        "tax": 346,
+        "net_income": 1228,
+        "cash": 8540,
+        "ar": 7534,
+        "inv": 4523,
+        "gross_ppe": 47426,
+        "accum_dep": 21080,
+        "net_ppe": 26346,
+        "ap": 4166,
+        "debt": 11752,
+        "share_capital": 11728,
+        "retained": 19297,
+        "dividends": 123,
+        "cfo": 1765,
+        "cfi": -404,
+        "cff": -302,
+        "net_change": 1059,
+        "model_multiple_millis": 7860
+      },
+      "sites": [
+        {
+          "id": "co-019-f0",
+          "kind": "factory",
+          "name_ko": "모람냉동식품 1",
+          "lat": 35.75,
+          "lon": 126.98,
+          "book_value": 8782,
+          "capacity": 26
+        },
+        {
+          "id": "co-019-w1",
+          "kind": "warehouse",
+          "name_ko": "모람냉동식품 2",
+          "lat": 35.77,
+          "lon": 126.97,
+          "book_value": 8782,
+          "capacity": 27
+        },
+        {
+          "id": "co-019-s2",
+          "kind": "store",
+          "name_ko": "모람냉동식품 3",
+          "lat": 35.74,
+          "lon": 127.0,
+          "book_value": 8782,
+          "capacity": 8
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "모람냉동식품 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "모람냉동식품 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-18-ceo",
+          "name_ko": "라소담",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-18-cfo",
+          "name_ko": "정하람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-020",
+      "legal_name_ko": "주식회사 지온금형",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.26,
+      "lon": 128.5,
+      "founded_year": 1994,
+      "employees": 349,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2513,
+        "sga_bps": 1215,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6185,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 24250,
+        "cogs": 18157,
+        "gross_profit": 6093,
+        "sga": 2946,
+        "ebitda": 3147,
+        "da": 943,
+        "ebit": 2204,
+        "interest": 423,
+        "ebt": 1781,
+        "tax": 410,
+        "net_income": 1371,
+        "cash": 10101,
+        "ar": 15628,
+        "inv": 14122,
+        "gross_ppe": 92704,
+        "accum_dep": 40540,
+        "net_ppe": 52164,
+        "ap": 9684,
+        "debt": 24743,
+        "share_capital": 17572,
+        "retained": 40016,
+        "dividends": 110,
+        "cfo": 3475,
+        "cfi": -728,
+        "cff": -615,
+        "net_change": 2132,
+        "model_multiple_millis": 5960
+      },
+      "sites": [
+        {
+          "id": "co-020-f0",
+          "kind": "factory",
+          "name_ko": "지온금형 1",
+          "lat": 35.26,
+          "lon": 128.5,
+          "book_value": 26082,
+          "capacity": 27
+        },
+        {
+          "id": "co-020-w1",
+          "kind": "warehouse",
+          "name_ko": "지온금형 2",
+          "lat": 35.28,
+          "lon": 128.49,
+          "book_value": 26082,
+          "capacity": 8
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "지온금형 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-19-ceo",
+          "name_ko": "온아람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-19-cfo",
+          "name_ko": "서가온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-021",
+      "legal_name_ko": "주식회사 하람냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.52,
+      "lon": 126.99,
+      "founded_year": 2000,
+      "employees": 487,
+      "owner_kind": "founder",
+      "owner_openness": 740,
+      "approach_stage": "growth",
+      "approach_instrument": "rcps",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 1621,
+        "sga_bps": 997,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 11246,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 21115,
+        "cogs": 17693,
+        "gross_profit": 3422,
+        "sga": 2105,
+        "ebitda": 1317,
+        "da": 1018,
+        "ebit": 299,
+        "interest": 156,
+        "ebt": 143,
+        "tax": 31,
+        "net_income": 112,
+        "cash": 2731,
+        "ar": 11731,
+        "inv": 1573,
+        "gross_ppe": 118806,
+        "accum_dep": 51212,
+        "net_ppe": 67594,
+        "ap": 7864,
+        "debt": 10243,
+        "share_capital": 14013,
+        "retained": 51509,
+        "dividends": 6,
+        "cfo": 1221,
+        "cfi": -739,
+        "cff": -130,
+        "net_change": 352,
+        "model_multiple_millis": 10610
+      },
+      "sites": [
+        {
+          "id": "co-021-w0",
+          "kind": "warehouse",
+          "name_ko": "하람냉장 1",
+          "lat": 37.52,
+          "lon": 126.99,
+          "book_value": 22531,
+          "capacity": 8
+        },
+        {
+          "id": "co-021-w1",
+          "kind": "warehouse",
+          "name_ko": "하람냉장 2",
+          "lat": 37.54,
+          "lon": 126.98,
+          "book_value": 22531,
+          "capacity": 9
+        },
+        {
+          "id": "co-021-s2",
+          "kind": "store",
+          "name_ko": "하람냉장 3",
+          "lat": 37.51,
+          "lon": 127.01,
+          "book_value": 22531,
+          "capacity": 10
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "하람냉장 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "하람냉장 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-20-ceo",
+          "name_ko": "배온새",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-20-cfo",
+          "name_ko": "모나래",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-022",
+      "legal_name_ko": "주식회사 가온소스",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.7,
+      "lon": 126.49,
+      "founded_year": 1993,
+      "employees": 400,
+      "owner_kind": "family",
+      "owner_openness": 787,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3211,
+        "sga_bps": 1745,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7208,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 22470,
+        "cogs": 15255,
+        "gross_profit": 7215,
+        "sga": 3921,
+        "ebitda": 3294,
+        "da": 713,
+        "ebit": 2581,
+        "interest": 283,
+        "ebt": 2298,
+        "tax": 506,
+        "net_income": 1792,
+        "cash": 12254,
+        "ar": 10486,
+        "inv": 6441,
+        "gross_ppe": 63926,
+        "accum_dep": 28443,
+        "net_ppe": 35483,
+        "ap": 5932,
+        "debt": 17702,
+        "share_capital": 15831,
+        "retained": 25199,
+        "dividends": 179,
+        "cfo": 2306,
+        "cfi": -562,
+        "cff": -449,
+        "net_change": 1295,
+        "model_multiple_millis": 6960
+      },
+      "sites": [
+        {
+          "id": "co-022-f0",
+          "kind": "factory",
+          "name_ko": "가온소스 1",
+          "lat": 36.7,
+          "lon": 126.49,
+          "book_value": 11827,
+          "capacity": 9
+        },
+        {
+          "id": "co-022-w1",
+          "kind": "warehouse",
+          "name_ko": "가온소스 2",
+          "lat": 36.72,
+          "lon": 126.48,
+          "book_value": 11827,
+          "capacity": 10
+        },
+        {
+          "id": "co-022-s2",
+          "kind": "store",
+          "name_ko": "가온소스 3",
+          "lat": 36.69,
+          "lon": 126.51,
+          "book_value": 11827,
+          "capacity": 11
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "가온소스 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "가온소스 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-21-ceo",
+          "name_ko": "문이든",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-21-cfo",
+          "name_ko": "라다온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-023",
+      "legal_name_ko": "주식회사 가온금형",
+      "sector_id": "industrial_components",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.66,
+      "lon": 126.81,
+      "founded_year": 2002,
+      "employees": 266,
+      "owner_kind": "conglomerate",
+      "owner_openness": 834,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3076,
+        "sga_bps": 1289,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6749,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 20025,
+        "cogs": 13866,
+        "gross_profit": 6159,
+        "sga": 2581,
+        "ebitda": 3578,
+        "da": 721,
+        "ebit": 2857,
+        "interest": 399,
+        "ebt": 2458,
+        "tax": 565,
+        "net_income": 1893,
+        "cash": 10421,
+        "ar": 12905,
+        "inv": 10785,
+        "gross_ppe": 70837,
+        "accum_dep": 30929,
+        "net_ppe": 39908,
+        "ap": 7395,
+        "debt": 23355,
+        "share_capital": 13403,
+        "retained": 29866,
+        "dividends": 151,
+        "cfo": 2799,
+        "cfi": -601,
+        "cff": -628,
+        "net_change": 1570,
+        "model_multiple_millis": 6500
+      },
+      "sites": [
+        {
+          "id": "co-023-f0",
+          "kind": "factory",
+          "name_ko": "가온금형 1",
+          "lat": 35.66,
+          "lon": 126.81,
+          "book_value": 19954,
+          "capacity": 10
+        },
+        {
+          "id": "co-023-w1",
+          "kind": "warehouse",
+          "name_ko": "가온금형 2",
+          "lat": 35.68,
+          "lon": 126.8,
+          "book_value": 19954,
+          "capacity": 11
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "가온금형 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "가온금형 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "가온금형 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-22-ceo",
+          "name_ko": "류지온",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-22-cfo",
+          "name_ko": "온라온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-024",
+      "legal_name_ko": "주식회사 라온창고",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.59,
+      "lon": 128.23,
+      "founded_year": 1991,
+      "employees": 383,
+      "owner_kind": "pe_exit",
+      "owner_openness": 361,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2319,
+        "sga_bps": 1213,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 8805,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 17355,
+        "cogs": 13330,
+        "gross_profit": 4025,
+        "sga": 2106,
+        "ebitda": 1919,
+        "da": 802,
+        "ebit": 1117,
+        "interest": 320,
+        "ebt": 797,
+        "tax": 175,
+        "net_income": 622,
+        "cash": 5351,
+        "ar": 9642,
+        "inv": 1185,
+        "gross_ppe": 93596,
+        "accum_dep": 40320,
+        "net_ppe": 53276,
+        "ap": 5924,
+        "debt": 21081,
+        "share_capital": 11032,
+        "retained": 31417,
+        "dividends": 31,
+        "cfo": 1403,
+        "cfi": -607,
+        "cff": -287,
+        "net_change": 509,
+        "model_multiple_millis": 8310
+      },
+      "sites": [
+        {
+          "id": "co-024-w0",
+          "kind": "warehouse",
+          "name_ko": "라온창고 1",
+          "lat": 35.59,
+          "lon": 128.23,
+          "book_value": 17758,
+          "capacity": 11
+        },
+        {
+          "id": "co-024-w1",
+          "kind": "warehouse",
+          "name_ko": "라온창고 2",
+          "lat": 35.61,
+          "lon": 128.22,
+          "book_value": 17758,
+          "capacity": 12
+        },
+        {
+          "id": "co-024-s2",
+          "kind": "store",
+          "name_ko": "라온창고 3",
+          "lat": 35.58,
+          "lon": 128.25,
+          "book_value": 17758,
+          "capacity": 13
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "라온창고 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "라온창고 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-23-ceo",
+          "name_ko": "정하람",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-23-cfo",
+          "name_ko": "배모람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-025",
+      "legal_name_ko": "주식회사 가온냉동식품",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.54,
+      "lon": 126.57,
+      "founded_year": 1994,
+      "employees": 305,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2973,
+        "sga_bps": 1971,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8947,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 17115,
+        "cogs": 12027,
+        "gross_profit": 5088,
+        "sga": 3374,
+        "ebitda": 1714,
+        "da": 544,
+        "ebit": 1170,
+        "interest": 168,
+        "ebt": 1002,
+        "tax": 220,
+        "net_income": 782,
+        "cash": 7261,
+        "ar": 7987,
+        "inv": 5078,
+        "gross_ppe": 48784,
+        "accum_dep": 21679,
+        "net_ppe": 27105,
+        "ap": 4677,
+        "debt": 10538,
+        "share_capital": 12063,
+        "retained": 20153,
+        "dividends": 78,
+        "cfo": 1279,
+        "cfi": -428,
+        "cff": -238,
+        "net_change": 613,
+        "model_multiple_millis": 8630
+      },
+      "sites": [
+        {
+          "id": "co-025-f0",
+          "kind": "factory",
+          "name_ko": "가온냉동식품 1",
+          "lat": 37.54,
+          "lon": 126.57,
+          "book_value": 9035,
+          "capacity": 12
+        },
+        {
+          "id": "co-025-w1",
+          "kind": "warehouse",
+          "name_ko": "가온냉동식품 2",
+          "lat": 37.56,
+          "lon": 126.56,
+          "book_value": 9035,
+          "capacity": 13
+        },
+        {
+          "id": "co-025-s2",
+          "kind": "store",
+          "name_ko": "가온냉동식품 3",
+          "lat": 37.53,
+          "lon": 126.59,
+          "book_value": 9035,
+          "capacity": 14
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "가온냉동식품 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-24-ceo",
+          "name_ko": "서가온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-24-cfo",
+          "name_ko": "문바르",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-026",
+      "legal_name_ko": "주식회사 바르밸브",
+      "sector_id": "industrial_components",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.38,
+      "lon": 126.92,
+      "founded_year": 2016,
+      "employees": 499,
+      "owner_kind": "founder",
+      "owner_openness": 455,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3102,
+        "sga_bps": 1038,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 5664,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 37422,
+        "cogs": 25815,
+        "gross_profit": 11607,
+        "sga": 3886,
+        "ebitda": 7721,
+        "da": 1348,
+        "ebit": 6373,
+        "interest": 883,
+        "ebt": 5490,
+        "tax": 1263,
+        "net_income": 4227,
+        "cash": 24004,
+        "ar": 24116,
+        "inv": 20078,
+        "gross_ppe": 132733,
+        "accum_dep": 58049,
+        "net_ppe": 74684,
+        "ap": 13768,
+        "debt": 51666,
+        "share_capital": 25165,
+        "retained": 52283,
+        "dividends": 338,
+        "cfo": 5316,
+        "cfi": -1123,
+        "cff": -1392,
+        "net_change": 2801,
+        "model_multiple_millis": 5460
+      },
+      "sites": [
+        {
+          "id": "co-026-f0",
+          "kind": "factory",
+          "name_ko": "바르밸브 1",
+          "lat": 36.38,
+          "lon": 126.92,
+          "book_value": 37342,
+          "capacity": 13
+        },
+        {
+          "id": "co-026-w1",
+          "kind": "warehouse",
+          "name_ko": "바르밸브 2",
+          "lat": 36.4,
+          "lon": 126.91,
+          "book_value": 37342,
+          "capacity": 14
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르밸브 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "바르밸브 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-25-ceo",
+          "name_ko": "모나래",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-25-cfo",
+          "name_ko": "류소담",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-027",
+      "legal_name_ko": "주식회사 바르운송",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.65,
+      "lon": 126.86,
+      "founded_year": 1995,
+      "employees": 621,
+      "owner_kind": "family",
+      "owner_openness": 502,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2397,
+        "sga_bps": 906,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9749,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 26974,
+        "cogs": 20509,
+        "gross_profit": 6465,
+        "sga": 2445,
+        "ebitda": 4020,
+        "da": 1297,
+        "ebit": 2723,
+        "interest": 503,
+        "ebt": 2220,
+        "tax": 488,
+        "net_income": 1732,
+        "cash": 11050,
+        "ar": 14986,
+        "inv": 1823,
+        "gross_ppe": 151435,
+        "accum_dep": 65337,
+        "net_ppe": 86098,
+        "ap": 9115,
+        "debt": 33162,
+        "share_capital": 17880,
+        "retained": 53800,
+        "dividends": 87,
+        "cfo": 2937,
+        "cfi": -944,
+        "cff": -490,
+        "net_change": 1503,
+        "model_multiple_millis": 9200
+      },
+      "sites": [
+        {
+          "id": "co-027-w0",
+          "kind": "warehouse",
+          "name_ko": "바르운송 1",
+          "lat": 35.65,
+          "lon": 126.86,
+          "book_value": 28699,
+          "capacity": 14
+        },
+        {
+          "id": "co-027-w1",
+          "kind": "warehouse",
+          "name_ko": "바르운송 2",
+          "lat": 35.67,
+          "lon": 126.85,
+          "book_value": 28699,
+          "capacity": 15
+        },
+        {
+          "id": "co-027-s2",
+          "kind": "store",
+          "name_ko": "바르운송 3",
+          "lat": 35.64,
+          "lon": 126.88,
+          "book_value": 28699,
+          "capacity": 16
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르운송 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "바르운송 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-26-ceo",
+          "name_ko": "라다온",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-26-cfo",
+          "name_ko": "정아람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-028",
+      "legal_name_ko": "주식회사 모람소스",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.16,
+      "lon": 128.32,
+      "founded_year": 1997,
+      "employees": 129,
+      "owner_kind": "conglomerate",
+      "owner_openness": 549,
+      "approach_stage": "vc",
+      "approach_instrument": "rcps",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3206,
+        "sga_bps": 1986,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8326,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 7461,
+        "cogs": 5069,
+        "gross_profit": 2392,
+        "sga": 1482,
+        "ebitda": 910,
+        "da": 231,
+        "ebit": 679,
+        "interest": 74,
+        "ebt": 605,
+        "tax": 133,
+        "net_income": 472,
+        "cash": 3470,
+        "ar": 3482,
+        "inv": 2140,
+        "gross_ppe": 20706,
+        "accum_dep": 9178,
+        "net_ppe": 11528,
+        "ap": 1971,
+        "debt": 4613,
+        "share_capital": 5106,
+        "retained": 8930,
+        "dividends": 47,
+        "cfo": 789,
+        "cfi": -187,
+        "cff": -117,
+        "net_change": 485,
+        "model_multiple_millis": 8030
+      },
+      "sites": [
+        {
+          "id": "co-028-f0",
+          "kind": "factory",
+          "name_ko": "모람소스 1",
+          "lat": 35.16,
+          "lon": 128.32,
+          "book_value": 3842,
+          "capacity": 15
+        },
+        {
+          "id": "co-028-w1",
+          "kind": "warehouse",
+          "name_ko": "모람소스 2",
+          "lat": 35.18,
+          "lon": 128.31,
+          "book_value": 3842,
+          "capacity": 16
+        },
+        {
+          "id": "co-028-s2",
+          "kind": "store",
+          "name_ko": "모람소스 3",
+          "lat": 35.15,
+          "lon": 128.34,
+          "book_value": 3842,
+          "capacity": 17
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "모람소스 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "모람소스 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "모람소스 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-27-ceo",
+          "name_ko": "온라온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-27-cfo",
+          "name_ko": "서온새",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-029",
+      "legal_name_ko": "주식회사 소담금형",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.56,
+      "lon": 126.62,
+      "founded_year": 2014,
+      "employees": 846,
+      "owner_kind": "pe_exit",
+      "owner_openness": 596,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3552,
+        "sga_bps": 1383,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 7105,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 63243,
+        "cogs": 40782,
+        "gross_profit": 22461,
+        "sga": 8748,
+        "ebitda": 13713,
+        "da": 2281,
+        "ebit": 11432,
+        "interest": 1410,
+        "ebt": 10022,
+        "tax": 2305,
+        "net_income": 7717,
+        "cash": 40743,
+        "ar": 40757,
+        "inv": 31719,
+        "gross_ppe": 224688,
+        "accum_dep": 98358,
+        "net_ppe": 126330,
+        "ap": 21750,
+        "debt": 82500,
+        "share_capital": 42645,
+        "retained": 92654,
+        "dividends": 617,
+        "cfo": 8438,
+        "cfi": -1897,
+        "cff": -2301,
+        "net_change": 4240,
+        "model_multiple_millis": 6840
+      },
+      "sites": [
+        {
+          "id": "co-029-f0",
+          "kind": "factory",
+          "name_ko": "소담금형 1",
+          "lat": 37.56,
+          "lon": 126.62,
+          "book_value": 63165,
+          "capacity": 16
+        },
+        {
+          "id": "co-029-w1",
+          "kind": "warehouse",
+          "name_ko": "소담금형 2",
+          "lat": 37.58,
+          "lon": 126.61,
+          "book_value": 63165,
+          "capacity": 17
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "소담금형 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "소담금형 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-28-ceo",
+          "name_ko": "배모람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-28-cfo",
+          "name_ko": "모이든",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-030",
+      "legal_name_ko": "주식회사 지온냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.79,
+      "lon": 126.86,
+      "founded_year": 2007,
+      "employees": 287,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2312,
+        "sga_bps": 925,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9375,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 12449,
+        "cogs": 9571,
+        "gross_profit": 2878,
+        "sga": 1152,
+        "ebitda": 1726,
+        "da": 600,
+        "ebit": 1126,
+        "interest": 209,
+        "ebt": 917,
+        "tax": 202,
+        "net_income": 715,
+        "cash": 5028,
+        "ar": 6916,
+        "inv": 851,
+        "gross_ppe": 70020,
+        "accum_dep": 30200,
+        "net_ppe": 39820,
+        "ap": 4254,
+        "debt": 13733,
+        "share_capital": 8263,
+        "retained": 26365,
+        "dividends": 36,
+        "cfo": 1341,
+        "cfi": -436,
+        "cff": -203,
+        "net_change": 702,
+        "model_multiple_millis": 8850
+      },
+      "sites": [
+        {
+          "id": "co-030-w0",
+          "kind": "warehouse",
+          "name_ko": "지온냉장 1",
+          "lat": 36.79,
+          "lon": 126.86,
+          "book_value": 13273,
+          "capacity": 17
+        },
+        {
+          "id": "co-030-w1",
+          "kind": "warehouse",
+          "name_ko": "지온냉장 2",
+          "lat": 36.81,
+          "lon": 126.85,
+          "book_value": 13273,
+          "capacity": 18
+        },
+        {
+          "id": "co-030-s2",
+          "kind": "store",
+          "name_ko": "지온냉장 3",
+          "lat": 36.78,
+          "lon": 126.88,
+          "book_value": 13273,
+          "capacity": 19
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "지온냉장 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-29-ceo",
+          "name_ko": "문바르",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-29-cfo",
+          "name_ko": "라지온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-031",
+      "legal_name_ko": "주식회사 바르냉동식품",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.59,
+      "lon": 127.01,
+      "founded_year": 2016,
+      "employees": 356,
+      "owner_kind": "founder",
+      "owner_openness": 690,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3124,
+        "sga_bps": 1476,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7342,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 20124,
+        "cogs": 13838,
+        "gross_profit": 6286,
+        "sga": 2970,
+        "ebitda": 3316,
+        "da": 636,
+        "ebit": 2680,
+        "interest": 265,
+        "ebt": 2415,
+        "tax": 531,
+        "net_income": 1884,
+        "cash": 13066,
+        "ar": 9391,
+        "inv": 5843,
+        "gross_ppe": 57001,
+        "accum_dep": 25318,
+        "net_ppe": 31683,
+        "ap": 5381,
+        "debt": 16565,
+        "share_capital": 14087,
+        "retained": 23950,
+        "dividends": 188,
+        "cfo": 2756,
+        "cfi": -503,
+        "cff": -440,
+        "net_change": 1813,
+        "model_multiple_millis": 7090
+      },
+      "sites": [
+        {
+          "id": "co-031-f0",
+          "kind": "factory",
+          "name_ko": "바르냉동식품 1",
+          "lat": 35.59,
+          "lon": 127.01,
+          "book_value": 10561,
+          "capacity": 18
+        },
+        {
+          "id": "co-031-w1",
+          "kind": "warehouse",
+          "name_ko": "바르냉동식품 2",
+          "lat": 35.61,
+          "lon": 127.0,
+          "book_value": 10561,
+          "capacity": 19
+        },
+        {
+          "id": "co-031-s2",
+          "kind": "store",
+          "name_ko": "바르냉동식품 3",
+          "lat": 35.58,
+          "lon": 127.03,
+          "book_value": 10561,
+          "capacity": 20
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르냉동식품 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "바르냉동식품 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-30-ceo",
+          "name_ko": "류소담",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-30-cfo",
+          "name_ko": "온하람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-032",
+      "legal_name_ko": "주식회사 모람밸브",
+      "sector_id": "industrial_components",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.52,
+      "lon": 128.58,
+      "founded_year": 2002,
+      "employees": 518,
+      "owner_kind": "family",
+      "owner_openness": 737,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3052,
+        "sga_bps": 1238,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 6630,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 41826,
+        "cogs": 29059,
+        "gross_profit": 12767,
+        "sga": 5178,
+        "ebitda": 7589,
+        "da": 1409,
+        "ebit": 6180,
+        "interest": 822,
+        "ebt": 5358,
+        "tax": 1232,
+        "net_income": 4126,
+        "cash": 19875,
+        "ar": 26955,
+        "inv": 22601,
+        "gross_ppe": 138393,
+        "accum_dep": 60247,
+        "net_ppe": 78146,
+        "ap": 15498,
+        "debt": 48107,
+        "share_capital": 26099,
+        "retained": 57873,
+        "dividends": 330,
+        "cfo": 5088,
+        "cfi": -1255,
+        "cff": -1312,
+        "net_change": 2521,
+        "model_multiple_millis": 6390
+      },
+      "sites": [
+        {
+          "id": "co-032-f0",
+          "kind": "factory",
+          "name_ko": "모람밸브 1",
+          "lat": 35.52,
+          "lon": 128.58,
+          "book_value": 39073,
+          "capacity": 19
+        },
+        {
+          "id": "co-032-w1",
+          "kind": "warehouse",
+          "name_ko": "모람밸브 2",
+          "lat": 35.54,
+          "lon": 128.57,
+          "book_value": 39073,
+          "capacity": 20
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "모람밸브 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "모람밸브 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-31-ceo",
+          "name_ko": "정아람",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-31-cfo",
+          "name_ko": "배가온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-033",
+      "legal_name_ko": "주식회사 아람보세",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.42,
+      "lon": 126.91,
+      "founded_year": 2015,
+      "employees": 257,
+      "owner_kind": "conglomerate",
+      "owner_openness": 784,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 1533,
+        "sga_bps": 1044,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 9434,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 12250,
+        "cogs": 10372,
+        "gross_profit": 1878,
+        "sga": 1279,
+        "ebitda": 599,
+        "da": 540,
+        "ebit": 59,
+        "interest": 98,
+        "ebt": -39,
+        "tax": 0,
+        "net_income": -39,
+        "cash": 735,
+        "ar": 6806,
+        "inv": 922,
+        "gross_ppe": 62957,
+        "accum_dep": 27087,
+        "net_ppe": 35870,
+        "ap": 4610,
+        "debt": 6535,
+        "share_capital": 7410,
+        "retained": 25778,
+        "dividends": 0,
+        "cfo": 443,
+        "cfi": -429,
+        "cff": 0,
+        "net_change": 14,
+        "model_multiple_millis": 8900
+      },
+      "sites": [
+        {
+          "id": "co-033-w0",
+          "kind": "warehouse",
+          "name_ko": "아람보세 1",
+          "lat": 37.42,
+          "lon": 126.91,
+          "book_value": 11956,
+          "capacity": 20
+        },
+        {
+          "id": "co-033-w1",
+          "kind": "warehouse",
+          "name_ko": "아람보세 2",
+          "lat": 37.44,
+          "lon": 126.9,
+          "book_value": 11956,
+          "capacity": 21
+        },
+        {
+          "id": "co-033-s2",
+          "kind": "store",
+          "name_ko": "아람보세 3",
+          "lat": 37.41,
+          "lon": 126.93,
+          "book_value": 11956,
+          "capacity": 22
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "아람보세 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "아람보세 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "아람보세 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-32-ceo",
+          "name_ko": "서온새",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-32-cfo",
+          "name_ko": "문나래",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-034",
+      "legal_name_ko": "주식회사 아람냉동식품",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.9,
+      "lon": 126.63,
+      "founded_year": 2011,
+      "employees": 221,
+      "owner_kind": "pe_exit",
+      "owner_openness": 831,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 4042,
+        "sga_bps": 2124,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7708,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 12449,
+        "cogs": 7417,
+        "gross_profit": 5032,
+        "sga": 2644,
+        "ebitda": 2388,
+        "da": 395,
+        "ebit": 1993,
+        "interest": 212,
+        "ebt": 1781,
+        "tax": 392,
+        "net_income": 1389,
+        "cash": 9627,
+        "ar": 5810,
+        "inv": 3132,
+        "gross_ppe": 35385,
+        "accum_dep": 15706,
+        "net_ppe": 19679,
+        "ap": 2884,
+        "debt": 13260,
+        "share_capital": 8737,
+        "retained": 13367,
+        "dividends": 139,
+        "cfo": 1834,
+        "cfi": -311,
+        "cff": -341,
+        "net_change": 1182,
+        "model_multiple_millis": 7440
+      },
+      "sites": [
+        {
+          "id": "co-034-f0",
+          "kind": "factory",
+          "name_ko": "아람냉동식품 1",
+          "lat": 36.9,
+          "lon": 126.63,
+          "book_value": 6559,
+          "capacity": 21
+        },
+        {
+          "id": "co-034-w1",
+          "kind": "warehouse",
+          "name_ko": "아람냉동식품 2",
+          "lat": 36.92,
+          "lon": 126.62,
+          "book_value": 6559,
+          "capacity": 22
+        },
+        {
+          "id": "co-034-s2",
+          "kind": "store",
+          "name_ko": "아람냉동식품 3",
+          "lat": 36.89,
+          "lon": 126.65,
+          "book_value": 6559,
+          "capacity": 23
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "아람냉동식품 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "아람냉동식품 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-33-ceo",
+          "name_ko": "모이든",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-33-cfo",
+          "name_ko": "류다온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-035",
+      "legal_name_ko": "주식회사 이든정밀",
+      "sector_id": "industrial_components",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 36.14,
+      "lon": 127.22,
+      "founded_year": 2015,
+      "employees": 322,
+      "owner_kind": "court",
+      "owner_openness": 358,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3385,
+        "sga_bps": 1351,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 8311,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 21728,
+        "cogs": 14374,
+        "gross_profit": 7354,
+        "sga": 2935,
+        "ebitda": 4419,
+        "da": 865,
+        "ebit": 3554,
+        "interest": 520,
+        "ebt": 3034,
+        "tax": 698,
+        "net_income": 2336,
+        "cash": 14712,
+        "ar": 14002,
+        "inv": 11180,
+        "gross_ppe": 85300,
+        "accum_dep": 37465,
+        "net_ppe": 47835,
+        "ap": 7666,
+        "debt": 30424,
+        "share_capital": 16251,
+        "retained": 33388,
+        "dividends": 187,
+        "cfo": 3686,
+        "cfi": -652,
+        "cff": -808,
+        "net_change": 2226,
+        "model_multiple_millis": 8000
+      },
+      "sites": [
+        {
+          "id": "co-035-f0",
+          "kind": "factory",
+          "name_ko": "이든정밀 1",
+          "lat": 36.14,
+          "lon": 127.22,
+          "book_value": 23917,
+          "capacity": 22
+        },
+        {
+          "id": "co-035-w1",
+          "kind": "warehouse",
+          "name_ko": "이든정밀 2",
+          "lat": 36.16,
+          "lon": 127.21,
+          "book_value": 23917,
+          "capacity": 23
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "이든정밀 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-34-ceo",
+          "name_ko": "라지온",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-34-cfo",
+          "name_ko": "정라온",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-036",
+      "legal_name_ko": "주식회사 바르창고",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.51,
+      "lon": 128.33,
+      "founded_year": 2008,
+      "employees": 387,
+      "owner_kind": "founder",
+      "owner_openness": 405,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 1825,
+        "sga_bps": 935,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 10052,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 17626,
+        "cogs": 14410,
+        "gross_profit": 3216,
+        "sga": 1648,
+        "ebitda": 1568,
+        "da": 810,
+        "ebit": 758,
+        "interest": 223,
+        "ebt": 535,
+        "tax": 118,
+        "net_income": 417,
+        "cash": 3624,
+        "ar": 9792,
+        "inv": 1281,
+        "gross_ppe": 94548,
+        "accum_dep": 40714,
+        "net_ppe": 53834,
+        "ap": 6404,
+        "debt": 14664,
+        "share_capital": 11139,
+        "retained": 36324,
+        "dividends": 21,
+        "cfo": 1159,
+        "cfi": -617,
+        "cff": -199,
+        "net_change": 343,
+        "model_multiple_millis": 9490
+      },
+      "sites": [
+        {
+          "id": "co-036-w0",
+          "kind": "warehouse",
+          "name_ko": "바르창고 1",
+          "lat": 35.51,
+          "lon": 128.33,
+          "book_value": 17944,
+          "capacity": 23
+        },
+        {
+          "id": "co-036-w1",
+          "kind": "warehouse",
+          "name_ko": "바르창고 2",
+          "lat": 35.53,
+          "lon": 128.32,
+          "book_value": 17944,
+          "capacity": 24
+        },
+        {
+          "id": "co-036-s2",
+          "kind": "store",
+          "name_ko": "바르창고 3",
+          "lat": 35.5,
+          "lon": 128.35,
+          "book_value": 17944,
+          "capacity": 25
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "바르창고 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 8200
+        },
+        {
+          "holder_ko": "바르창고 가족",
+          "holder_kind": "family",
+          "stake_bps": 1800
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-35-ceo",
+          "name_ko": "온하람",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-35-cfo",
+          "name_ko": "서모람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-037",
+      "legal_name_ko": "주식회사 이든제분",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경기 서부",
+      "complex_name_ko": "가온 식품단지",
+      "lat": 37.44,
+      "lon": 126.56,
+      "founded_year": 2000,
+      "employees": 267,
+      "owner_kind": "family",
+      "owner_openness": 452,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3062,
+        "sga_bps": 1384,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 7596,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 16526,
+        "cogs": 11466,
+        "gross_profit": 5060,
+        "sga": 2288,
+        "ebitda": 2772,
+        "da": 480,
+        "ebit": 2292,
+        "interest": 206,
+        "ebt": 2086,
+        "tax": 459,
+        "net_income": 1627,
+        "cash": 9852,
+        "ar": 7712,
+        "inv": 4841,
+        "gross_ppe": 42937,
+        "accum_dep": 19011,
+        "net_ppe": 23926,
+        "ap": 4459,
+        "debt": 12887,
+        "share_capital": 10574,
+        "retained": 18411,
+        "dividends": 163,
+        "cfo": 2003,
+        "cfi": -413,
+        "cff": -359,
+        "net_change": 1231,
+        "model_multiple_millis": 7330
+      },
+      "sites": [
+        {
+          "id": "co-037-f0",
+          "kind": "factory",
+          "name_ko": "이든제분 1",
+          "lat": 37.44,
+          "lon": 126.56,
+          "book_value": 7975,
+          "capacity": 24
+        },
+        {
+          "id": "co-037-w1",
+          "kind": "warehouse",
+          "name_ko": "이든제분 2",
+          "lat": 37.46,
+          "lon": 126.55,
+          "book_value": 7975,
+          "capacity": 25
+        },
+        {
+          "id": "co-037-s2",
+          "kind": "store",
+          "name_ko": "이든제분 3",
+          "lat": 37.43,
+          "lon": 126.58,
+          "book_value": 7975,
+          "capacity": 26
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "이든제분 가족",
+          "holder_kind": "family",
+          "stake_bps": 6800
+        },
+        {
+          "holder_ko": "이든제분 창업자",
+          "holder_kind": "founder",
+          "stake_bps": 3200
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-36-ceo",
+          "name_ko": "배가온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-36-cfo",
+          "name_ko": "모바르",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-038",
+      "legal_name_ko": "주식회사 소담밸브",
+      "sector_id": "industrial_components",
+      "region_label_ko": "충남",
+      "complex_name_ko": "모람 부품단지",
+      "lat": 36.65,
+      "lon": 126.49,
+      "founded_year": 2014,
+      "employees": 268,
+      "owner_kind": "conglomerate",
+      "owner_openness": 499,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 2993,
+        "sga_bps": 1545,
+        "growth_bps": 40,
+        "interest_rate_bps": 670,
+        "da_rate_bps": 180,
+        "capex_bps": 300,
+        "dso_days": 58,
+        "dio_days": 70,
+        "dpo_days": 48,
+        "tax_bps": 2300,
+        "dividend_payout_bps": 800,
+        "min_cash_bps": 700,
+        "amort_bps": 200,
+        "dividend_leverage_cap_millis": 4000,
+        "base_multiple_millis": 7556,
+        "rate_beta_millis": 7000,
+        "cycle_amplitude_millis": 80,
+        "multiple_floor_millis": 4000,
+        "multiple_cap_millis": 11000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 18418,
+        "cogs": 12906,
+        "gross_profit": 5512,
+        "sga": 2846,
+        "ebitda": 2666,
+        "da": 724,
+        "ebit": 1942,
+        "interest": 319,
+        "ebt": 1623,
+        "tax": 373,
+        "net_income": 1250,
+        "cash": 9318,
+        "ar": 11869,
+        "inv": 10038,
+        "gross_ppe": 71204,
+        "accum_dep": 31172,
+        "net_ppe": 40032,
+        "ap": 6883,
+        "debt": 18639,
+        "share_capital": 13514,
+        "retained": 32221,
+        "dividends": 100,
+        "cfo": 2664,
+        "cfi": -553,
+        "cff": -480,
+        "net_change": 1631,
+        "model_multiple_millis": 7280
+      },
+      "sites": [
+        {
+          "id": "co-038-f0",
+          "kind": "factory",
+          "name_ko": "소담밸브 1",
+          "lat": 36.65,
+          "lon": 126.49,
+          "book_value": 20016,
+          "capacity": 25
+        },
+        {
+          "id": "co-038-w1",
+          "kind": "warehouse",
+          "name_ko": "소담밸브 2",
+          "lat": 36.67,
+          "lon": 126.48,
+          "book_value": 20016,
+          "capacity": 26
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "소담밸브 지주",
+          "holder_kind": "conglomerate",
+          "stake_bps": 7000
+        },
+        {
+          "holder_ko": "소담밸브 임원",
+          "holder_kind": "management",
+          "stake_bps": 1500
+        },
+        {
+          "holder_ko": "소담밸브 우리사주",
+          "holder_kind": "treasury",
+          "stake_bps": 1500
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-37-ceo",
+          "name_ko": "문나래",
+          "role": "ceo",
+          "trait_id": "grower"
+        },
+        {
+          "id": "mgr-37-cfo",
+          "name_ko": "라소담",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-039",
+      "legal_name_ko": "주식회사 소담냉장",
+      "sector_id": "cold_chain_logistics",
+      "region_label_ko": "전북",
+      "complex_name_ko": "소담 냉동단지",
+      "lat": 35.9,
+      "lon": 127.1,
+      "founded_year": 1988,
+      "employees": 358,
+      "owner_kind": "pe_exit",
+      "owner_openness": 546,
+      "approach_stage": "buyout",
+      "approach_instrument": "buyout",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 1847,
+        "sga_bps": 1125,
+        "growth_bps": 120,
+        "interest_rate_bps": 600,
+        "da_rate_bps": 150,
+        "capex_bps": 350,
+        "dso_days": 50,
+        "dio_days": 8,
+        "dpo_days": 40,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 500,
+        "min_cash_bps": 600,
+        "amort_bps": 120,
+        "dividend_leverage_cap_millis": 5000,
+        "base_multiple_millis": 8522,
+        "rate_beta_millis": 8000,
+        "cycle_amplitude_millis": 50,
+        "multiple_floor_millis": 5500,
+        "multiple_cap_millis": 14000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 15367,
+        "cogs": 12528,
+        "gross_profit": 2839,
+        "sga": 1729,
+        "ebitda": 1110,
+        "da": 747,
+        "ebit": 363,
+        "interest": 157,
+        "ebt": 206,
+        "tax": 45,
+        "net_income": 161,
+        "cash": 2025,
+        "ar": 8537,
+        "inv": 1114,
+        "gross_ppe": 87221,
+        "accum_dep": 37658,
+        "net_ppe": 49563,
+        "ap": 5568,
+        "debt": 10339,
+        "share_capital": 10306,
+        "retained": 35026,
+        "dividends": 8,
+        "cfo": 818,
+        "cfi": -538,
+        "cff": -134,
+        "net_change": 146,
+        "model_multiple_millis": 8040
+      },
+      "sites": [
+        {
+          "id": "co-039-w0",
+          "kind": "warehouse",
+          "name_ko": "소담냉장 1",
+          "lat": 35.9,
+          "lon": 127.1,
+          "book_value": 16521,
+          "capacity": 26
+        },
+        {
+          "id": "co-039-w1",
+          "kind": "warehouse",
+          "name_ko": "소담냉장 2",
+          "lat": 35.92,
+          "lon": 127.09,
+          "book_value": 16521,
+          "capacity": 27
+        },
+        {
+          "id": "co-039-s2",
+          "kind": "store",
+          "name_ko": "소담냉장 3",
+          "lat": 35.89,
+          "lon": 127.12,
+          "book_value": 16521,
+          "capacity": 8
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "소담냉장 기존 펀드",
+          "holder_kind": "pe",
+          "stake_bps": 7600
+        },
+        {
+          "holder_ko": "소담냉장 경영진",
+          "holder_kind": "management",
+          "stake_bps": 2400
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-38-ceo",
+          "name_ko": "류다온",
+          "role": "ceo",
+          "trait_id": "cutter"
+        },
+        {
+          "id": "mgr-38-cfo",
+          "name_ko": "온아람",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    },
+    {
+      "id": "co-040",
+      "legal_name_ko": "주식회사 다온소스",
+      "sector_id": "food_manufacturing",
+      "region_label_ko": "경남 내륙",
+      "complex_name_ko": "이든 물류단지",
+      "lat": 35.17,
+      "lon": 128.18,
+      "founded_year": 1988,
+      "employees": 442,
+      "owner_kind": "court",
+      "owner_openness": 400,
+      "approach_stage": "distressed",
+      "approach_instrument": "senior_loan",
+      "quarter_index": 8,
+      "drivers": {
+        "gross_margin_bps": 3162,
+        "sga_bps": 1684,
+        "growth_bps": 80,
+        "interest_rate_bps": 630,
+        "da_rate_bps": 200,
+        "capex_bps": 250,
+        "dso_days": 42,
+        "dio_days": 38,
+        "dpo_days": 35,
+        "tax_bps": 2200,
+        "dividend_payout_bps": 1000,
+        "min_cash_bps": 800,
+        "amort_bps": 150,
+        "dividend_leverage_cap_millis": 3500,
+        "base_multiple_millis": 8596,
+        "rate_beta_millis": 6000,
+        "cycle_amplitude_millis": 60,
+        "multiple_floor_millis": 4500,
+        "multiple_cap_millis": 12000
+      },
+      "books": {
+        "period": "2025Q4",
+        "revenue": 24768,
+        "cogs": 16936,
+        "gross_profit": 7832,
+        "sga": 4172,
+        "ebitda": 3660,
+        "da": 792,
+        "ebit": 2868,
+        "interest": 343,
+        "ebt": 2525,
+        "tax": 556,
+        "net_income": 1969,
+        "cash": 15702,
+        "ar": 11558,
+        "inv": 7151,
+        "gross_ppe": 70892,
+        "accum_dep": 31464,
+        "net_ppe": 39428,
+        "ap": 6586,
+        "debt": 21474,
+        "share_capital": 17502,
+        "retained": 28277,
+        "dividends": 197,
+        "cfo": 2406,
+        "cfi": -619,
+        "cff": -524,
+        "net_change": 1263,
+        "model_multiple_millis": 8300
+      },
+      "sites": [
+        {
+          "id": "co-040-f0",
+          "kind": "factory",
+          "name_ko": "다온소스 1",
+          "lat": 35.17,
+          "lon": 128.18,
+          "book_value": 13142,
+          "capacity": 27
+        },
+        {
+          "id": "co-040-w1",
+          "kind": "warehouse",
+          "name_ko": "다온소스 2",
+          "lat": 35.19,
+          "lon": 128.17,
+          "book_value": 13142,
+          "capacity": 8
+        },
+        {
+          "id": "co-040-s2",
+          "kind": "store",
+          "name_ko": "다온소스 3",
+          "lat": 35.16,
+          "lon": 128.2,
+          "book_value": 13142,
+          "capacity": 9
+        }
+      ],
+      "cap": [
+        {
+          "holder_ko": "다온소스 관리인",
+          "holder_kind": "court",
+          "stake_bps": 10000
+        }
+      ],
+      "management": [
+        {
+          "id": "mgr-39-ceo",
+          "name_ko": "정라온",
+          "role": "ceo",
+          "trait_id": "operator"
+        },
+        {
+          "id": "mgr-39-cfo",
+          "name_ko": "배온새",
+          "role": "cfo",
+          "trait_id": "operator"
+        }
+      ]
+    }
+  ],
+  "deals": [
+    {
+      "id": "dl-001",
+      "company_id": "co-001",
+      "stage": "buyout",
+      "process": "auction",
+      "access": "invite",
+      "seller_kind": "founder",
+      "broker_id": "ib-gaon",
+      "instrument": "buyout",
+      "ask_ev": 33845,
+      "ask_size": 33845,
+      "ask_coupon_bps": 0,
+      "weeks_left": 26,
+      "competing_ev": 30460,
+      "competitor_ko": "나래 캐피탈"
+    },
+    {
+      "id": "dl-002",
+      "company_id": "co-004",
+      "stage": "growth",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "pe_exit",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 31529,
+      "ask_size": 7882,
+      "ask_coupon_bps": 0,
+      "weeks_left": 27,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-003",
+      "company_id": "co-008",
+      "stage": "vc",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "conglomerate",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 23813,
+      "ask_size": 4762,
+      "ask_coupon_bps": 0,
+      "weeks_left": 28,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-004",
+      "company_id": "co-012",
+      "stage": "distressed",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "family",
+      "broker_id": "ib-sodam",
+      "instrument": "senior_loan",
+      "ask_ev": 42618,
+      "ask_size": 18545,
+      "ask_coupon_bps": 900,
+      "weeks_left": 29,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-005",
+      "company_id": "co-015",
+      "stage": "buyout",
+      "process": "auction",
+      "access": "invite",
+      "seller_kind": "court",
+      "broker_id": "ib-gaon",
+      "instrument": "buyout",
+      "ask_ev": 28741,
+      "ask_size": 28741,
+      "ask_coupon_bps": 0,
+      "weeks_left": 30,
+      "competing_ev": 25866,
+      "competitor_ko": "나래 캐피탈"
+    },
+    {
+      "id": "dl-006",
+      "company_id": "co-019",
+      "stage": "growth",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "pe_exit",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 18007,
+      "ask_size": 4501,
+      "ask_coupon_bps": 0,
+      "weeks_left": 31,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-007",
+      "company_id": "co-023",
+      "stage": "buyout",
+      "process": "auction",
+      "access": "invite",
+      "seller_kind": "conglomerate",
+      "broker_id": "ib-bareu",
+      "instrument": "buyout",
+      "ask_ev": 23257,
+      "ask_size": 23257,
+      "ask_coupon_bps": 0,
+      "weeks_left": 32,
+      "competing_ev": 20931,
+      "competitor_ko": "소담 홀딩"
+    },
+    {
+      "id": "dl-008",
+      "company_id": "co-026",
+      "stage": "growth",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "founder",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 42157,
+      "ask_size": 10539,
+      "ask_coupon_bps": 0,
+      "weeks_left": 33,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-009",
+      "company_id": "co-030",
+      "stage": "vc",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "court",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 15275,
+      "ask_size": 3055,
+      "ask_coupon_bps": 0,
+      "weeks_left": 34,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-010",
+      "company_id": "co-034",
+      "stage": "distressed",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "pe_exit",
+      "broker_id": "ib-raon",
+      "instrument": "senior_loan",
+      "ask_ev": 17767,
+      "ask_size": 6630,
+      "ask_coupon_bps": 900,
+      "weeks_left": 35,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    },
+    {
+      "id": "dl-011",
+      "company_id": "co-037",
+      "stage": "buyout",
+      "process": "auction",
+      "access": "invite",
+      "seller_kind": "family",
+      "broker_id": "ib-bareu",
+      "instrument": "buyout",
+      "ask_ev": 20319,
+      "ask_size": 20319,
+      "ask_coupon_bps": 0,
+      "weeks_left": 36,
+      "competing_ev": 18287,
+      "competitor_ko": "소담 홀딩"
+    },
+    {
+      "id": "dl-012",
+      "company_id": "co-040",
+      "stage": "growth",
+      "process": "bilateral",
+      "access": "open",
+      "seller_kind": "court",
+      "broker_id": "",
+      "instrument": "rcps",
+      "ask_ev": 30378,
+      "ask_size": 7594,
+      "ask_coupon_bps": 0,
+      "weeks_left": 37,
+      "competing_ev": 0,
+      "competitor_ko": ""
+    }
+  ]
+}

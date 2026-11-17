@@ -2,6 +2,10 @@ interface SimCoreModule {
   default: (input?: unknown) => Promise<unknown>;
   enterprise_value_millis: (ebitda: bigint, multipleMillis: bigint) => bigint;
   equity_value_millis: (ebitda: bigint, multipleMillis: bigint, netDebt: bigint) => bigint;
+  boot_game: (json: string) => string;
+  game_command: (json: string) => string;
+  export_game: () => string;
+  import_game: (json: string) => string;
 }
 
 let loading: Promise<SimCoreModule> | undefined;

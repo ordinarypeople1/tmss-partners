@@ -29,31 +29,6 @@ pub struct CompanyCard {
     pub cash: i64,
 }
 
-pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
-    conn.execute_batch(
-        "
-        CREATE TABLE IF NOT EXISTS company_cards (
-          id TEXT PRIMARY KEY,
-          legal_name_ko TEXT NOT NULL,
-          sector_id TEXT NOT NULL,
-          region_label_ko TEXT NOT NULL,
-          complex_name_ko TEXT NOT NULL,
-          lat REAL NOT NULL,
-          lon REAL NOT NULL,
-          founded_year INTEGER NOT NULL,
-          employees INTEGER NOT NULL,
-          period TEXT NOT NULL,
-          revenue INTEGER NOT NULL,
-          ebitda INTEGER NOT NULL,
-          model_multiple_millis INTEGER NOT NULL,
-          debt INTEGER NOT NULL,
-          cash INTEGER NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_company_cards_sector ON company_cards(sector_id);
-        ",
-    )
-}
-
 pub fn insert_card(conn: &Connection, card: &CompanyCard) -> rusqlite::Result<()> {
     conn.execute(
         "
@@ -82,6 +57,78 @@ pub fn insert_card(conn: &Connection, card: &CompanyCard) -> rusqlite::Result<()
         ],
     )?;
     Ok(())
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct DealCard {
+    pub id: String,
+    pub company_id: String,
+    pub legal_name_ko: String,
+    pub sector_id: String,
+    pub stage: String,
+    pub process: String,
+    pub seller_kind: String,
+    pub instrument: String,
+    pub ask_ev: i64,
+    pub ask_size: i64,
+    pub weeks_left: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct AgentRow {
+    pub id: String,
+    pub name_ko: String,
+    pub kind: String,
+    pub subtype: String,
+    pub commitment: i64,
+}
+
+pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute_batch(
+        "
+        CREATE TABLE IF NOT EXISTS company_cards (
+          id TEXT PRIMARY KEY,
+          legal_name_ko TEXT NOT NULL,
+          sector_id TEXT NOT NULL,
+          region_label_ko TEXT NOT NULL,
+          complex_name_ko TEXT NOT NULL,
+          lat REAL NOT NULL,
+          lon REAL NOT NULL,
+          founded_year INTEGER NOT NULL,
+          employees INTEGER NOT NULL,
+          period TEXT NOT NULL,
+          revenue INTEGER NOT NULL,
+          ebitda INTEGER NOT NULL,
+          model_multiple_millis INTEGER NOT NULL,
+          debt INTEGER NOT NULL,
+          cash INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_company_cards_sector ON company_cards(sector_id);
+        CREATE TABLE IF NOT EXISTS deals (
+          id TEXT PRIMARY KEY,
+          company_id TEXT NOT NULL,
+          legal_name_ko TEXT NOT NULL,
+          sector_id TEXT NOT NULL,
+          stage TEXT NOT NULL,
+          process TEXT NOT NULL,
+          seller_kind TEXT NOT NULL,
+          instrument TEXT NOT NULL,
+          ask_ev INTEGER NOT NULL,
+          ask_size INTEGER NOT NULL,
+          weeks_left INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_deals_sector ON deals(sector_id);
+        CREATE INDEX IF NOT EXISTS idx_deals_stage ON deals(stage);
+        CREATE TABLE IF NOT EXISTS agents (
+          id TEXT PRIMARY KEY,
+          name_ko TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          subtype TEXT NOT NULL,
+          commitment INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_agents_kind ON agents(kind);
+        ",
+    )
 }
 
 pub fn list_company_cards(
@@ -117,6 +164,58 @@ pub fn list_company_cards(
             model_multiple_millis: row.get(12)?,
             debt: row.get(13)?,
             cash: row.get(14)?,
+        })
+    })?;
+    rows.collect()
+}
+
+pub fn list_deals(conn: &Connection, limit: u32, offset: u32) -> rusqlite::Result<Vec<DealCard>> {
+    let limit = limit.min(MAX_PAGE_SIZE);
+    let mut statement = conn.prepare(
+        "
+        SELECT id, company_id, legal_name_ko, sector_id, stage, process,
+               seller_kind, instrument, ask_ev, ask_size, weeks_left
+        FROM deals
+        ORDER BY id
+        LIMIT ?1 OFFSET ?2
+        ",
+    )?;
+    let rows = statement.query_map(params![limit, offset], |row| {
+        Ok(DealCard {
+            id: row.get(0)?,
+            company_id: row.get(1)?,
+            legal_name_ko: row.get(2)?,
+            sector_id: row.get(3)?,
+            stage: row.get(4)?,
+            process: row.get(5)?,
+            seller_kind: row.get(6)?,
+            instrument: row.get(7)?,
+            ask_ev: row.get(8)?,
+            ask_size: row.get(9)?,
+            weeks_left: row.get(10)?,
+        })
+    })?;
+    rows.collect()
+}
+
+pub fn list_agents(conn: &Connection, kind: &str, limit: u32, offset: u32) -> rusqlite::Result<Vec<AgentRow>> {
+    let limit = limit.min(MAX_PAGE_SIZE);
+    let mut statement = conn.prepare(
+        "
+        SELECT id, name_ko, kind, subtype, commitment
+        FROM agents
+        WHERE (?1 = '' OR kind = ?1)
+        ORDER BY id
+        LIMIT ?2 OFFSET ?3
+        ",
+    )?;
+    let rows = statement.query_map(params![kind, limit, offset], |row| {
+        Ok(AgentRow {
+            id: row.get(0)?,
+            name_ko: row.get(1)?,
+            kind: row.get(2)?,
+            subtype: row.get(3)?,
+            commitment: row.get(4)?,
         })
     })?;
     rows.collect()
@@ -182,5 +281,38 @@ mod tests {
         let page = list_company_cards(&conn, 20, 0).unwrap();
         assert_eq!(page.len(), 20);
         assert!(started.elapsed() < Duration::from_millis(500));
+    }
+
+    #[test]
+    fn pages_deals_and_agents() {
+        let conn = Connection::open_in_memory().unwrap();
+        migrate(&conn).unwrap();
+        for index in 0..80 {
+            conn.execute(
+                "INSERT INTO deals (
+                    id, company_id, legal_name_ko, sector_id, stage, process,
+                    seller_kind, instrument, ask_ev, ask_size, weeks_left
+                ) VALUES (?1, ?2, ?3, ?4, 'buyout', 'auction', 'founder', 'buyout', ?5, ?5, 12)",
+                params![
+                    format!("dl-{index:04}"),
+                    format!("co-{index:04}"),
+                    format!("회사 {index}"),
+                    "food_manufacturing",
+                    1_000 + index as i64
+                ],
+            )
+            .unwrap();
+        }
+        conn.execute(
+            "INSERT INTO agents (id, name_ko, kind, subtype, commitment) VALUES ('lp1', '서린', 'lp', 'pension', 20000)",
+            [],
+        )
+        .unwrap();
+        let page = list_deals(&conn, 10_000, 20).unwrap();
+        assert_eq!(page.len(), MAX_PAGE_SIZE as usize);
+        assert_eq!(page[0].id, "dl-0020");
+        let lps = list_agents(&conn, "lp", 20, 0).unwrap();
+        assert_eq!(lps.len(), 1);
+        assert_eq!(lps[0].commitment, 20_000);
     }
 }

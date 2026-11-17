@@ -7,9 +7,8 @@
 - 플레이어가 읽는 문장은 메시지 키다. JSX 텍스트, `aria-label`, `title`, `alt`, `placeholder`에 문장을 적지 않는다.
 - 한국어 카탈로그가 ICU를 쓴다. 수량, 숫자, 백만 원 단위의 억·조. 연도는 `{value, number, ::integer group-off}`다. `group-off`가 없으면 2012가 2,012가 된다.
 - 회사 이름, 단지 이름, 지역 라벨은 콘텐츠 데이터다. 섹터 크롬은 `sector_id`로 키를 고른다.
-- 레이아웃은 문장이 길어져도 깨지지 않게 잡는다. `flex-wrap`, `minmax(0, …)`, `repeat(auto-fit, minmax(9rem, 1fr))`, `overflow-wrap: anywhere`. `white-space: nowrap`를 화면 CSS에 넣지 않는다.
-- 글꼴은 벤더하지 않는다. 런타임에 Google Fonts CDN을 부르지 않는다. 게임은 오프라인이다. 패키징할 때 필요한 글자만 서브셋한다.
-  - 한국어: Pretendard, 이어서 Noto Sans KR. Pretendard는 OFL이다. <https://github.com/orioncactus/pretendard>
+- 레이아웃은 문장이 길어져도 깨지지 않게 잡는다. `flex-wrap`, `minmax(0, …)`, `repeat(auto-fit, minmax(9rem, 1fr))`. 한국어는 `word-break: keep-all`이고, 긴 토큰만 `overflow-wrap: break-word`로 넘긴다. `white-space: nowrap`를 화면 CSS에 넣지 않는다.
+- 글꼴 파일은 벤더하지 않는다. 한국어는 Pretendard Variable의 동적 서브셋을 링크만 한다. `https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css`. Pretendard는 OFL이다. <https://github.com/orioncactus/pretendard>. CDN이 없으면 Apple SD Gothic Neo, 그다음 Malgun Gothic이다. 숫자는 `tabular-nums`다. Google Fonts는 부르지 않는다.
   - 일본어를 넣을 때: Noto Sans JP. <https://fonts.google.com/noto/specimen/Noto+Sans+JP>
   - 간체: Noto Sans SC. <https://fonts.google.com/noto/specimen/Noto+Sans+SC>
   - 번체: Noto Sans TC. <https://fonts.google.com/noto/specimen/Noto+Sans+TC>

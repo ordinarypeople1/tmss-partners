@@ -130,6 +130,7 @@
       "lon": 126.68,
       "founded_year": 2012,
       "employees": 345,
+      "base_multiple": 7.4654,
       "identity": {
         "fictional": true,
         "ticker": null,
@@ -527,6 +528,7 @@
       "lon": 127.08,
       "founded_year": 2010,
       "employees": 255,
+      "base_multiple": 8.0283,
       "identity": {
         "fictional": true,
         "ticker": null,
@@ -924,6 +926,7 @@
       "lon": 126.74,
       "founded_year": 2015,
       "employees": 285,
+      "base_multiple": 11.1767,
       "identity": {
         "fictional": true,
         "ticker": null,
@@ -1321,6 +1324,7 @@
       "lon": 128.33,
       "founded_year": 1998,
       "employees": 237,
+      "base_multiple": 6.9989,
       "identity": {
         "fictional": true,
         "ticker": null,

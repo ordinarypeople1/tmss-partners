@@ -24,4 +24,6 @@ React는 반환된 페이지를 그린다. MapLibre는 좌표를 그린다. 둘 
 
 ## 결과
 
-`enterprise_value`와 `equity_value`가 그 경계의 첫 함수다. EBITDA와 천분율 배수로 기업가치를 만들고, 순차입금을 빼 지분가치를 만든다. 테스트는 `cargo test -p sim-core`다. LBO 스케줄과 워터폴은 스펙에 있고 코드에는 아직 없다.
+`enterprise_value`와 `equity_value`가 그 경계의 첫 함수다. EBITDA와 천분율 배수로 기업가치를 만들고, 순차입금을 빼 지분가치를 만든다.
+
+같은 크레이트에 분기 마감, 관리보수, IRR, 유럽형 워터폴, LBO 스케줄, 딜 응답, 그리고 플레이 상태 `Game`이 있다. 웹은 `boot_game`, `game_command`, `export_game`, `import_game`만 부른다. 화면은 식을 다시 짜지 않는다. 워터폴은 펀드 전체다. 게임의 인수 차입은 시설 하나고, 선순위와 메자닌이 같이 있는 스케줄은 단위 테스트에 있다. 테스트는 `cargo test -p sim-core`다.

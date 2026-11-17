@@ -1,21 +1,21 @@
-import { flushSync } from "react-dom";
-import { createRoot, type Root } from "react-dom/client";
-
 export function MapPin({
   selected,
   glyph,
   ariaLabel,
   onSelect,
+  kind = "factory",
 }: {
   selected: boolean;
   glyph: string;
   ariaLabel: string;
   onSelect: () => void;
+  kind?: string;
 }) {
   return (
     <button
       type="button"
       className="pin"
+      data-kind={kind}
       data-selected={selected ? "true" : "false"}
       aria-label={ariaLabel}
       onClick={onSelect}
@@ -30,19 +30,21 @@ export function mountMapPin(options: {
   glyph: string;
   ariaLabel: string;
   onSelect: () => void;
-}): { host: HTMLDivElement; root: Root } {
+  kind?: string;
+}): { host: HTMLDivElement } {
   const host = document.createElement("div");
   host.className = "pin-host";
-  const root = createRoot(host);
-  flushSync(() => {
-    root.render(
-      <MapPin
-        selected={options.selected}
-        glyph={options.glyph}
-        ariaLabel={options.ariaLabel}
-        onSelect={options.onSelect}
-      />,
-    );
-  });
-  return { host, root };
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "pin";
+  button.dataset.kind = options.kind ?? "factory";
+  button.dataset.selected = options.selected ? "true" : "false";
+  button.setAttribute("aria-label", options.ariaLabel);
+  button.addEventListener("click", options.onSelect);
+  const label = document.createElement("span");
+  label.className = "pin-label";
+  label.textContent = options.glyph;
+  button.append(label);
+  host.append(button);
+  return { host };
 }

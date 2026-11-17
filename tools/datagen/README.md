@@ -17,4 +17,12 @@ python3 tools/datagen/generate.py --check
 
 검증이 실패하면 파일을 쓰기 전에 종료 코드 1로 빠진다. 대차 균형, 현금 롤포워드, 이익잉여금, 이름, 좌표, 티커 부재를 본다.
 
+플레이 북은 샘플 픽스처를 바꾸지 않는다.
+
+```bash
+python3 tools/datagen/generate.py --atlas
+```
+
+시드 20241117, 회사 40곳, 2024Q1–2025Q4. 출력은 `public/atlas/boot.json`, `public/atlas/pages/cards-0.json`, `cards-1.json`, `public/atlas/companies/co-001.json`부터다. 부팅 파일의 회사에는 최신 장부만 있고 분기 배열은 없다. 카드 페이지는 20개다. 시계는 2026년 1분기 0주다. SQLite는 `tools/datagen/out/content.sqlite`에만 쓰고 깃에 올리지 않는다. 웹은 그 파일을 열지 않는다.
+
 의존성 없다. Python 3 표준 라이브러리만 쓴다.

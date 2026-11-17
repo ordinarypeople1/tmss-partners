@@ -1,13 +1,37 @@
-//! Valuation and, later, the quarterly scheduler.
+//! Fund math and the quarterly scheduler.
 //!
 //! Money is an `i64` count of million KRW. A model multiple is an `i64` count of
-//! thousandths: 7200 means 7.200x. Rounding is half away from zero. Positive
-//! examples match the previous `Math.round` results (2549 × 7.2 = 18353).
+//! thousandths: 7200 means 7.200x. Rates that are not multiples use basis points:
+//! 800 is 8.00%. Rounding is half away from zero. Positive examples match the
+//! previous `Math.round` results (2549 × 7.2 = 18353).
+
+mod close;
+mod deal;
+mod fees;
+mod game;
+mod irr;
+mod lbo;
+mod news;
+mod round;
+mod waterfall;
+
+pub use close::{close_quarter, model_multiple_millis, Books, CloseAdjust, Drivers};
+pub use fees::{quarterly_management_fee, transaction_cost};
+pub use game::Game;
+pub use irr::annualized_irr_bps;
+pub use lbo::{
+    covenants_breached, interest_cover_millis, leverage_millis, service_debt, sources_and_uses,
+    step_tranche, Tranche,
+};
+pub use waterfall::Waterfall;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SimError {
     NegativeMultiple,
     Overflow,
+    NonPositiveDivisor,
+    Domain,
+    Identity,
 }
 
 impl std::fmt::Display for SimError {
@@ -15,6 +39,9 @@ impl std::fmt::Display for SimError {
         match self {
             SimError::NegativeMultiple => write!(f, "multiple must be non-negative"),
             SimError::Overflow => write!(f, "overflow"),
+            SimError::NonPositiveDivisor => write!(f, "divisor must be positive"),
+            SimError::Domain => write!(f, "value out of domain"),
+            SimError::Identity => write!(f, "accounting identity failed"),
         }
     }
 }
@@ -27,24 +54,12 @@ pub fn enterprise_value(ebitda: i64, multiple_millis: i64) -> Result<i64, SimErr
     if multiple_millis < 0 {
         return Err(SimError::NegativeMultiple);
     }
-    let product = ebitda
-        .checked_mul(multiple_millis)
-        .ok_or(SimError::Overflow)?;
-    Ok(div_round_half_away(product, MILLIS_PER_TURN))
+    round::mul_div(ebitda, multiple_millis, MILLIS_PER_TURN)
 }
 
 pub fn equity_value(ebitda: i64, multiple_millis: i64, net_debt: i64) -> Result<i64, SimError> {
     let value = enterprise_value(ebitda, multiple_millis)?;
     value.checked_sub(net_debt).ok_or(SimError::Overflow)
-}
-
-fn div_round_half_away(numerator: i64, denominator: i64) -> i64 {
-    let half = denominator / 2;
-    if numerator >= 0 {
-        (numerator + half) / denominator
-    } else {
-        (numerator - half) / denominator
-    }
 }
 
 #[cfg(feature = "wasm")]
@@ -68,6 +83,55 @@ mod wasm_api {
         net_debt: i64,
     ) -> Result<i64, JsValue> {
         equity_value(ebitda, multiple_millis, net_debt).map_err(into_js)
+    }
+
+    thread_local! {
+        static GAME: std::cell::RefCell<Option<crate::game::Game>> = const { std::cell::RefCell::new(None) };
+    }
+
+    #[wasm_bindgen]
+    pub fn boot_game(json: &str) -> String {
+        match crate::game::Game::boot(json) {
+            Ok(mut game) => {
+                let body = game.handle(r#"{"op":"dashboard"}"#);
+                GAME.with(|slot| *slot.borrow_mut() = Some(game));
+                body
+            }
+            Err(err) => format!(r#"{{"ok":false,"error":"boot","detail":{}}}"#, serde_json::to_string(&err).unwrap_or("\"boot\"".into())),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn game_command(json: &str) -> String {
+        GAME.with(|slot| {
+            let mut borrow = slot.borrow_mut();
+            match borrow.as_mut() {
+                Some(game) => game.handle(json),
+                None => r#"{"ok":false,"error":"no_game"}"#.into(),
+            }
+        })
+    }
+
+    #[wasm_bindgen]
+    pub fn export_game() -> String {
+        GAME.with(|slot| {
+            slot.borrow()
+                .as_ref()
+                .map(|game| game.export_json())
+                .unwrap_or_else(|| "{}".into())
+        })
+    }
+
+    #[wasm_bindgen]
+    pub fn import_game(json: &str) -> String {
+        match crate::game::Game::import_json(json) {
+            Ok(mut game) => {
+                let body = game.handle(r#"{"op":"dashboard"}"#);
+                GAME.with(|slot| *slot.borrow_mut() = Some(game));
+                body
+            }
+            Err(_) => r#"{"ok":false,"error":"boot"}"#.into(),
+        }
     }
 }
 

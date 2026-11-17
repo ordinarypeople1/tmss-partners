@@ -53,6 +53,6 @@
 
 - Pretendard: <https://github.com/orioncactus/pretendard> SIL Open Font License. 예약된 글꼴 이름 Pretendard. 글꼴 파일은 팔지 않고, 이름을 유지한 채 조건에 맞게 임베드한다. OFL 안내 <https://openfontlicense.org/>
 - Noto: <https://fonts.google.com/noto> 한글을 포함한 패밀리. SIL OFL로 배포된다. Pretendard가 화면 크기에서 부족할 때의 본문 대안이다.
-- 이유: 헬로 월드는 시스템에 설치된 글꼴만 가리킨다. 파일을 벤더링하지 않았다.
+- 이유: 글꼴 파일은 저장소에 넣지 않는다. 화면은 Pretendard Variable 동적 서브셋을 jsDelivr로 링크하고, 실패하면 Apple SD Gothic Neo와 Malgun Gothic으로 떨어진다. 토큰은 [화면 토큰](../design/tokens.md)이다.
 
-화면은 따뜻한 종이색, 먹색, 낮은 채도의 적갈색을 쓴다. Sky Routes의 유리 패널, 아이콘, 타이포그래피를 재현하지 않는다.
+화면은 흰색과 검정, 그리고 카민 `#9B1B30` 하나다. 1px 규칙과 직각이다. 유리 패널과 그라데이션은 쓰지 않는다.

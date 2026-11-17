@@ -1,157 +1,55 @@
-import { useEffect, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
-import type { CompanyCard, CompanyCardPage } from "../data/page";
-import { quoteCompany, type QuotedValue } from "../sim/wasm";
-import { pulseSelection } from "./haptics";
-import { CompanyCardView } from "./companyCardView";
-import { CompanyList } from "./companyList";
-import { CompanyStatus } from "./companyStatus";
-import { mountMapPin } from "./mapPin";
-import { joinBase } from "./publicPath";
+import { useGame } from "./game/session";
+import { parseRoute, type Route } from "./game/types";
+import { CompaniesScreen } from "./screens/CompaniesScreen";
+import { CompanyScreen } from "./screens/CompanyScreen";
+import { DealScreen } from "./screens/DealScreen";
+import { DealsScreen } from "./screens/DealsScreen";
+import { FundScreen } from "./screens/FundScreen";
+import { HomeScreen } from "./screens/HomeScreen";
+import { PortfolioScreen } from "./screens/PortfolioScreen";
+import { ClockBar } from "./widgets";
 
-const EMPTY_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {},
-  layers: [
-    {
-      id: "paper",
-      type: "background",
-      paint: { "background-color": "#e7efe8" },
-    },
-  ],
-};
+const LINKS: { name: Route["name"]; href: string; label: string }[] = [
+  { name: "home", href: "#/", label: "nav.home" },
+  { name: "deals", href: "#/deals", label: "nav.deals" },
+  { name: "companies", href: "#/companies", label: "nav.companies" },
+  { name: "fund", href: "#/fund", label: "nav.fund" },
+  { name: "portfolio", href: "#/portfolio", label: "nav.portfolio" },
+];
+
+function useRoute(): Route {
+  const [route, setRoute] = useState<Route>(() => parseRoute(window.location.hash));
+  useEffect(() => {
+    const onHash = () => setRoute(parseRoute(window.location.hash));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  return route;
+}
 
 export function App() {
   const intl = useIntl();
-  const reduceMotion = useReducedMotion();
-  const mapNode = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const [cards, setCards] = useState<CompanyCard[] | null>(null);
-  const [seed, setSeed] = useState(0);
-  const [loadError, setLoadError] = useState(false);
-  const [selectedId, setSelectedId] = useState("");
-  const [quoted, setQuoted] = useState<(QuotedValue & { id: string }) | null>(null);
-  const [quoteError, setQuoteError] = useState(false);
-
-  const zoomIn = intl.formatMessage({ id: "map.zoomIn" });
-  const zoomOut = intl.formatMessage({ id: "map.zoomOut" });
-  const pinFactory = intl.formatMessage({ id: "pin.factory" });
-  const pinWarehouse = intl.formatMessage({ id: "pin.warehouse" });
+  const route = useRoute();
+  const { dash, error, ready, failed, paused, speed, setPaused, setSpeed, reset } = useGame();
 
   useEffect(() => {
     document.title = intl.formatMessage({ id: "app.title" });
   }, [intl]);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(joinBase(import.meta.env.BASE_URL, "sample-page.json"))
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("page");
-        }
-        return response.json() as Promise<CompanyCardPage>;
-      })
-      .then((page) => {
-        if (cancelled) {
-          return;
-        }
-        setCards(page.cards);
-        setSeed(page.seed);
-        setSelectedId(page.cards[0]?.id ?? "");
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLoadError(true);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!mapNode.current || mapRef.current) {
-      return;
-    }
-    const map = new maplibregl.Map({
-      container: mapNode.current,
-      style: EMPTY_STYLE,
-      center: [127.6, 36.4],
-      zoom: 6.1,
-      attributionControl: false,
-      locale: {
-        "NavigationControl.ZoomIn": zoomIn,
-        "NavigationControl.ZoomOut": zoomOut,
-      },
-    });
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
-    mapRef.current = map;
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [zoomIn, zoomOut]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !cards) {
-      return;
-    }
-    const mounts = cards.map((card) => {
-      const glyph = card.sector_id === "cold_chain_logistics" ? pinWarehouse : pinFactory;
-      const mounted = mountMapPin({
-        selected: card.id === selectedId,
-        glyph,
-        ariaLabel: intl.formatMessage({ id: "pin.select" }, { name: card.legal_name_ko }),
-        onSelect: () => choose(card.id),
-      });
-      const marker = new maplibregl.Marker({ element: mounted.host })
-        .setLngLat([card.lon, card.lat])
-        .addTo(map);
-      return { marker, root: mounted.root };
-    });
-    return () => {
-      for (const mounted of mounts) {
-        mounted.marker.remove();
-        mounted.root.unmount();
-      }
-    };
-  }, [cards, selectedId, pinFactory, pinWarehouse, intl]);
-
-  const selected = cards?.find((card) => card.id === selectedId) ?? cards?.[0];
-
-  useEffect(() => {
-    if (!selected) {
-      return;
-    }
-    let cancelled = false;
-    setQuoted(null);
-    setQuoteError(false);
-    quoteCompany(selected.ebitda, selected.model_multiple_millis, selected.debt, selected.cash)
-      .then((value) => {
-        if (!cancelled) {
-          setQuoted({ id: selected.id, ...value });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setQuoteError(true);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selected]);
-
-  function choose(id: string) {
-    setSelectedId(id);
-    pulseSelection(reduceMotion === true);
+  let body = <p>{intl.formatMessage({ id: "company.loading" })}</p>;
+  if (failed || (ready && !dash)) {
+    body = <p className="banner">{intl.formatMessage({ id: "error.boot" })}</p>;
+  } else if (dash) {
+    if (route.name === "deals") body = <DealsScreen />;
+    else if (route.name === "deal") body = <DealScreen id={route.id} />;
+    else if (route.name === "companies") body = <CompaniesScreen />;
+    else if (route.name === "company") body = <CompanyScreen id={route.id} />;
+    else if (route.name === "fund") body = <FundScreen />;
+    else if (route.name === "portfolio") body = <PortfolioScreen />;
+    else body = <HomeScreen />;
   }
-
-  const model = quoted && selected && quoted.id === selected.id ? quoted : null;
 
   return (
     <div className="shell">
@@ -159,26 +57,42 @@ export function App() {
         <div>
           <p className="eyebrow">{intl.formatMessage({ id: "app.house" })}</p>
           <h1>{intl.formatMessage({ id: "app.title" })}</h1>
+          <p className="era">{intl.formatMessage({ id: "app.era" })}</p>
         </div>
-        <p className="era">{intl.formatMessage({ id: "app.era" })}</p>
+        {dash ? (
+          <ClockBar
+            year={dash.clock.year}
+            quarter={dash.clock.quarter}
+            week={dash.clock.week_in_quarter}
+            paused={paused}
+            speed={speed}
+            onToggle={() => setPaused(!paused)}
+            onSpeed={(value) => {
+              setSpeed(value);
+              setPaused(false);
+            }}
+          />
+        ) : null}
+        <button type="button" onClick={() => void reset()}>
+          {intl.formatMessage({ id: "app.reset" })}
+        </button>
       </header>
-      <main className="stage">
-        <section className="map-panel" aria-label={intl.formatMessage({ id: "map.label" })}>
-          <div ref={mapNode} className="map" />
-          <p className="map-note">{intl.formatMessage({ id: "map.note" })}</p>
-        </section>
-        <section className="dossier" aria-live="polite">
-          {loadError ? <CompanyStatus state="error" /> : null}
-          {!loadError && !cards ? <CompanyStatus state="loading" /> : null}
-          {cards && cards.length === 0 ? <CompanyStatus state="empty" /> : null}
-          {cards && selected ? (
-            <>
-              <CompanyList cards={cards} selectedId={selected.id} onSelect={choose} />
-              <CompanyCardView card={selected} seed={seed} quoted={model} error={quoteError} />
-            </>
-          ) : null}
-        </section>
-      </main>
+      <nav className="nav" aria-label={intl.formatMessage({ id: "nav.label" })}>
+        {LINKS.map((link) => (
+          <a
+            key={link.name}
+            href={link.href}
+            aria-current={route.name === link.name || (route.name === "deal" && link.name === "deals") || (route.name === "company" && link.name === "companies") ? "page" : undefined}
+          >
+            {intl.formatMessage({ id: link.label })}
+          </a>
+        ))}
+      </nav>
+      {error && dash ? (
+        <p className="banner">{intl.formatMessage({ id: `error.${error}` })}</p>
+      ) : null}
+      <p className="muted workspace">{intl.formatMessage({ id: "app.saved" })}</p>
+      {body}
     </div>
   );
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node tools/build-wasm.mjs && vite --host 127.0.0.1",
     "build": "node tools/build-wasm.mjs && tsc --noEmit && vite build && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook",
-    "test": "node tools/build-wasm.mjs && cargo test --workspace && tsc --noEmit && vitest run",
+    "test": "python3 tools/datagen/generate.py --check && python3 tools/datagen/generate.py --atlas && node tools/build-wasm.mjs && cargo test --workspace && tsc --noEmit && vitest run",
     "preview": "node tools/build-wasm.mjs && vite preview --host 127.0.0.1",
     "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 node tools/build-wasm.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006 --host 127.0.0.1 --no-open",
     "build-storybook": "node tools/build-wasm.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook"
