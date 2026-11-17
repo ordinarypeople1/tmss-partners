@@ -1,0 +1,6 @@
+import{j as e}from"./iframe-CPUYurOJ.js";import{e as o,I as s,P as i,f as r,R as a}from"./widgets-CKPSc-Tk.js";import"./preload-helper-Cbp8RUvi.js";import"./react-DZ3qKcX5.js";/**
+ * @license lucide-react v1.73.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const t={name:"bookmark",size:24,node:[["path",{d:"M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z",key:"oz39mx"}]]};t.node;const n=o(t),x={title:"Shell"},m={render:()=>e.jsxs("div",{className:"workspace",children:[e.jsxs("div",{className:"top-actions",children:[e.jsx(s,{label:"멈춤",children:e.jsx(i,{size:18,strokeWidth:1.75,"aria-hidden":"true"})}),e.jsx(s,{label:"2배",pressed:!0,children:e.jsxs("span",{className:"chevs","aria-hidden":"true",children:[e.jsx(r,{size:14,strokeWidth:1.75}),e.jsx(r,{size:14,strokeWidth:1.75})]})}),e.jsx("button",{type:"button",className:"btn-primary continue",children:"계속"}),e.jsx(s,{label:"관심",pressed:!0,children:e.jsx(n,{size:18,strokeWidth:1.75,"aria-hidden":"true"})})]}),e.jsxs("div",{className:"rating-row",children:[e.jsx(a,{score:16,label:"성장 16"}),e.jsx(a,{score:11,label:"해자 11"}),e.jsx(a,{score:null,label:"경영"})]})]})},j=["Controls"];export{m as Controls,j as __namedExportsOrder,x as default};
