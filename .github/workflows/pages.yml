@@ -1,0 +1,95 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install wasm-bindgen
+        run: cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - run: npm ci
+      - run: npm test
+
+  publish:
+    needs: test
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install wasm-bindgen
+        run: cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - run: npm ci
+      - name: Site base
+        id: base
+        env:
+          PAGES_BASE: ${{ vars.PAGES_BASE }}
+          REPO: ${{ github.event.repository.name }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.number }}
+        run: |
+          set -eu
+          if [ -n "$PAGES_BASE" ]; then
+            base="$PAGES_BASE"
+          else
+            base="/${REPO}/"
+          fi
+          case "$base" in
+            */) ;;
+            *) base="${base}/" ;;
+          esac
+          if [ "$EVENT" = "pull_request" ]; then
+            base="${base}preview/pr-${PR}/"
+          fi
+          echo "value=${base}" >> "$GITHUB_OUTPUT"
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE: ${{ steps.base.outputs.value }}
+      - name: Publish production
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true
+          clean-exclude: preview/**
+      - name: Publish pull request preview
+        if: github.event_name == 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          target-folder: preview/pr-${{ github.event.number }}
+          clean: true

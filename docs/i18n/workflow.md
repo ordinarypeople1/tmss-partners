@@ -39,7 +39,7 @@
 
 ## 검사
 
-`src/i18n/checkUiStrings.ts`가 `src/ui`의 TSX를 본다. JSX 텍스트에 글자가 있거나, `aria-label` `title` `alt` `placeholder`가 문자열 리터럴이거나, 한글·가나·한자 리터럴이 있으면 실패한다. 메시지 id, 클래스 이름, 한 단어 토큰은 통과한다. `npm test`가 이 검사를 돌린다. 카탈로그 테스트는 `locales` 안에 `ko.json`만 있는지도 본다.
+`src/i18n/checkUiStrings.ts`가 `src/ui`의 TSX를 본다. JSX 텍스트에 글자가 있거나, `aria-label` `title` `alt` `placeholder`가 문자열 리터럴이거나, 한글·가나·한자 리터럴이 있으면 실패한다. 메시지 id, 클래스 이름, 한 단어 토큰은 통과한다. `*.stories.tsx`는 빼 둔다. 스토리북 문장은 `stories/`에 있고, 화면 크롬은 같은 `ko.json` 키를 쓴다. 회사 이름처럼 콘텐츠 데이터인 문자열만 스토리 인자로 둔다. `npm test`가 이 검사를 돌린다. 카탈로그 테스트는 `locales` 안에 `ko.json`만 있는지도 본다.
 
 ## 용어
 

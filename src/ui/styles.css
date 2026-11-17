@@ -44,7 +44,8 @@ p {
   justify-content: space-between;
   gap: 16px;
   align-items: end;
-  padding: 20px 24px 12px;
+  padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 12px
+    max(24px, env(safe-area-inset-left));
 }
 
 .eyebrow,
@@ -87,7 +88,8 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
   gap: 16px;
-  padding: 0 16px 16px;
+  padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
 }
 
 .map-panel,
@@ -137,10 +139,12 @@ h1 {
 
 .company-button {
   width: 100%;
+  min-height: 44px;
   text-align: left;
   padding: 10px 12px;
   cursor: pointer;
   color: inherit;
+  touch-action: manipulation;
 }
 
 .company-button[aria-pressed="true"] {
@@ -178,15 +182,22 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+.pin-host {
+  width: 44px;
+  height: 44px;
+  line-height: 0;
+}
+
 .pin {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border: 0;
   padding: 0;
   background: transparent;
   color: #fffaf3;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .pin::before {
@@ -229,6 +240,11 @@ h1 {
     animation: none;
     opacity: 0;
   }
+}
+
+[data-reduced-motion="always"] .pin[data-selected="true"]::after {
+  animation: none;
+  opacity: 0;
 }
 
 .pin-label {

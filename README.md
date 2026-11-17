@@ -81,6 +81,29 @@ npm run dev
 
 `npm test`는 wasm 바인딩, `cargo test`, TypeScript, Vitest를 순서대로 돌린다. rustc와 `wasm32-unknown-unknown`, `wasm-bindgen` 0.2.100이 필요하다. 브라우저에서 `http://127.0.0.1:5173/` 을 연다. 샘플 4개 회사는 자리표시자 분포로 만든 가공의 회사다. 화면은 카드 페이지 한 장을 가져오고, 기업가치는 Rust wasm이 계산한다.
 
+스토리북:
+
+```bash
+npm run storybook
+```
+
+`http://127.0.0.1:6006/` 에서 카드, 목록, 핀, 금액, 상태 문장을 본다. 툴바의 Motion으로 동작 줄이기를 켠다. 스토리는 `ko.json` 키를 쓰고, `*.stories.tsx`는 하드코딩 검사에서 빠진다.
+
+`npm run build`는 앱과 스토리북을 같이 만든다. 앱은 `dist/`, 스토리북은 `dist/storybook/`이다. 로컬 프리뷰에서는 앱이 `/`, 스토리북이 `/storybook/`이다.
+
+## 휴대폰에서 보기
+
+GitHub Actions(`.github/workflows/pages.yml`)가 `main`에 푸시되면 `gh-pages` 브랜치 루트에 앱을, `storybook/`에 스토리북을 올린다. 같은 저장소의 풀 리퀘스트는 `preview/pr-<번호>/`에 올라간다. 기본 주소는 프로젝트 페이지다.
+
+- 앱: `https://ordinarypeople1.github.io/tmss-partners/`
+- 스토리북: `https://ordinarypeople1.github.io/tmss-partners/storybook/`
+- 이 풀 리퀘스트 미리보기: `https://ordinarypeople1.github.io/tmss-partners/preview/pr-1/`
+- 그 스토리북: `https://ordinarypeople1.github.io/tmss-partners/preview/pr-1/storybook/`
+
+커스텀 도메인으로 루트가 `/`여야 하면 저장소 변수 `PAGES_BASE`를 `/`로 둔다. 홈 화면에 추가하면 `manifest.webmanifest`의 `display: standalone`으로 브라우저 크롬 없이 열린다.
+
+이 워크플로는 `main`에 있어야 실행된다. 페이지를 켜는 설정은 저장소 주인이 해야 한다. 저장소가 비공개이고 계정이 GitHub Free이면 비공개 저장소의 Pages는 쓸 수 없다.
+
 데스크톱과 모바일 패키징은 Tauri 2로 정했다. `src-tauri`는 2.1 소스이고, WebKit이 있는 머신에서 링크한다. 이유는 [ADR 0001](docs/adr/0001-tech-stack.md)에 있다. 문자열은 한국어만 외부화해 두었고, 다른 언어는 문장이 잠긴 뒤에 넣는다. [절차](docs/i18n/workflow.md).
 
 ## 라이선스

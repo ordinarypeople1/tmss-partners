@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { useIntl } from "react-intl";
 import type { CompanyCard, CompanyCardPage } from "../data/page";
-import { formatKrwMillion } from "../i18n/money";
 import { quoteCompany, type QuotedValue } from "../sim/wasm";
 import { pulseSelection } from "./haptics";
+import { CompanyCardView } from "./companyCardView";
+import { CompanyList } from "./companyList";
+import { CompanyStatus } from "./companyStatus";
+import { mountMapPin } from "./mapPin";
+import { joinBase } from "./publicPath";
 
 const EMPTY_STYLE: maplibregl.StyleSpecification = {
   version: 8,
@@ -43,7 +47,7 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/sample-page.json")
+    fetch(joinBase(import.meta.env.BASE_URL, "sample-page.json"))
       .then((response) => {
         if (!response.ok) {
           throw new Error("page");
@@ -96,25 +100,23 @@ export function App() {
     if (!map || !cards) {
       return;
     }
-    const markers = cards.map((card) => {
-      const pin = document.createElement("button");
-      pin.type = "button";
-      pin.className = "pin";
-      pin.dataset.selected = card.id === selectedId ? "true" : "false";
-      pin.setAttribute(
-        "aria-label",
-        intl.formatMessage({ id: "pin.select" }, { name: card.legal_name_ko }),
-      );
-      const label = document.createElement("span");
-      label.className = "pin-label";
-      label.textContent = card.sector_id === "cold_chain_logistics" ? pinWarehouse : pinFactory;
-      pin.append(label);
-      pin.addEventListener("click", () => choose(card.id));
-      return new maplibregl.Marker({ element: pin }).setLngLat([card.lon, card.lat]).addTo(map);
+    const mounts = cards.map((card) => {
+      const glyph = card.sector_id === "cold_chain_logistics" ? pinWarehouse : pinFactory;
+      const mounted = mountMapPin({
+        selected: card.id === selectedId,
+        glyph,
+        ariaLabel: intl.formatMessage({ id: "pin.select" }, { name: card.legal_name_ko }),
+        onSelect: () => choose(card.id),
+      });
+      const marker = new maplibregl.Marker({ element: mounted.host })
+        .setLngLat([card.lon, card.lat])
+        .addTo(map);
+      return { marker, root: mounted.root };
     });
     return () => {
-      for (const marker of markers) {
-        marker.remove();
+      for (const mounted of mounts) {
+        mounted.marker.remove();
+        mounted.root.unmount();
       }
     };
   }, [cards, selectedId, pinFactory, pinWarehouse, intl]);
@@ -150,7 +152,6 @@ export function App() {
   }
 
   const model = quoted && selected && quoted.id === selected.id ? quoted : null;
-  const netDebt = selected ? selected.debt - selected.cash : 0;
 
   return (
     <div className="shell">
@@ -167,96 +168,13 @@ export function App() {
           <p className="map-note">{intl.formatMessage({ id: "map.note" })}</p>
         </section>
         <section className="dossier" aria-live="polite">
-          {loadError ? <p>{intl.formatMessage({ id: "company.loadError" })}</p> : null}
-          {!loadError && !cards ? <p>{intl.formatMessage({ id: "company.loading" })}</p> : null}
-          {cards && cards.length === 0 ? <p>{intl.formatMessage({ id: "company.empty" })}</p> : null}
+          {loadError ? <CompanyStatus state="error" /> : null}
+          {!loadError && !cards ? <CompanyStatus state="loading" /> : null}
+          {cards && cards.length === 0 ? <CompanyStatus state="empty" /> : null}
           {cards && selected ? (
             <>
-              <ol className="company-list">
-                {cards.map((card) => (
-                  <li key={card.id}>
-                    <button
-                      type="button"
-                      className="company-button"
-                      aria-pressed={card.id === selected.id}
-                      onClick={() => choose(card.id)}
-                    >
-                      <span>{card.legal_name_ko}</span>
-                      <small>
-                        {intl.formatMessage({ id: `sector.${card.sector_id}` })}
-                        {" · "}
-                        {card.region_label_ko}
-                      </small>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-              <motion.article
-                key={selected.id}
-                className="card"
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={
-                  reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }
-                }
-              >
-                <p className="card-kicker">{selected.complex_name_ko}</p>
-                <h2>{selected.legal_name_ko}</h2>
-                <p className="card-meta">
-                  {intl.formatMessage({ id: `sector.${selected.sector_id}` })}
-                  {" · "}
-                  {intl.formatMessage(
-                    { id: "company.meta" },
-                    { year: selected.founded_year, employees: selected.employees },
-                  )}
-                </p>
-                <dl className="facts">
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.revenue" }, { period: selected.period })}</dt>
-                    <dd>{formatKrwMillion(intl, selected.revenue)}</dd>
-                  </div>
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.ebitda" })}</dt>
-                    <dd>{formatKrwMillion(intl, selected.ebitda)}</dd>
-                  </div>
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.multiple" })}</dt>
-                    <dd>
-                      {intl.formatMessage(
-                        { id: "fact.multipleValue" },
-                        { multiple: selected.model_multiple_millis / 1000 },
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.modelEv" })}</dt>
-                    <dd>
-                      {quoteError
-                        ? intl.formatMessage({ id: "fact.error" })
-                        : model
-                          ? formatKrwMillion(intl, model.enterpriseValue)
-                          : intl.formatMessage({ id: "fact.pending" })}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.netDebt" })}</dt>
-                    <dd>{formatKrwMillion(intl, model ? model.netDebt : netDebt)}</dd>
-                  </div>
-                  <div>
-                    <dt>{intl.formatMessage({ id: "fact.modelEquity" })}</dt>
-                    <dd>
-                      {quoteError
-                        ? intl.formatMessage({ id: "fact.error" })
-                        : model
-                          ? formatKrwMillion(intl, model.equityValue)
-                          : intl.formatMessage({ id: "fact.pending" })}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="disclaimer">
-                  {intl.formatMessage({ id: "card.disclaimer" }, { seed })}
-                </p>
-              </motion.article>
+              <CompanyList cards={cards} selectedId={selected.id} onSelect={choose} />
+              <CompanyCardView card={selected} seed={seed} quoted={model} error={quoteError} />
             </>
           ) : null}
         </section>

@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -21,6 +22,17 @@ describe("hardcoded UI strings", () => {
       }`,
     );
     expect(hits).toEqual([]);
+  });
+
+  it("skips story modules so catalog-backed stories can sit beside components", () => {
+    const dir = mkdtempSync(join(tmpdir(), "deal-atlas-ui-"));
+    try {
+      writeFileSync(join(dir, "Card.stories.tsx"), "export const A = () => <p>안녕</p>;\n");
+      writeFileSync(join(dir, "Card.tsx"), "export const A = () => <p>{id}</p>;\n");
+      expect(scanUiTree(dir)).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("finds no player-facing literals under src/ui", () => {

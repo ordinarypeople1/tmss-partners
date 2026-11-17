@@ -52,6 +52,12 @@ export function findHardcodedUiStrings(fileName: string, sourceText: string): st
   return hits;
 }
 
+export function isScannedUiFile(name: string): boolean {
+  return (
+    /\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name) && !/\.stories\.tsx?$/.test(name)
+  );
+}
+
 export function scanUiTree(root: string): string[] {
   const hits: string[] = [];
   function walk(dir: string) {
@@ -61,7 +67,7 @@ export function scanUiTree(root: string): string[] {
         walk(path);
         continue;
       }
-      if (!/\.(ts|tsx)$/.test(entry) || /\.test\.tsx?$/.test(entry)) {
+      if (!isScannedUiFile(entry)) {
         continue;
       }
       hits.push(...findHardcodedUiStrings(path, readFileSync(path, "utf8")));

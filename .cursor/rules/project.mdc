@@ -10,7 +10,7 @@ alwaysApply: true
 - Money is an integer count of million KRW. Do not accumulate currency in floating point. Multiples cross the Rust boundary as thousandths (7200 = 7.200x).
 - Simulation math lives in `crates/sim-core`. Do not reimplement it in TypeScript. `src/sim` is the wasm loader and stays free of DOM, React, and MapLibre.
 - The client reads a page of company cards. Do not import the full content JSON into the UI bundle.
-- Player-facing UI strings live in `src/i18n/locales/ko.json`. Do not add en, ja, zh-Hans, or zh-Hant catalogs until copy is frozen.
+- Player-facing UI strings live in `src/i18n/locales/ko.json`. Do not add en, ja, zh-Hans, or zh-Hant catalogs until copy is frozen. Storybook stories live in `stories/` and use those keys. `*.stories.tsx` is exempt from the UI string scan.
 - Prices exist only when a deal event clears. A model multiple is not a share price. Do not add tickers or price paths.
 - Company and person names in content are fictional. Do not paste real filings, articles, or addresses into the repo.
 - Third-party art and audio are linked and credited, not vendored, unless the owner adds a small original file under `assets/`.

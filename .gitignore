@@ -17,3 +17,5 @@ tools/datagen/out/
 src-tauri/target/
 /target/
 src/sim/pkg/
+storybook-static/
+*storybook.log
