@@ -1,0 +1,16 @@
+---
+description: Deal Atlas conventions for code, docs, and money
+alwaysApply: true
+---
+
+# Deal Atlas
+
+- Player-facing prose and design docs are Korean. Code identifiers, file names, and formulas are English.
+- The game is single-player and offline. Do not add accounts, analytics endpoints, or required network calls to the runtime.
+- Money is an integer count of million KRW. Do not accumulate currency in floating point.
+- `src/sim` stays free of DOM, React, and MapLibre. UI reads simulation output. It does not invent accounting.
+- Prices exist only when a deal event clears. A model multiple is not a share price. Do not add tickers or price paths.
+- Company and person names in content are fictional. Do not paste real filings, articles, or addresses into the repo.
+- Third-party art and audio are linked and credited, not vendored, unless the owner adds a small original file under `assets/`.
+- The repository license is unset. Do not add an MIT/Apache/GPL grant, and do not relicense third-party code.
+- Prefer a failing test that states an accounting identity over a silent plug.

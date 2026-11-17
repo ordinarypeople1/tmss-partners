@@ -1,0 +1,14 @@
+---
+description: Fictional companies, filings, and map placement
+globs: tools/datagen/**,src/data/**,content/**
+alwaysApply: false
+---
+
+# Content safety
+
+- Generators may sample from industry distributions. They may not copy a real company's reported figures, name, ticker, or street address.
+- Distributions fitted from public data stay marked until a human reviews them. Placeholder parameters must set `placeholder: true` and `fitted_to_real_filings: false`.
+- Reject names that contain known conglomerate or brand fragments. Keep the denylist in the generator, not in prose comments only.
+- Coordinates stay inside a wide regional box and are rounded to two decimal degrees or coarser. No road addresses.
+- Basemap styles ship without business-name or POI layers.
+- Do not commit raw DART, EDGAR, KOSIS, or Damodaran downloads. Commit seeds, distribution parameters, and the generator.
