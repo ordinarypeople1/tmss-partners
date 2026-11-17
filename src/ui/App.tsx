@@ -12,17 +12,59 @@ import { CompanyStatus } from "./companyStatus";
 import { mountMapPin } from "./mapPin";
 import { joinBase } from "./publicPath";
 
-const EMPTY_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {},
-  layers: [
-    {
-      id: "paper",
-      type: "background",
-      paint: { "background-color": "#e7efe8" },
-    },
-  ],
-};
+const WORLD_FILE = "world-countries.geojson";
+const TILE_SIZE = 512;
+const MAX_LAT = 85.0511;
+// ISO 3166-1 numeric. 회사 데이터가 있는 나라만 활성으로 두고 나머지는 음영 처리한다.
+const ACTIVE_COUNTRY_IDS = ["410"];
+
+function worldStyle(dataUrl: string): maplibregl.StyleSpecification {
+  const active: maplibregl.FilterSpecification = [
+    "in",
+    ["get", "id"],
+    ["literal", ACTIVE_COUNTRY_IDS],
+  ];
+  return {
+    version: 8,
+    sources: { world: { type: "geojson", data: dataUrl } },
+    layers: [
+      { id: "sea", type: "background", paint: { "background-color": "#e7efe8" } },
+      {
+        id: "land-inactive",
+        type: "fill",
+        source: "world",
+        filter: ["!", active],
+        paint: { "fill-color": "#b9c2bb", "fill-opacity": 0.7 },
+      },
+      {
+        id: "land-active",
+        type: "fill",
+        source: "world",
+        filter: active,
+        paint: { "fill-color": "#fffaf3" },
+      },
+      {
+        id: "border",
+        type: "line",
+        source: "world",
+        paint: { "line-color": "#8e9b93", "line-width": 0.6 },
+      },
+      {
+        id: "border-active",
+        type: "line",
+        source: "world",
+        filter: active,
+        paint: { "line-color": "#24302c", "line-width": 1.1 },
+      },
+    ],
+  };
+}
+
+// 세계지도 한 장이 컨테이너를 빈틈없이 채우는 줌. 이보다 더 축소되지 않는다.
+function fullWorldZoom(node: HTMLElement): number {
+  const side = Math.max(node.clientWidth, node.clientHeight, 1);
+  return Math.max(0, Math.log2(side / TILE_SIZE));
+}
 
 export function App() {
   const intl = useIntl();
@@ -76,11 +118,19 @@ export function App() {
     if (!mapNode.current || mapRef.current) {
       return;
     }
+    const node = mapNode.current;
+    const dataUrl = new URL(joinBase(import.meta.env.BASE_URL, WORLD_FILE), window.location.href).href;
     const map = new maplibregl.Map({
-      container: mapNode.current,
-      style: EMPTY_STYLE,
+      container: node,
+      style: worldStyle(dataUrl),
       center: [127.6, 36.4],
       zoom: 6.1,
+      minZoom: fullWorldZoom(node),
+      renderWorldCopies: false,
+      maxBounds: [
+        [-180, -MAX_LAT],
+        [180, MAX_LAT],
+      ],
       attributionControl: false,
       locale: {
         "NavigationControl.ZoomIn": zoomIn,
@@ -88,6 +138,7 @@ export function App() {
       },
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+    map.on("resize", () => map.setMinZoom(fullWorldZoom(node)));
     mapRef.current = map;
     return () => {
       map.remove();
