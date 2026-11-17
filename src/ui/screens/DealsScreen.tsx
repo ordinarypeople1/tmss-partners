@@ -7,7 +7,7 @@ import { money, percentFromBps, shortName } from "../game/format";
 import { itemVariants, listVariants, press, useMotionReady } from "../motion";
 import { useGame } from "../game/session";
 import type { DealRow, DealsPage } from "../game/types";
-import { ChoiceBar, Monogram } from "../widgets";
+import { ChoiceBar, Monogram, RowMenu } from "../widgets";
 
 const SECTORS = [
   "",
@@ -35,6 +35,7 @@ export function DealsScreen({ room = false }: { room?: boolean }) {
   const motionReady = useMotionReady();
   const [page, setPage] = useState<DealsPage | null>(null);
   const [selected, setSelected] = useState("");
+  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   useEffect(() => {
     let cancel = false;
     void run({ op: "deals", sector, sort: "weeks", offset: 0, limit: 50 }).then((result) => {
@@ -76,16 +77,7 @@ export function DealsScreen({ room = false }: { room?: boolean }) {
   return (
     <div className="workspace">
       <div className="section-title">
-        <h2>
-          {intl.formatMessage(
-            { id: "home.section" },
-            {
-              label: intl.formatMessage({ id: room ? "nav.room" : "nav.deals" }),
-              count: rows.length,
-            },
-          )}
-        </h2>
-        <a href="#/companies">{intl.formatMessage({ id: "nav.companies" })}</a>
+        <h2>{intl.formatMessage({ id: room ? "nav.room" : "nav.deals" })}</h2>
       </div>
       {room ? null : (
         <div className="board-tools">
@@ -133,7 +125,16 @@ export function DealsScreen({ room = false }: { room?: boolean }) {
         {intl.formatMessage({ id: "deal.reachCount" }, { cash: money(intl, purse), shown: reached, total: pool.length })}
       </p>
       {rows.length === 0 ? <p>{intl.formatMessage({ id: room ? "room.empty" : "deal.empty" })}</p> : null}
-      {grid ? <DealGrid rows={rows} motionReady={motionReady} /> : <DealTable rows={rows} />}
+      {grid ? <DealGrid rows={rows} motionReady={motionReady} /> : <DealTable rows={rows} onMenu={(id, x, y) => setMenu({ id, x, y })} />}
+      {menu ? (
+        <RowMenu
+          x={menu.x}
+          y={menu.y}
+          label={intl.formatMessage({ id: "filter.close" })}
+          onClose={() => setMenu(null)}
+          items={[{ id: "open", label: intl.formatMessage({ id: "menu.open" }), onSelect: () => { window.location.hash = `#/deal/${menu.id}`; } }]}
+        />
+      ) : null}
       {room ? null : (
         <AtlasMap
           pins={rows.map((row) => ({
@@ -155,7 +156,7 @@ export function DealsScreen({ room = false }: { room?: boolean }) {
   );
 }
 
-function DealTable({ rows }: { rows: DealRow[] }) {
+function DealTable({ rows, onMenu }: { rows: DealRow[]; onMenu: (id: string, x: number, y: number) => void }) {
   const intl = useIntl();
   return (
     <div className="table-wrap">
@@ -173,7 +174,7 @@ function DealTable({ rows }: { rows: DealRow[] }) {
           {rows.map((row) => {
             const name = shortName(row.name_ko, row.legal_name_ko);
             return (
-              <tr key={row.id} className="hit" role="link" tabIndex={0} onClick={() => { window.location.hash = `#/deal/${row.id}`; }} onKeyDown={(event) => {
+              <tr key={row.id} className="hit" role="link" tabIndex={0} onClick={() => { window.location.hash = `#/deal/${row.id}`; }} onContextMenu={(event) => { event.preventDefault(); onMenu(row.id, event.clientX, event.clientY); }} onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   window.location.hash = `#/deal/${row.id}`;
                 }

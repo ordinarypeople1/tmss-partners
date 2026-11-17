@@ -3,7 +3,7 @@ import { useIntl } from "react-intl";
 import { money, multiple, percentFromBps } from "../game/format";
 import { useGame } from "../game/session";
 import type { DistributionPage, FundPage } from "../game/types";
-import { DataTable, Skeleton, Stat } from "../widgets";
+import { DataTable, InfoTip, Skeleton, Stat } from "../widgets";
 
 export function FundScreen() {
   const intl = useIntl();
@@ -32,8 +32,10 @@ export function FundScreen() {
 
   return (
     <div className="workspace">
-      <h2>{fund.name_ko}</h2>
-      <p className="muted">{intl.formatMessage({ id: "fund.waterfallNote" })}</p>
+      <div className="section-title">
+        <h2>{fund.name_ko}</h2>
+        <InfoTip label={intl.formatMessage({ id: "fund.waterfallNote" })} />
+      </div>
       <div className="stat-strip">
         <Stat
           label={intl.formatMessage({ id: "fund.nav" })}

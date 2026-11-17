@@ -1,10 +1,10 @@
 import { motion } from "motion/react";
 import { useIntl } from "react-intl";
-import { lossTone, money, multiple, percentFromBps } from "../game/format";
+import { lossTone, money } from "../game/format";
 import { useGame } from "../game/session";
 import type { AlertItem } from "../game/types";
 import { itemVariants, listVariants, useMotionReady } from "../motion";
-import { AlertList, NewsList, Stat } from "../widgets";
+import { Stat } from "../widgets";
 
 const CHOICES: Record<string, string[]> = {
   fraud: ["report", "hide"],
@@ -43,22 +43,22 @@ export function HomeScreen() {
     }
   }
 
+  const messages = [
+    ...dash.alerts.map((item) => ({
+      id: `${item.template}-${item.company_id}-${item.deal_id}`,
+      text: intl.formatMessage({ id: item.template }, { company: item.company_ko }),
+      action: () => openAlert(item),
+    })),
+    ...dash.news.map((item) => ({
+      id: `news-${item.id}`,
+      text: intl.formatMessage({ id: item.template }, { company: item.company_ko, period: item.period }),
+      action: item.company_id ? () => { window.location.hash = `#/company/${item.company_id}`; } : undefined,
+    })),
+  ];
+
   return (
     <div className="workspace">
-      <p className="muted">
-        {intl.formatMessage(
-          { id: "fund.terms" },
-          {
-            commitments: money(intl, fund.commitments),
-            years: fund.investment_period_years,
-            term: fund.term_years,
-            fee: percentFromBps(intl, fund.fee_bps),
-            hurdle: percentFromBps(intl, fund.hurdle_bps),
-            carry: percentFromBps(intl, fund.carry_bps),
-          },
-        )}
-      </p>
-      <p className="muted">{intl.formatMessage({ id: "fund.markNote" })}</p>
+      <h2>{intl.formatMessage({ id: "nav.inbox" })}</h2>
       <div className="stat-strip">
         <Stat
           label={intl.formatMessage({ id: "fund.nav" })}
@@ -72,42 +72,6 @@ export function HomeScreen() {
           value={money(intl, fund.dry_powder)}
           amount={fund.dry_powder}
           format={(next) => money(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.called" })}
-          value={money(intl, fund.paid_in)}
-          amount={fund.paid_in}
-          format={(next) => money(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.uncalled" })}
-          value={money(intl, fund.uncalled)}
-          amount={fund.uncalled}
-          format={(next) => money(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.irr" })}
-          value={percentFromBps(intl, fund.irr_bps)}
-          amount={fund.irr_bps}
-          format={(next) => percentFromBps(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.moic" })}
-          value={multiple(intl, fund.moic_millis)}
-          amount={fund.moic_millis}
-          format={(next) => multiple(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.dpi" })}
-          value={multiple(intl, fund.dpi_millis)}
-          amount={fund.dpi_millis}
-          format={(next) => multiple(intl, Math.round(next))}
-        />
-        <Stat
-          label={intl.formatMessage({ id: "fund.tvpi" })}
-          value={multiple(intl, fund.tvpi_millis)}
-          amount={fund.tvpi_millis}
-          format={(next) => multiple(intl, Math.round(next))}
         />
         <Stat
           label={intl.formatMessage({ id: "fund.cash" })}
@@ -124,18 +88,8 @@ export function HomeScreen() {
           tone="key"
         />
       </div>
-      <p className="muted">
-        {intl.formatMessage({ id: "home.holdings" }, { count: dash.holdings })}
-        {" · "}
-        {intl.formatMessage({ id: "home.deals" }, { count: dash.deals })}
-      </p>
       <section>
-        <h2 className="section-title">
-          {intl.formatMessage(
-            { id: "home.section" },
-            { label: intl.formatMessage({ id: "home.events" }), count: dash.events?.length ?? 0 },
-          )}
-        </h2>
+        <h2>{intl.formatMessage({ id: "home.events" })}</h2>
         {(dash.events ?? []).length === 0 ? <p className="muted">{intl.formatMessage({ id: "alert.empty" })}</p> : null}
         <motion.div className="card-list" initial={motionReady ? "hidden" : false} animate="show" variants={listVariants}>
         {(dash.events ?? []).map((event) => (
@@ -157,16 +111,15 @@ export function HomeScreen() {
         ))}
         </motion.div>
       </section>
-      <div className="split">
-        <section>
-          <h2 className="section-label">{intl.formatMessage({ id: "home.news" })}</h2>
-          <NewsList items={dash.news} />
-        </section>
-        <section>
-          <h2 className="section-label">{intl.formatMessage({ id: "home.alerts" })}</h2>
-          <AlertList items={dash.alerts} onOpen={openAlert} />
-        </section>
-      </div>
+      <ul className="inbox">
+        {messages.map((item) => (
+          <li key={item.id}>
+            <button type="button" onClick={item.action} disabled={!item.action}>
+              {item.text}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

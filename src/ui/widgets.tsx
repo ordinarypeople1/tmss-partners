@@ -1,7 +1,98 @@
+import { ChevronLeft, ChevronRight, Info, Pause, Play } from "lucide-react";
 import { motion } from "motion/react";
+import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import type { AlertItem, NewsItem } from "./game/types";
 import { CountUp, itemVariants, listVariants, spring, useMotionReady } from "./motion";
+
+export function IconButton({
+  label,
+  onClick,
+  children,
+  pressed,
+  disabled,
+  className,
+  submit,
+}: {
+  label: string;
+  onClick?: () => void;
+  children: ReactNode;
+  pressed?: boolean;
+  disabled?: boolean;
+  className?: string;
+  submit?: boolean;
+}) {
+  return (
+    <button
+      type={submit ? "submit" : "button"}
+      className={className ? `icon-btn ${className}` : "icon-btn"}
+      aria-label={label}
+      data-tip={label}
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function InfoTip({ label }: { label: string }) {
+  return (
+    <IconButton label={label}>
+      <Info size={16} strokeWidth={1.75} aria-hidden="true" />
+    </IconButton>
+  );
+}
+
+export function Rating({ score, label }: { score: number | null; label: string }) {
+  const intl = useIntl();
+  const width = score == null ? 0 : score / 20;
+  return (
+    <span className="rating" aria-label={label}>
+      <span className="muted">{label}</span>
+      <span className="bar-track" aria-hidden="true">
+        <span className="bar-fill" style={{ transform: `scaleX(${width})` }} />
+      </span>
+      <span className="num">{score == null ? intl.formatMessage({ id: "figure.none" }) : intl.formatNumber(score)}</span>
+    </span>
+  );
+}
+
+export function RowMenu({
+  x,
+  y,
+  label,
+  items,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  label: string;
+  items: { id: string; label: string; onSelect: () => void }[];
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <button type="button" className="sheet-back" aria-label={label} onClick={onClose} />
+      <div className="menu glass" style={{ left: x, top: y }} role="menu">
+        {items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              item.onSelect();
+              onClose();
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export function Stat({
   label,
@@ -110,9 +201,15 @@ export function Segment({
 export function DataTable({
   columns,
   rows,
+  sort,
+  onSort,
+  onMenu,
 }: {
   columns: { id: string; label: string; numeric?: boolean }[];
-  rows: { id: string; cells: Record<string, string>; onOpen?: () => void }[];
+  rows: { id: string; cells: Record<string, ReactNode>; onOpen?: () => void }[];
+  sort?: string;
+  onSort?: (id: string) => void;
+  onMenu?: (id: string, x: number, y: number) => void;
 }) {
   return (
     <div className="table-wrap">
@@ -120,8 +217,14 @@ export function DataTable({
         <thead>
           <tr>
             {columns.map((column) => (
-              <th key={column.id} className={column.numeric ? "num" : undefined}>
-                {column.label}
+              <th key={column.id} className={column.numeric ? "num" : undefined} aria-sort={sort === column.id ? "descending" : undefined}>
+                {onSort ? (
+                  <button type="button" className="sort-btn" onClick={() => onSort(column.id)}>
+                    {column.label}
+                  </button>
+                ) : (
+                  column.label
+                )}
               </th>
             ))}
           </tr>
@@ -134,6 +237,13 @@ export function DataTable({
               tabIndex={row.onOpen ? 0 : undefined}
               role={row.onOpen ? "link" : undefined}
               onClick={row.onOpen}
+              onContextMenu={(event) => {
+                if (!onMenu) {
+                  return;
+                }
+                event.preventDefault();
+                onMenu(row.id, event.clientX, event.clientY);
+              }}
               onKeyDown={(event) => {
                 if (!row.onOpen) {
                   return;
@@ -313,15 +423,15 @@ export function Pager({
   const intl = useIntl();
   return (
     <div className="row-actions">
-      <button type="button" onClick={onPrev} disabled={page <= 0}>
-        {intl.formatMessage({ id: "deal.prev" })}
-      </button>
+      <IconButton label={intl.formatMessage({ id: "deal.prev" })} onClick={onPrev} disabled={page <= 0}>
+        <ChevronLeft size={20} strokeWidth={1.75} aria-hidden="true" />
+      </IconButton>
       <p className="muted">
         {intl.formatMessage({ id: "deal.page" }, { page: page + 1, pages: Math.max(pages, 1) })}
       </p>
-      <button type="button" onClick={onNext} disabled={page + 1 >= pages}>
-        {intl.formatMessage({ id: "deal.next" })}
-      </button>
+      <IconButton label={intl.formatMessage({ id: "deal.next" })} onClick={onNext} disabled={page + 1 >= pages}>
+        <ChevronRight size={20} strokeWidth={1.75} aria-hidden="true" />
+      </IconButton>
     </div>
   );
 }
@@ -346,21 +456,26 @@ export function ClockBar({
   const intl = useIntl();
   return (
     <div className="clock">
-      <p className="clock-readout">
+      <p className="sr-only">
         {intl.formatMessage({ id: "clock.when" }, { year, quarter, week })}
       </p>
-      <button type="button" onClick={onToggle}>
-        {intl.formatMessage({ id: paused ? "clock.play" : "clock.pause" })}
-      </button>
-      <Segment
-        label={intl.formatMessage({ id: "clock.speeds" })}
-        value={paused ? 0 : speed}
-        options={[1, 2, 3].map((value) => ({
-          value,
-          label: intl.formatMessage({ id: "clock.speed" }, { speed: value }),
-        }))}
-        onChange={onSpeed}
-      />
+      <IconButton label={intl.formatMessage({ id: paused ? "clock.play" : "clock.pause" })} onClick={onToggle}>
+        {paused ? <Play size={18} strokeWidth={1.75} aria-hidden="true" /> : <Pause size={18} strokeWidth={1.75} aria-hidden="true" />}
+      </IconButton>
+      {[1, 2, 3].map((value) => (
+        <IconButton
+          key={value}
+          label={intl.formatMessage({ id: "clock.speed" }, { speed: value })}
+          pressed={!paused && speed === value}
+          onClick={() => onSpeed(value)}
+        >
+          <span className="chevs" aria-hidden="true">
+            {Array.from({ length: value }, (_, index) => (
+              <ChevronRight key={index} size={14} strokeWidth={1.75} />
+            ))}
+          </span>
+        </IconButton>
+      ))}
     </div>
   );
 }

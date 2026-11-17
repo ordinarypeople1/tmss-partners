@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { Bookmark } from "lucide-react";
 import { motion } from "motion/react";
 import { useIntl } from "react-intl";
 import { AtlasMap } from "../AtlasMap";
-import { money, multiple, percentFromBps, shortName } from "../game/format";
+import { attributeRating, money, multiple, percentFromBps, shortName, traitRating } from "../game/format";
+import { readShortlist, toggleShortlist } from "../game/shortlist";
 import { useGame } from "../game/session";
 import type { Books, CompanyPage } from "../game/types";
 import { useMotionReady } from "../motion";
 import { joinBase } from "../publicPath";
-import { AssetCard, DataTable, Skeleton } from "../widgets";
+import { AssetCard, DataTable, IconButton, InfoTip, Rating, Skeleton } from "../widgets";
 
 interface HistQuarter {
   period: string;
@@ -32,6 +34,8 @@ export function CompanyScreen({ id }: { id: string }) {
   const [page, setPage] = useState<CompanyPage | null>(null);
   const [history, setHistory] = useState<HistQuarter[]>([]);
   const [tab, setTab] = useState<"is" | "bs" | "cf">("is");
+  const [profile, setProfile] = useState("overview");
+  const [starred, setStarred] = useState(() => readShortlist().includes(id));
   useEffect(() => {
     let cancel = false;
     void run({ op: "company", company_id: id }).then((result) => {
@@ -78,20 +82,34 @@ export function CompanyScreen({ id }: { id: string }) {
   return (
     <div className="workspace">
       <motion.header className="hero" layoutId={motionReady ? `company-${id}` : undefined}>
-        <p className="eyebrow">{intl.formatMessage({ id: "company.legal" })}</p>
-        <h2>{company.legal_name_ko}</h2>
-        <p className="muted">{shortName(company.name_ko, company.legal_name_ko)}</p>
-        <p className="muted">
-          {intl.formatMessage({ id: `sector.${company.sector_id}` })}
-          {" · "}
-          {intl.formatMessage(
-            { id: "company.meta" },
-            { year: company.founded_year, employees: company.employees },
-          )}
-          {" · "}
-          {intl.formatMessage({ id: `seller.${page.owner_kind}` })}
-        </p>
+        <div className="section-title">
+          <h2>{shortName(company.name_ko, company.legal_name_ko)}</h2>
+          <IconButton
+            label={intl.formatMessage({ id: starred ? "menu.unshort" : "menu.short" })}
+            pressed={starred}
+            onClick={() => setStarred(toggleShortlist(id).includes(id))}
+          >
+            <Bookmark size={18} strokeWidth={1.75} aria-hidden="true" />
+          </IconButton>
+        </div>
+        <p className="muted">{intl.formatMessage({ id: `sector.${company.sector_id}` })}</p>
+        <div className="rating-row">
+          <Rating score={attributeRating(company.growth_bps)} label={intl.formatMessage({ id: "rate.growth" })} />
+          <Rating score={attributeRating(company.margin_bps)} label={intl.formatMessage({ id: "rate.moat" })} />
+          <Rating
+            score={traitRating(page.management.find((person) => person.role === "ceo")?.trait_id ?? "")}
+            label={intl.formatMessage({ id: "rate.lead" })}
+          />
+        </div>
       </motion.header>
+      <div className="tabs" role="tablist">
+        {(["overview", "financials", "management", "deal", "history"] as const).map((key) => (
+          <button key={key} type="button" aria-pressed={profile === key} onClick={() => setProfile(key)}>
+            {intl.formatMessage({ id: `profile.${key}` })}
+          </button>
+        ))}
+      </div>
+      <div hidden={profile !== "overview"}>
       <dl className="facts">
         <div>
           <dt>{intl.formatMessage({ id: "fact.revenue" }, { period: company.period })}</dt>
@@ -108,7 +126,10 @@ export function CompanyScreen({ id }: { id: string }) {
               <dd>{money(intl, company.ebitda)}</dd>
             </div>
             <div>
-              <dt>{intl.formatMessage({ id: "fact.multiple" })}</dt>
+              <dt>
+                {intl.formatMessage({ id: "fact.multiple" })}
+                <InfoTip label={intl.formatMessage({ id: "fund.markNote" })} />
+              </dt>
               <dd>{multiple(intl, company.model_multiple_millis)}</dd>
             </div>
             <div>
@@ -126,12 +147,10 @@ export function CompanyScreen({ id }: { id: string }) {
           </>
         ) : null}
       </dl>
-      {company.revealed ? (
-        <p className="disclaimer">{intl.formatMessage({ id: "fund.markNote" })}</p>
-      ) : (
+      {company.revealed ? null : (
         <section className="hero">
-          <p>{waiting ? intl.formatMessage({ id: "dd.running" }) : intl.formatMessage({ id: "dd.note" })}</p>
           <div className="hero-actions">
+            <InfoTip label={intl.formatMessage({ id: "dd.note" })} />
             <button
               type="button"
               className="btn-primary"
@@ -180,7 +199,8 @@ export function CompanyScreen({ id }: { id: string }) {
           onSelect={() => undefined}
         />
       </div>
-      <section>
+      </div>
+      <section hidden={profile !== "management"}>
         <h3>{intl.formatMessage({ id: "company.people" })}</h3>
         <DataTable
           columns={[
@@ -199,7 +219,7 @@ export function CompanyScreen({ id }: { id: string }) {
         />
       </section>
       {company.revealed ? (
-      <section>
+      <section hidden={profile !== "overview"}>
         <h3>{intl.formatMessage({ id: "company.cap" })}</h3>
         <DataTable
           columns={[
@@ -219,7 +239,7 @@ export function CompanyScreen({ id }: { id: string }) {
       </section>
       ) : null}
       {company.revealed && page.books ? (
-      <section>
+      <section hidden={profile !== "financials"}>
         <h3>{intl.formatMessage({ id: "company.statements" })}</h3>
         <div className="tabs">
           {(["is", "bs", "cf"] as const).map((key) => (
@@ -249,7 +269,7 @@ export function CompanyScreen({ id }: { id: string }) {
       ) : null}
       {company.revealed ? (
       <>
-      <section>
+      <section hidden={profile !== "deal"}>
         <h3>{intl.formatMessage({ id: "company.position" })}</h3>
         {page.position ? (
           <dl className="facts">
@@ -282,7 +302,7 @@ export function CompanyScreen({ id }: { id: string }) {
           <p className="muted">{intl.formatMessage({ id: "company.noneHeld" })}</p>
         )}
       </section>
-      <section>
+      <section hidden={profile !== "history"}>
         <h3>{intl.formatMessage({ id: "company.history" })}</h3>
         <ul className="plain-list">
           {page.cleared.map((event, index) => (

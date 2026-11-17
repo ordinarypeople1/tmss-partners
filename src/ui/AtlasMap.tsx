@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useIntl } from "react-intl";
 import { joinBase } from "./publicPath";
 import { mountMapPin } from "./mapPin";
+import { InfoTip } from "./widgets";
 
 interface Label {
   name: string;
@@ -183,7 +184,9 @@ export function AtlasMap({
     <section className="map-panel" aria-label={intl.formatMessage({ id: "map.label" })}>
       <div ref={mapNode} className="map" />
       {hud ? <p className="map-hud glass">{hud}</p> : null}
-      <p className="map-note glass">{intl.formatMessage({ id: "map.note" })}</p>
+      <div className="map-tip">
+        <InfoTip label={intl.formatMessage({ id: "map.note" })} />
+      </div>
     </section>
   );
 }

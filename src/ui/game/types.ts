@@ -468,14 +468,15 @@ export type Route =
   | { name: "fund" }
   | { name: "portfolio" }
   | { name: "market" }
-  | { name: "room" };
+  | { name: "room" }
+  | { name: "staff" };
 
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#\/?/, "");
   const [name, id] = path.split("/");
   if (name === "deal" && id) return { name: "deal", id: decodeURIComponent(id) };
   if (name === "company" && id) return { name: "company", id: decodeURIComponent(id) };
-  if (name === "deals" || name === "companies" || name === "fund" || name === "portfolio" || name === "market" || name === "room") {
+  if (name === "deals" || name === "companies" || name === "fund" || name === "portfolio" || name === "market" || name === "room" || name === "staff") {
     return { name };
   }
   return { name: "home" };

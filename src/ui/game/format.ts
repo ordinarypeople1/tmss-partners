@@ -22,6 +22,23 @@ export function percentFromBps(intl: IntlShape, bps: number | null | undefined):
   return intl.formatMessage({ id: "figure.percent" }, { value: bps / 100 });
 }
 
+const TRAIT_RATING: Record<string, number> = {
+  operator: 14,
+  grower: 16,
+  cutter: 12,
+};
+
+export function attributeRating(bps: number | null | undefined): number | null {
+  if (bps == null || Number.isNaN(bps)) {
+    return null;
+  }
+  return Math.min(20, Math.max(1, Math.round(10 + bps / 80)));
+}
+
+export function traitRating(traitId: string): number | null {
+  return TRAIT_RATING[traitId] ?? null;
+}
+
 export function lossTone(value: number): "loss" | undefined {
   return value < 0 ? "loss" : undefined;
 }
