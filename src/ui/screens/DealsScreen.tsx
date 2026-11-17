@@ -144,6 +144,8 @@ export function DealsScreen({ room = false }: { room?: boolean }) {
             lat: row.lat,
             lon: row.lon,
             kind: row.site_kind,
+            revenue: row.revenue,
+            assets: row.total_assets,
           }))}
           selectedId={selected}
           onSelect={(id) => {

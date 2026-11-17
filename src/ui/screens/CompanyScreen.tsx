@@ -194,6 +194,9 @@ export function CompanyScreen({ id }: { id: string }) {
             lat: site.lat,
             lon: site.lon,
             kind: site.kind,
+            held: company.held,
+            revenue: company.revenue,
+            assets: company.total_assets,
           }))}
           selectedId={page.sites[0]?.id ?? ""}
           onSelect={() => undefined}
