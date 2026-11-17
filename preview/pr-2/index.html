@@ -12,8 +12,18 @@
     <link rel="icon" href="/tmss-partners/preview/pr-2/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/tmss-partners/preview/pr-2/icons/icon-180.png" />
     <title>Deal Atlas</title>
-    <script type="module" crossorigin src="/tmss-partners/preview/pr-2/assets/index-BpVon1ov.js"></script>
-    <link rel="stylesheet" crossorigin href="/tmss-partners/preview/pr-2/assets/index-BPKR0rNL.css">
+    <script>
+      try {
+        var theme = localStorage.getItem("deal-atlas-theme");
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        /* keep the system theme */
+      }
+    </script>
+    <script type="module" crossorigin src="/tmss-partners/preview/pr-2/assets/index-uNxxhUcx.js"></script>
+    <link rel="stylesheet" crossorigin href="/tmss-partners/preview/pr-2/assets/index-Y1OW5b9n.css">
   </head>
   <body>
     <div id="root"></div>
