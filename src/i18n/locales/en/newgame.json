@@ -1,0 +1,9 @@
+{
+  "newgame.title": "New game",
+  "newgame.lead": "Choose the difficulty and the starting point. They cannot be changed once you start.",
+  "newgame.difficulty": "Difficulty",
+  "newgame.era": "Era",
+  "newgame.warning": "The current game will be erased.",
+  "newgame.start": "Start",
+  "newgame.cancel": "Cancel"
+}
