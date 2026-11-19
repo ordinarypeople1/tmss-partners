@@ -18,6 +18,7 @@ import { useGame, type Game } from "./game";
 import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
 import { bidderName } from "./messages";
+import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
 
 type TabId = "overview" | "financials" | "deal" | "operations";
@@ -29,6 +30,7 @@ const CAN_PROPOSE = 60;
 /** The longest a sale stage runs, for the countdown ring. */
 const STAGE_MONTHS = 6;
 const STAGES: Stage[] = ["preparing", "marketing", "bidding"];
+const HOME = "US";
 
 const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 
@@ -145,7 +147,23 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         <div className="cp-tags">
           <Tag>{t(`sector.${company.sector}`)}</Tag>
           <Tag>{t(`admin1.${company.admin1}`)}</Tag>
-          <Tag tone={company.owner.kind === "player" ? "good" : undefined}>
+          {company.country !== HOME ? (
+            <Tag
+              tone="accent"
+              icon={<span className="cp-flag">{company.country}</span>}
+            >
+              {t(`country.${company.country}`)}
+            </Tag>
+          ) : null}
+          <Tag
+            tone={
+              company.owner.kind === "player"
+                ? "good"
+                : company.owner.kind === "public"
+                  ? "accent"
+                  : undefined
+            }
+          >
             {ownerText(t, view, company.owner)}
           </Tag>
           {sale ? (
@@ -194,6 +212,17 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         </div>
       </header>
       <div className="cp-body" role="tabpanel">
+        <p className="cp-story">
+          {t("company.story", {
+            year: company.founded,
+            abroad: company.country !== HOME ? "yes" : "no",
+            country: t(`country.${company.country}`),
+            region: t(`admin1.${company.admin1}`),
+            site: company.site_name,
+            product: t(`product.${company.sector}.${company.product}`),
+            count: company.employees,
+          })}
+        </p>
         {current === "overview" ? (
           <Overview game={game} company={company} />
         ) : null}
@@ -259,6 +288,15 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
   const found = company.issues.filter(
     (issue) => issue.found || issue.triggered,
   );
+  const abroad = company.country !== HOME;
+  // The sim refuses the NDA below principal; the notice says why before the click.
+  const borderLocked = abroad && view.career.rank === "vice_president";
+  const research =
+    view.insight[
+      view.economy.sectors.findIndex((sector) => sector.id === company.sector)
+    ] ?? 0;
+  const founderLeaves =
+    !company.held && sale?.reason === "retirement" && company.ceo.founder;
 
   return (
     <div className="stack">
@@ -266,6 +304,11 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
         <h3>
           {t("term.ttm")}
           {fogged ? <Tag tone="warn">{t("company.range")}</Tag> : null}
+          {research > 0 ? (
+            <Tag tone="good" icon={<Icon name="search" size={12} />}>
+              {t("company.research", { months: research })}
+            </Tag>
+          ) : null}
         </h3>
         <div className="cp-figures">
           <Stat label={t("term.revenue")} value={f.figure(company.revenue)}>
@@ -299,7 +342,90 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
           <p className="cp-hint">
             <Icon name="search" size={14} />
             {t("company.rangeHint")}
+            {research > 0 ? ` ${t("company.researchHint")}` : null}
           </p>
+        ) : null}
+      </section>
+
+      <section className="card">
+        <h3>
+          {t("company.traits")}
+          {company.traits_hidden > 0 ? (
+            <span className="cp-hidden">
+              {t("company.traitsHidden", { count: company.traits_hidden })}
+            </span>
+          ) : null}
+        </h3>
+        {company.traits.length ? (
+          <ul className="cp-traits">
+            {company.traits.map((trait) => (
+              <li key={trait}>
+                <Tag>{t(`trait.${trait}`)}</Tag>
+                <span>{t(`trait.${trait}.effect`)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="muted">{t("term.none")}</span>
+        )}
+      </section>
+
+      <section className="card">
+        <h3>{t("company.people")}</h3>
+        <div className="cp-ceo">
+          <span className="cp-portrait" aria-hidden>
+            <Portrait seed={company.ceo.name} size={56} />
+          </span>
+          <div className="cp-ceo-main">
+            <div className="cp-ceo-name">
+              <b>{company.ceo.name}</b>
+              <small className="muted">{t("company.ceo")}</small>
+            </div>
+            <div className="cp-tags">
+              <Tag>{t("company.ceoAge", { age: company.ceo.age })}</Tag>
+              <Tag>{t("company.ceoTenure", { years: company.ceo.tenure })}</Tag>
+              {company.ceo.founder ? (
+                <Tag tone="accent">{t("company.ceoFounder")}</Tag>
+              ) : null}
+              {company.ceo.style ? (
+                <Tag tone="good">{t(`ceo_style.${company.ceo.style}`)}</Tag>
+              ) : (
+                <Tag tone="muted">{t("company.ceoStyleUnknown")}</Tag>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="cp-people-rating">
+          <Rating label={t("company.management")} value={company.management} />
+          {company.management === null ? (
+            <small className="muted">{t("company.managementUnknown")}</small>
+          ) : null}
+        </div>
+        {company.held ? null : (
+          <div className="cp-stance">
+            <span className="muted">{t("company.ownerStance")}</span>
+            {company.stance ? (
+              <>
+                <Tag tone="accent">{t(`seller_stance.${company.stance}`)}</Tag>
+                <small>{t(`seller_stance.${company.stance}.effect`)}</small>
+              </>
+            ) : (
+              <>
+                <Tag tone="muted">{t("term.unknown")}</Tag>
+                <small className="muted">
+                  {t("company.stanceHint", { need: HEARS_EARLY })}
+                </small>
+              </>
+            )}
+          </div>
+        )}
+        {founderLeaves ? (
+          <div className="cp-warn">
+            <Tag tone="warn" icon={<Icon name="alert" size={12} />}>
+              {t("company.founderLeaves")}
+            </Tag>
+            <small>{t("company.founderLeavesNote")}</small>
+          </div>
         ) : null}
       </section>
 
@@ -315,6 +441,12 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
           <dt>{t("term.owner")}</dt>
           <dd>{ownerText(t, view, company.owner)}</dd>
         </dl>
+        {company.owner.kind === "public" ? (
+          <p className="cp-hint">
+            <Icon name="market" size={14} />
+            {t("company.publicNote")}
+          </p>
+        ) : null}
         <div className="cp-meters">
           <Meter
             label={t("company.union")}
@@ -372,15 +504,6 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
           <div className="cp-quality">
             <Radar axes={qualityAxes(t, company, fin)} size={190} />
             <div className="cp-quality-side">
-              <Rating
-                label={t("company.management")}
-                value={company.management}
-              />
-              {company.management === null ? (
-                <small className="muted">
-                  {t("company.managementUnknown")}
-                </small>
-              ) : null}
               {company.customer_concentration_bps === null ? (
                 <div className="cp-unknown">
                   <span className="muted">{t("company.concentration")}</span>
@@ -543,12 +666,13 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             >
               <Icon name="handshake" size={16} />
               {t("company.act.meet")}
-              <Cost points={1} />
+              <Cost points={abroad ? 2 : 1} />
             </button>
             {canNda ? (
               <button
                 type="button"
                 className="btn primary"
+                disabled={borderLocked}
                 onClick={() =>
                   game.act({ type: "sign_nda", company: company.i })
                 }
@@ -572,6 +696,18 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
               </button>
             ) : null}
           </div>
+          {borderLocked ? (
+            <p className="cp-lock" role="note">
+              <Icon name="alert" size={14} />
+              {t("country.locked")}
+            </p>
+          ) : null}
+          {abroad ? (
+            <p className="cp-hint">
+              <span className="cp-flag">{company.country}</span>
+              {t("company.abroadCosts")}
+            </p>
+          ) : null}
           {canExclusive && relationship < CAN_PROPOSE ? (
             <p className="cp-hint">
               {t("company.act.exclusiveNeeds", { need: CAN_PROPOSE })}

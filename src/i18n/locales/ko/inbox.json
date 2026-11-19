@@ -36,5 +36,16 @@
   "inbox.consequence.issue_surfaced.report_now": "평판 +",
   "inbox.consequence.issue_surfaced.report_later": "의장이 다른 데서 들을 확률 60%. 그러면 평판 −−",
   "inbox.consequence.exit_offer.accept": "이 가격에 매각합니다.",
-  "inbox.consequence.exit_offer.decline": "매각 절차가 끝납니다."
+  "inbox.consequence.exit_offer.decline": "매각 절차가 끝납니다.",
+  "inbox.filter.decided": "결정 기록",
+  "inbox.fact.amount": "금액",
+  "inbox.fact.rank": "현재 순위",
+  "inbox.fact.rankValue": "{rank, number, ::integer}위 / {bidders, number, ::integer}",
+  "inbox.fact.myBid": "우리 입찰가",
+  "inbox.fact.lead": "최고 경쟁 입찰",
+  "inbox.fact.ceiling": "승인 상한",
+  "inbox.fact.met": "목표 달성",
+  "inbox.fact.bonus": "성과급",
+  "inbox.finalRound.open": "회사 열기",
+  "inbox.achievement.label": "업적"
 }

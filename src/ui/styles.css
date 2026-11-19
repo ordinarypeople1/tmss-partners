@@ -197,6 +197,16 @@ th,
 .sidebar .meter-track {
   background: rgb(255 255 255 / 14%);
 }
+.sidebar .language {
+  height: 28px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--side-ink);
+}
+.sidebar .language option {
+  color: var(--ink);
+}
 .attention {
   display: flex;
   align-items: center;

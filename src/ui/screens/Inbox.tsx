@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { useT } from "../../i18n/useT";
-import type { Choice, Message, View } from "../../sim/types";
+import { useT, type Translate } from "../../i18n/useT";
+import type { Choice, Message, SaleView, View } from "../../sim/types";
 import { Meter, Ring, Stat, Tag } from "../charts";
 import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
@@ -8,11 +8,11 @@ import { Icon } from "../icons";
 import { describeMessage } from "../messages";
 import "./Inbox.css";
 
-type Filter = "all" | "decision" | "deals" | "portfolio" | "news";
+type Filter = "all" | "decision" | "deals" | "portfolio" | "news" | "decided";
 type Category = "deals" | "portfolio" | "news" | "house";
 type Tone = "good" | "bad" | "warn" | "accent";
 
-const FILTERS: Filter[] = ["all", "decision", "deals", "portfolio", "news"];
+const FILTERS: Filter[] = ["all", "decision", "deals", "portfolio", "news", "decided"];
 
 const DEAL_TYPES = new Set<Message["type"]>([
   "sale_early_notice",
@@ -20,6 +20,8 @@ const DEAL_TYPES = new Set<Message["type"]>([
   "sale_withdrawn",
   "sale_failed",
   "auction_lost",
+  "final_round",
+  "regulator_blocked",
   "diligence_report",
   "committee_decision",
   "deal_closed",
@@ -69,6 +71,10 @@ function categoryOf(message: Message): Category {
   if (message.news) {
     return "news";
   }
+  if (message.type === "event") {
+    // The co-invest question comes up during a deal; every other event is about a holding.
+    return message.event === "co_invest_request" ? "deals" : "portfolio";
+  }
   if (DEAL_TYPES.has(message.type)) {
     return "deals";
   }
@@ -76,6 +82,11 @@ function categoryOf(message: Message): Category {
     return "portfolio";
   }
   return "house";
+}
+
+/** An event names its own two options; everything else uses the shared choice words. */
+function choiceLabel(t: Translate, message: Message, choice: Choice): string {
+  return message.type === "event" ? t(`event.${message.event}.${choice}`) : t(`choice.${choice}`);
 }
 
 function isOpen(message: Message): boolean {
@@ -88,6 +99,9 @@ function matches(filter: Filter, message: Message): boolean {
   }
   if (filter === "decision") {
     return isOpen(message);
+  }
+  if (filter === "decided") {
+    return message.decision !== null && message.decision.chosen !== null;
   }
   return categoryOf(message) === filter;
 }
@@ -106,7 +120,7 @@ export function Inbox() {
   const listRef = useRef<HTMLUListElement>(null);
 
   const counts = useMemo(() => {
-    const result: Record<Filter, number> = { all: 0, decision: 0, deals: 0, portfolio: 0, news: 0 };
+    const result: Record<Filter, number> = { all: 0, decision: 0, deals: 0, portfolio: 0, news: 0, decided: 0 };
     for (const message of view.messages) {
       for (const id of FILTERS) {
         if (matches(id, message)) {
@@ -240,7 +254,7 @@ export function Inbox() {
                       <span className="inbox-item-sub">
                         {f.shortDate(message.date)}
                         {open ? <Tag tone={deadlineTone(left)}>{t("inbox.needsDecision")}</Tag> : null}
-                        {message.decision?.chosen ? <Tag tone="muted">{t(`choice.${message.decision.chosen}`)}</Tag> : null}
+                        {message.decision?.chosen ? <Tag tone="muted">{choiceLabel(t, message, message.decision.chosen)}</Tag> : null}
                       </span>
                     </span>
                     {open ? (
@@ -290,9 +304,29 @@ function Reading({ message }: { message: Message }) {
         </div>
       </header>
 
-      <p className="inbox-body">{text.body}</p>
+      {message.type === "achievement_unlocked" ? (
+        <div className="inbox-badge">
+          <span className="inbox-badge-icon">
+            <Icon name="flag" size={22} />
+          </span>
+          <div>
+            <small>{t("inbox.achievement.label")}</small>
+            <b>{t(`achievement.${message.achievement}`)}</b>
+            <span>{t(`achievement.${message.achievement}.detail`)}</span>
+          </div>
+        </div>
+      ) : (
+        <p className="inbox-body">{text.body}</p>
+      )}
 
-      <Facts message={message} />
+      <Facts message={message} sale={row?.sale ?? null} />
+
+      {message.type === "final_round" && row ? (
+        <button type="button" className="btn primary inbox-go" onClick={() => game.select(row.i)}>
+          <Icon name="gavel" size={15} />
+          {t("inbox.finalRound.open")}
+        </button>
+      ) : null}
 
       {row ? (
         <button type="button" className="inbox-company" onClick={() => game.select(row.i)} aria-pressed={game.selected === row.i}>
@@ -325,7 +359,7 @@ function Reading({ message }: { message: Message }) {
                 <span>
                   <b>{t("inbox.decision.left", { months: Math.max(left, 0) })}</b>
                   <small className="inbox-default">
-                    {t("inbox.decision.default", { choice: t(`choice.${decision.options[decision.options.length - 1]}`) })}
+                    {t("inbox.decision.default", { choice: choiceLabel(t, message, decision.options[decision.options.length - 1]) })}
                   </small>
                 </span>
               </div>
@@ -333,8 +367,13 @@ function Reading({ message }: { message: Message }) {
           </div>
           <div className="inbox-choices">
             {decision.options.map((option, index) => {
-              const known = CONSEQUENCES[message.type]?.includes(option);
               const values = message.type === "covenant_breach" ? { cure: f.money(message.cure) } : undefined;
+              const consequence =
+                message.type === "event"
+                  ? t(`event.${message.event}.${option}.effect`)
+                  : CONSEQUENCES[message.type]?.includes(option)
+                    ? t(`inbox.consequence.${message.type}.${option}`, values)
+                    : null;
               const chosen = decision.chosen === option;
               return (
                 <button
@@ -349,9 +388,9 @@ function Reading({ message }: { message: Message }) {
                 >
                   <strong>
                     {chosen ? <Icon name="check" size={16} /> : null}
-                    {t(`choice.${option}`)}
+                    {choiceLabel(t, message, option)}
                   </strong>
-                  {known ? <span>{t(`inbox.consequence.${message.type}.${option}`, values)}</span> : null}
+                  {consequence ? <span>{consequence}</span> : null}
                 </button>
               );
             })}
@@ -363,7 +402,7 @@ function Reading({ message }: { message: Message }) {
 }
 
 /** The numbers of a message as tiles, where it carries any. */
-function Facts({ message }: { message: Message }) {
+function Facts({ message, sale }: { message: Message; sale: SaleView | null }) {
   const t = useT();
   const f = useFormat();
   let tiles: ReactNode = null;
@@ -432,6 +471,43 @@ function Facts({ message }: { message: Message }) {
           delta={`${f.signedPct(message.to_bps - message.from_bps, 2)}p`}
           tone={message.to_bps > message.from_bps ? "bad" : "good"}
         />
+      );
+      break;
+    case "event":
+      if (message.amount === 0) {
+        return null;
+      }
+      tiles = <Stat label={t("inbox.fact.amount")} value={f.money(message.amount)} tone="warn" />;
+      break;
+    case "final_round":
+      tiles = (
+        <>
+          <Stat
+            label={t("inbox.fact.rank")}
+            value={t("inbox.fact.rankValue", { rank: message.rank, bidders: message.bidders })}
+            tone={message.rank === 1 ? "good" : "warn"}
+          />
+          {sale?.final_round && sale.my_bid !== null ? (
+            <>
+              <Stat label={t("inbox.fact.myBid")} value={f.money(sale.my_bid)} />
+              {sale.standing ? <Stat label={t("inbox.fact.lead")} value={f.figure(sale.standing.lead)} /> : null}
+              {sale.bid_ceiling > 0 ? <Stat label={t("inbox.fact.ceiling")} value={f.money(sale.bid_ceiling)} /> : null}
+            </>
+          ) : null}
+        </>
+      );
+      break;
+    case "objectives_review":
+      tiles = (
+        <>
+          <div className="inbox-met">
+            <Ring fraction={message.total > 0 ? message.met / message.total : 0} size={44} tone={message.met === message.total ? "good" : message.met === 0 ? "bad" : "warn"}>
+              {`${message.met}/${message.total}`}
+            </Ring>
+            <span className="stat-label">{t("inbox.fact.met")}</span>
+          </div>
+          <Stat label={t("inbox.fact.bonus")} value={f.money(message.bonus)} tone={message.bonus > 0 ? "good" : undefined} />
+        </>
       );
       break;
     default:

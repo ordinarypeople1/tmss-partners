@@ -49,6 +49,33 @@ const HOME_BOUNDS: [[number, number], [number, number]] = [
   [-125, 24.5],
   [-66.5, 49.5],
 ];
+/** Rough frames for the countries abroad, west-south to east-north. */
+const COUNTRY_BOUNDS: Record<string, [[number, number], [number, number]]> = {
+  GB: [
+    [-8, 49.8],
+    [2, 59],
+  ],
+  DE: [
+    [5.5, 47],
+    [15.5, 55.2],
+  ],
+  FR: [
+    [-5, 42],
+    [8.5, 51.3],
+  ],
+  KR: [
+    [125.5, 33.8],
+    [130, 38.8],
+  ],
+  JP: [
+    [129, 31],
+    [146, 45.5],
+  ],
+  CN: [
+    [97, 20],
+    [125, 42],
+  ],
+};
 
 function ownerColor(owner: Owner): string {
   switch (owner.kind) {
@@ -106,6 +133,7 @@ export function MapHub() {
   const [layer, setLayer] = useState<Layer>("deals");
   const [region, setRegion] = useState<string | null>(null);
   const [sector, setSector] = useState("");
+  const [country, setCountry] = useState("");
   const [query, setQuery] = useState("");
   const [onlySale, setOnlySale] = useState(false);
   const [onlyWatched, setOnlyWatched] = useState(false);
@@ -278,7 +306,12 @@ export function MapHub() {
       }
       const land = map.queryRenderedFeatures(event.point, { layers: ["land"] })[0];
       const country = land?.properties?.country as string | undefined;
-      setHover(country && country !== "US" ? { x: event.point.x, y: event.point.y, text: `${t(`country.${country}`)} · ${t("map.locked")}` } : null);
+      const locked = view.career.rank === "vice_president";
+      setHover(
+        country && country !== "US"
+          ? { x: event.point.x, y: event.point.y, text: locked ? `${t(`country.${country}`)} · ${t("country.locked")}` : t(`country.${country}`) }
+          : null,
+      );
     };
     const leave = () => setHover(null);
     map.on("mousemove", move);
@@ -287,20 +320,21 @@ export function MapHub() {
       map.off("mousemove", move);
       map.off("mouseout", leave);
     };
-  }, [ready, game.rows, perState, t]);
+  }, [ready, game.rows, perState, t, view.career.rank]);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return view.companies.filter(
       (row) =>
         (!region || row.admin1 === region) &&
+        (!country || row.country === country) &&
         (!sector || row.sector === sector) &&
         (!onlySale || row.sale !== null) &&
         (!onlyWatched || row.watched) &&
         (!onlyMine || row.held || row.in_deal) &&
         (!needle || row.name.toLowerCase().includes(needle)),
     );
-  }, [view.companies, region, sector, onlySale, onlyWatched, onlyMine, query]);
+  }, [view.companies, region, country, sector, onlySale, onlyWatched, onlyMine, query]);
 
   const addOnLinks = useMemo(() => {
     if (layer !== "portfolio") {
@@ -535,10 +569,13 @@ export function MapHub() {
     </th>
   );
 
-  const fly = (target: "world" | "home") => {
+  const fly = (target: string) => {
     setRegion(null);
+    setCountry(target === "world" ? "" : target === "home" ? "US" : target);
     const map = mapRef.current;
-    if (target === "home") {
+    if (COUNTRY_BOUNDS[target]) {
+      map?.fitBounds(COUNTRY_BOUNDS[target], { padding: 40, duration: 600 });
+    } else if (target === "home") {
       map?.fitBounds(HOME_BOUNDS, { padding: 30, duration: 600 });
     } else {
       map?.easeTo({ center: [10, 30], zoom: 1.4, duration: 600 });
@@ -561,9 +598,14 @@ export function MapHub() {
           <button type="button" className="btn small" onClick={() => fly("world")}>
             {t("map.zoom.world")}
           </button>
-          <button type="button" className="btn small" onClick={() => fly("home")}>
-            {t("map.zoom.home")}
+          <button type="button" className="btn small" aria-pressed={country === "US"} onClick={() => fly("home")}>
+            {t("country.US")}
           </button>
+          {Object.keys(COUNTRY_BOUNDS).map((code) => (
+            <button key={code} type="button" className="btn small" aria-pressed={country === code} onClick={() => fly(code)}>
+              {t(`country.${code}`)}
+            </button>
+          ))}
           {region ? (
             <button type="button" className="btn small primary" aria-label={t("map.region.clear")} onClick={() => fly("home")}>
               {t(`admin1.${region}`)}
@@ -718,7 +760,10 @@ export function MapHub() {
                           {t(`sector.${row.sector}`)}
                         </span>
                       </td>
-                      <td>{t(`admin1.${row.admin1}`)}</td>
+                      <td>
+                        {t(`admin1.${row.admin1}`)}
+                        {row.country === "US" ? null : <span className="sub">{t(`country.${row.country}`)}</span>}
+                      </td>
                       <td>
                         {row.owner.kind === "sponsor"
                           ? (view.rivals[row.owner.house] ?? "")

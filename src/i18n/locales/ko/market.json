@@ -43,5 +43,22 @@
   "market.rivalsNote": "모델 기업가치 합계는 추정 범위의 중간값입니다. {us}와 같은 매물을 두고 입찰하는 상대입니다.",
   "market.ownership": "소유 구조",
   "market.ownershipTitle": "소유 유형별 회사 수",
-  "market.states": "회사가 많은 지역"
+  "market.states": "회사가 많은 지역",
+  "market.research.hint": "조용한 달에는 섹터 리서치. 주의 1로 12개월 동안 그 섹터가 먼저 보입니다.",
+  "market.research.start": "리서치",
+  "market.research.left": "인사이트 {months, plural, other {#개월}} 남음",
+  "market.research.effect": "매각을 준비 단계부터 포착 · 미공개 수치 범위 축소",
+  "market.countries": "국가별 시장",
+  "market.country.home": "본국",
+  "market.country.open": "딜 가능",
+  "market.country.closed": "잠김",
+  "market.country.abroadOpen": "해외 딜 가능",
+  "market.country.note": "해외는 주인 면담 주의 2, 실사 비용 1.5배. 종결 때 당국이 막을 수 있습니다. 국가를 누르면 아래 표가 걸러집니다.",
+  "market.country.filter": "국가 필터",
+  "market.country.all": "모든 국가",
+  "market.country.homeOption": "{country} (본국)",
+  "market.country.empty": "이 국가에는 해당 섹터 회사가 없습니다.",
+  "market.toLeague": "리그 보기",
+  "market.grossMultiple": "총 배수",
+  "market.lastDeal": "최근 딜"
 }

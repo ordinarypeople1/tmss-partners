@@ -3,9 +3,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import geo from "../data/geo/admin1.json";
-import { PLANNED_LOCALES, SOURCE_LOCALE } from "./config";
+import { LOCALES, PLANNED_LOCALES, SOURCE_LOCALE } from "./config";
 import base from "./locales/ko.json";
-import { fragmentEntries, messages } from "./messages";
+import { catalogFiles, fragmentEntries, messages } from "./messages";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -25,10 +25,34 @@ function sources(dir: string): string[] {
 }
 
 describe("ko catalog", () => {
-  it("is the only locale", () => {
-    expect(readdirSync(join(here, "locales")).sort()).toEqual(["ko", "ko.json"]);
+  it("ships Korean as the source and lists what is translated", () => {
     expect(SOURCE_LOCALE).toBe("ko");
-    expect(PLANNED_LOCALES).toEqual(["en", "ja", "zh-Hans", "zh-Hant"]);
+    expect(LOCALES).toEqual(["ko", "en", "ja", "zh-Hans"]);
+    expect(PLANNED_LOCALES).toEqual(["zh-Hant"]);
+    const present = readdirSync(join(here, "locales")).filter((name) => name.endsWith(".json"));
+    for (const name of present) {
+      expect(LOCALES.map((locale) => `${locale}.json`), name).toContain(name);
+    }
+  });
+
+  it("translates nothing that Korean does not have, and keeps the placeholders", () => {
+    const placeholders = (text: string) =>
+      // Arguments only: a brace that follows a plural or select keyword opens a branch, not an argument.
+      [...new Set([...text.matchAll(/(?<!(?:other|one|two|few|many|zero|=\d+)\s*)\{\s*([a-zA-Z0-9_]+)\s*[,}]/g)].map((match) => match[1]))]
+        .sort()
+        .join(",");
+    for (const locale of LOCALES) {
+      if (locale === SOURCE_LOCALE) {
+        continue;
+      }
+      for (const [file, entries] of catalogFiles(locale)) {
+        for (const [key, value] of Object.entries(entries)) {
+          expect(messages[key], `${key} in ${file} has no Korean source`).toBeTruthy();
+          expect(value.trim(), `${key} in ${file}`).not.toBe("");
+          expect(placeholders(value), `${key} in ${file}`).toBe(placeholders(messages[key]));
+        }
+      }
+    }
   });
 
   it("defines each key once across the base file and the fragments", () => {

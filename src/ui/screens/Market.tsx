@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useT } from "../../i18n/useT";
 import type { CompanyRow, GameDate, Message, Owner } from "../../sim/types";
-import { CycleClock, LineChart, Stat, StackBar, Tag } from "../charts";
+import { CycleClock, LineChart, Ring, Stat, StackBar, Tag } from "../charts";
 import { mid, useFormat } from "../format";
 import { useGame } from "../game";
 import { Icon } from "../icons";
@@ -22,6 +22,17 @@ const OWNER_COLOR: Record<OwnerKind, string> = {
 };
 const PHASES = ["expansion", "slowdown", "recession", "recovery"] as const;
 const STAGE_TONE = { preparing: "muted", marketing: "warn", bidding: "accent", exclusive: "good" } as const;
+const HOME = "US";
+/** How long sector research lasts, for the ring. */
+const INSIGHT_MONTHS = 12;
+
+function Lock({ size = 13 }: { size?: number }) {
+  return (
+    <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
+    </svg>
+  );
+}
 
 interface Box {
   id: number;
@@ -156,10 +167,29 @@ export function Market() {
   );
   const [picked, setPicked] = useState<string | null>(null);
   const sectorId = picked ?? largest;
+  /** "" is every country. */
+  const [country, setCountry] = useState("");
+  const abroadOpen = view.career.rank !== "vice_president";
+
+  const countries = useMemo(() => {
+    const byCode = new Map<string, { code: string; count: number; forSale: number; revenue: number }>();
+    for (const row of alive) {
+      const entry = byCode.get(row.country) ?? { code: row.country, count: 0, forSale: 0, revenue: 0 };
+      entry.count += 1;
+      entry.forSale += row.sale ? 1 : 0;
+      entry.revenue += mid(row.revenue);
+      byCode.set(row.country, entry);
+    }
+    return [...byCode.values()].sort((a, b) => Number(b.code === HOME) - Number(a.code === HOME) || b.count - a.count || a.code.localeCompare(b.code));
+  }, [alive]);
+  const mostInCountry = Math.max(...countries.map((item) => item.count), 1);
 
   const inSector = useMemo(
-    () => alive.filter((row) => row.sector === sectorId).sort((a, b) => mid(b.revenue) - mid(a.revenue)),
-    [alive, sectorId],
+    () =>
+      alive
+        .filter((row) => row.sector === sectorId && (country === "" || row.country === country))
+        .sort((a, b) => mid(b.revenue) - mid(a.revenue)),
+    [alive, sectorId, country],
   );
   const sectorRevenue = inSector.reduce((sum, row) => sum + mid(row.revenue), 0) || 1;
   const topShare = inSector.length ? mid(inSector[0].revenue) / sectorRevenue : 1;
@@ -187,10 +217,6 @@ export function Market() {
     () =>
       view.rivals.map((name, house) => {
         const owned = alive.filter((row) => row.owner.kind === "sponsor" && row.owner.house === house);
-        const months = owned.reduce(
-          (sum, row) => sum + (row.owner.kind === "sponsor" ? row.owner.months_held : 0),
-          0,
-        );
         const deals = view.messages
           .filter((message) => {
             const buyer =
@@ -205,13 +231,13 @@ export function Market() {
         return {
           house,
           name,
+          standing: view.league.find((entry) => entry.house === house) ?? null,
           owned,
           ev: owned.reduce((sum, row) => sum + mid(row.ev), 0),
-          averageMonths: owned.length ? Math.round(months / owned.length) : null,
           deals,
         };
       }),
-    [alive, view.messages, view.rivals],
+    [alive, view.messages, view.rivals, view.league],
   );
   const mostOwned = Math.max(...rivals.map((rival) => rival.owned.length), 1);
 
@@ -220,12 +246,13 @@ export function Market() {
     count: alive.filter((row) => row.owner.kind === kind).length,
   }));
   const states = useMemo(() => {
-    const counts = new Map<string, { count: number; revenue: number }>();
+    const counts = new Map<string, { admin1: string; country: string; count: number; revenue: number }>();
     for (const row of alive) {
-      const entry = counts.get(row.admin1) ?? { count: 0, revenue: 0 };
+      const key = `${row.country}:${row.admin1}`;
+      const entry = counts.get(key) ?? { admin1: row.admin1, country: row.country, count: 0, revenue: 0 };
       entry.count += 1;
       entry.revenue += mid(row.revenue);
-      counts.set(row.admin1, entry);
+      counts.set(key, entry);
     }
     return [...counts.entries()].sort((a, b) => b[1].count - a[1].count || b[1].revenue - a[1].revenue).slice(0, 8);
   }, [alive]);
@@ -337,48 +364,141 @@ export function Market() {
           <Icon name="layers" size={16} />
           {t("market.sectors")}
         </h2>
+        <p className="research-hint">
+          <Icon name="search" size={14} />
+          <span>{t("market.research.hint")}</span>
+        </p>
         <div className="sector-grid">
-          {economy.sectors.map((sector) => (
-            <button
-              key={sector.id}
-              type="button"
-              className="card sector-card"
-              aria-pressed={sector.id === sectorId}
-              onClick={() => setPicked(sector.id)}
-            >
-              <span className="sector-head">
-                <Icon name={sector.id} size={20} />
-                <strong>{t(`sector.${sector.id}`)}</strong>
-                {sector.for_sale > 0 ? <Tag tone="accent">{t("shell.forSale", { count: sector.for_sale })}</Tag> : null}
-              </span>
-              <span className="sector-cycle">
-                <span className="row between">
-                  <span className="muted">{t("market.sectorCycle")}</span>
-                  <b data-tone={sector.cycle_bps >= 0 ? "good" : "bad"}>{f.signedPct(sector.cycle_bps)}</b>
-                </span>
-                <SignedBar value={sector.cycle_bps} span={sector.amplitude_bps} />
-                <span className="row between muted cycle-range">
-                  <span>{f.signedPct(-sector.amplitude_bps, 0)}</span>
-                  <span>{f.signedPct(sector.amplitude_bps, 0)}</span>
-                </span>
-              </span>
-              <span className="sector-stats">
-                <span>
-                  <small>{t("market.medianMultiple")}</small>
-                  <b>{f.multiple(sector.multiple_millis)}</b>
-                </span>
-                <span>
-                  <small>{t("market.companies")}</small>
-                  <b>{f.integer(sector.companies)}</b>
-                </span>
-                <span>
-                  <small>{t("market.sectorRevenue")}</small>
-                  <b>{f.money(sector.revenue)}</b>
-                </span>
-              </span>
-            </button>
-          ))}
+          {economy.sectors.map((sector, index) => {
+            const insight = view.insight[index] ?? 0;
+            return (
+              <div key={sector.id} className="card sector-card" data-active={sector.id === sectorId ? "true" : undefined}>
+                <button type="button" className="sector-pick" aria-pressed={sector.id === sectorId} onClick={() => setPicked(sector.id)}>
+                  <span className="sector-head">
+                    <Icon name={sector.id} size={20} />
+                    <strong>{t(`sector.${sector.id}`)}</strong>
+                    {sector.for_sale > 0 ? <Tag tone="accent">{t("shell.forSale", { count: sector.for_sale })}</Tag> : null}
+                  </span>
+                  <span className="sector-cycle">
+                    <span className="row between">
+                      <span className="muted">{t("market.sectorCycle")}</span>
+                      <b data-tone={sector.cycle_bps >= 0 ? "good" : "bad"}>{f.signedPct(sector.cycle_bps)}</b>
+                    </span>
+                    <SignedBar value={sector.cycle_bps} span={sector.amplitude_bps} />
+                    <span className="row between muted cycle-range">
+                      <span>{f.signedPct(-sector.amplitude_bps, 0)}</span>
+                      <span>{f.signedPct(sector.amplitude_bps, 0)}</span>
+                    </span>
+                  </span>
+                  <span className="sector-stats">
+                    <span>
+                      <small>{t("market.medianMultiple")}</small>
+                      <b>{f.multiple(sector.multiple_millis)}</b>
+                    </span>
+                    <span>
+                      <small>{t("market.companies")}</small>
+                      <b>{f.integer(sector.companies)}</b>
+                    </span>
+                    <span>
+                      <small>{t("market.sectorRevenue")}</small>
+                      <b>{f.money(sector.revenue)}</b>
+                    </span>
+                  </span>
+                </button>
+                <div className="sector-research" data-on={insight > 0 ? "true" : undefined}>
+                  {insight > 0 ? (
+                    <>
+                      <Ring fraction={insight / INSIGHT_MONTHS} size={30} tone="good">
+                        {String(insight)}
+                      </Ring>
+                      <span className="sector-research-text">
+                        <b>{t("market.research.left", { months: insight })}</b>
+                        <small>{t("market.research.effect")}</small>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sector-research-text">
+                        <small>{t("market.research.effect")}</small>
+                      </span>
+                      <button
+                        type="button"
+                        className="btn small"
+                        disabled={view.attention.left < 1}
+                        title={view.attention.left < 1 ? t("error.no_attention") : undefined}
+                        onClick={() => game.act({ type: "research_sector", sector: index })}
+                      >
+                        <Icon name="search" size={13} />
+                        {t("market.research.start")}
+                        <span className="cost">
+                          <i />
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </section>
+
+      <section className="card stack">
+        <div className="row between">
+          <h2 className="card-title">
+            <Icon name="map" size={16} />
+            {t("market.countries")}
+          </h2>
+          <Tag tone={abroadOpen ? "good" : "warn"} icon={abroadOpen ? <Icon name="check" size={12} /> : <Lock size={12} />}>
+            {abroadOpen ? t("market.country.abroadOpen") : t("country.locked")}
+          </Tag>
+        </div>
+        <div className="country-grid">
+          {countries.map((item) => {
+            const open = item.code === HOME || abroadOpen;
+            return (
+              <button
+                key={item.code}
+                type="button"
+                className="country-card"
+                aria-pressed={country === item.code}
+                data-locked={open ? undefined : "true"}
+                onClick={() => setCountry(country === item.code ? "" : item.code)}
+              >
+                <span className="country-head">
+                  <strong>{t(`country.${item.code}`)}</strong>
+                  {item.code === HOME ? (
+                    <Tag tone="accent">{t("market.country.home")}</Tag>
+                  ) : open ? (
+                    <Tag tone="good">{t("market.country.open")}</Tag>
+                  ) : (
+                    <Tag tone="muted" icon={<Lock size={11} />}>
+                      {t("market.country.closed")}
+                    </Tag>
+                  )}
+                </span>
+                <span className="share-bar">
+                  <span style={{ width: `${(item.count / mostInCountry) * 100}%` }} />
+                </span>
+                <span className="country-stats">
+                  <span>
+                    <small>{t("market.companies")}</small>
+                    <b>{f.integer(item.count)}</b>
+                  </span>
+                  <span>
+                    <small>{t("market.sale")}</small>
+                    <b data-tone={item.forSale > 0 ? "accent" : undefined}>{f.integer(item.forSale)}</b>
+                  </span>
+                  <span>
+                    <small>{t("term.revenue")}</small>
+                    <b>{f.money(Math.round(item.revenue))}</b>
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="muted">{t("market.country.note")}</p>
       </section>
 
       <section className="card stack">
@@ -387,6 +507,14 @@ export function Market() {
             <Icon name={sectorId} size={16} />
             {t("market.holders", { sector: t(`sector.${sectorId}`) })}
           </h2>
+          <select className="country-filter" value={country} onChange={(event) => setCountry(event.target.value)} aria-label={t("market.country.filter")}>
+            <option value="">{t("market.country.all")}</option>
+            {countries.map((item) => (
+              <option key={item.code} value={item.code}>
+                {item.code === HOME ? t("market.country.homeOption", { country: t(`country.${item.code}`) }) : t(`country.${item.code}`)}
+              </option>
+            ))}
+          </select>
           <ul className="owner-legend">
             {OWNER_KINDS.map((kind) => (
               <li key={kind}>
@@ -396,7 +524,8 @@ export function Market() {
             ))}
           </ul>
         </div>
-        <div className="holders">
+        {inSector.length === 0 ? <p className="empty">{t("market.country.empty")}</p> : null}
+        <div className="holders" hidden={inSector.length === 0}>
           <div className="stack">
             <ShareMap
               boxes={inSector.map((row) => ({
@@ -440,7 +569,9 @@ export function Market() {
                         <button type="button" className="row-link" onClick={() => game.select(row.i)}>
                           {row.name}
                         </button>
-                        <span className="sub">{t(`admin1.${row.admin1}`)}</span>
+                        <span className="sub">
+                          {row.country === HOME ? t(`admin1.${row.admin1}`) : `${t(`admin1.${row.admin1}`)} · ${t(`country.${row.country}`)}`}
+                        </span>
                       </td>
                       <td>
                         <span className="owner-cell">
@@ -476,61 +607,65 @@ export function Market() {
       </section>
 
       <section className="card stack">
-        <h2 className="card-title">
-          <Icon name="gavel" size={16} />
-          {t("market.rivals")}
-        </h2>
+        <div className="row between">
+          <h2 className="card-title">
+            <Icon name="gavel" size={16} />
+            {t("market.rivals")}
+          </h2>
+          <button type="button" className="btn small" onClick={() => game.go("league")}>
+            <Icon name="flag" size={13} />
+            {t("market.toLeague")}
+          </button>
+        </div>
         <table className="table rivals-table">
           <thead>
             <tr>
+              <th className="num">{t("market.rank")}</th>
               <th>{t("market.house")}</th>
               <th>{t("market.holdings")}</th>
               <th className="num">{t("market.holdingsEv")}</th>
-              <th className="num">{t("market.averageHold")}</th>
-              <th>{t("market.recentDeals")}</th>
+              <th className="num">{t("market.grossMultiple")}</th>
+              <th>{t("market.lastDeal")}</th>
             </tr>
           </thead>
           <tbody>
-            {rivals.map((rival) => (
-              <tr key={rival.house}>
-                <td className="name">{rival.name}</td>
-                <td>
-                  <span className="share-cell">
-                    <span className="share-bar">
-                      <span style={{ width: `${(rival.owned.length / mostOwned) * 100}%`, background: OWNER_COLOR.sponsor }} />
+            {rivals.map((rival) => {
+              const last = rival.deals[0];
+              return (
+                <tr key={rival.house}>
+                  <td className="num muted">{rival.standing ? f.integer(rival.standing.rank) : "–"}</td>
+                  <td className="name">{rival.name}</td>
+                  <td>
+                    <span className="share-cell">
+                      <span className="share-bar">
+                        <span style={{ width: `${(rival.owned.length / mostOwned) * 100}%`, background: OWNER_COLOR.sponsor }} />
+                      </span>
+                      <b>{f.integer(rival.owned.length)}</b>
                     </span>
-                    <b>{f.integer(rival.owned.length)}</b>
-                  </span>
-                </td>
-                <td className="num">{rival.owned.length ? f.money(Math.round(rival.ev)) : t("term.none")}</td>
-                <td className="num">
-                  {rival.averageMonths === null ? t("term.none") : t("format.months", { months: rival.averageMonths })}
-                </td>
-                <td>
-                  {rival.deals.length ? (
-                    <span className="row">
-                      {rival.deals.slice(0, 3).map((message) => (
-                        <button
-                          key={message.id}
-                          type="button"
-                          className="deal-chip"
-                          onClick={() => message.company !== null && game.select(message.company)}
-                        >
-                          <Icon name={message.type === "auction_lost" ? "alert" : "gavel"} size={13} />
-                          <span>
-                            {message.company === null ? "" : (game.rows.get(message.company)?.name ?? "")}
-                          </span>
-                          <b>{f.money(dealEv(message))}</b>
-                          <small>{f.shortDate(message.date)}</small>
-                        </button>
-                      ))}
-                    </span>
-                  ) : (
-                    <span className="muted">{t("term.none")}</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="num">{rival.owned.length ? f.money(Math.round(rival.ev)) : t("term.none")}</td>
+                  <td className="num">
+                    {rival.standing && rival.standing.invested > 0 ? (
+                      <b data-tone={rival.standing.multiple_millis >= 1000 ? "good" : "bad"}>{f.multiple(rival.standing.multiple_millis, 2)}</b>
+                    ) : (
+                      "–"
+                    )}
+                  </td>
+                  <td>
+                    {last ? (
+                      <button type="button" className="deal-chip" onClick={() => last.company !== null && game.select(last.company)}>
+                        <Icon name={last.type === "auction_lost" ? "alert" : "gavel"} size={13} />
+                        <span>{last.company === null ? "" : (game.rows.get(last.company)?.name ?? "")}</span>
+                        <b>{f.money(dealEv(last))}</b>
+                        <small>{f.shortDate(last.date)}</small>
+                      </button>
+                    ) : (
+                      <span className="muted">{t("term.none")}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <p className="muted">{t("market.rivalsNote", { us: bidderName(t, view, { kind: "player" }) })}</p>
@@ -568,10 +703,13 @@ export function Market() {
             {t("market.states")}
           </h2>
           <ol className="state-rank">
-            {states.map(([code, entry], index) => (
-              <li key={code}>
+            {states.map(([key, entry], index) => (
+              <li key={key}>
                 <span className="muted">{index + 1}</span>
-                <span>{t(`admin1.${code}`)}</span>
+                <span>
+                  {t(`admin1.${entry.admin1}`)}
+                  {entry.country === HOME ? null : <small className="muted">{` · ${t(`country.${entry.country}`)}`}</small>}
+                </span>
                 <span className="share-bar">
                   <span style={{ width: `${(entry.count / mostInState) * 100}%` }} />
                 </span>

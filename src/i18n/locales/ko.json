@@ -499,5 +499,10 @@
   "product.building_products.2": "목공·몰딩",
   "product.building_products.3": "단열재",
   "product.building_products.4": "주방 가구",
-  "product.building_products.5": "바닥재"
+  "product.building_products.5": "바닥재",
+  "language.label": "언어",
+  "language.ko": "한국어",
+  "language.en": "English",
+  "language.ja": "日本語",
+  "language.zh-Hans": "简体中文"
 }

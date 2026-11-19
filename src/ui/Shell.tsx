@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { LOCALES, type Locale } from "../i18n/config";
+import { useLocale } from "../i18n/LocaleProvider";
 import { useT } from "../i18n/useT";
 import { Meter, Ring, Tag } from "./charts";
 import { monthsBetween, useFormat } from "./format";
@@ -24,6 +26,7 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
   const game = useGame();
   const t = useT();
   const [muted, setMutedState] = useState(isMuted);
+  const { locale, setLocale } = useLocale();
   const { view } = game;
   const unread = view.messages.filter((message) => !message.read && !message.news).length;
   const pending = view.messages.filter((message) => message.decision && message.decision.chosen === null).length;
@@ -80,6 +83,13 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
           </div>
         </div>
         <Objectives />
+        <select className="language" value={locale} aria-label={t("language.label")} onChange={(event) => setLocale(event.target.value as Locale)}>
+          {LOCALES.map((code) => (
+            <option key={code} value={code}>
+              {t(`language.${code}`)}
+            </option>
+          ))}
+        </select>
         <div className="row">
           <button type="button" className="btn ghost small" onClick={onNewGame}>
             {t("shell.newGame")}
