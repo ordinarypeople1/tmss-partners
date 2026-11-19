@@ -222,7 +222,7 @@ impl World {
             .issues
             .iter()
             .filter(|issue| issue.found || issue.triggered)
-            .map(|issue| json!({ "kind": issue.kind, "severity_bps": issue.severity_bps, "found": issue.found, "triggered": issue.triggered }))
+            .map(|issue| json!({ "kind": issue.kind, "stream": issue.kind.stream(), "severity_bps": issue.severity_bps, "found": issue.found, "triggered": issue.triggered }))
             .collect();
         detail.insert("issues".into(), json!(issues));
         if revealed {

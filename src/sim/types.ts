@@ -316,7 +316,8 @@ export interface CompanyView extends CompanyRow {
   management: number | null;
   /** Null until commercial diligence. */
   customer_concentration_bps: number | null;
-  issues: { kind: IssueKind; severity_bps: number; found: boolean; triggered: boolean }[];
+  /** `stream` is the diligence that finds this kind of issue. */
+  issues: { kind: IssueKind; stream: DdStream; severity_bps: number; found: boolean; triggered: boolean }[];
   financials?: Financials;
   deal?: DealView;
   holding?: HoldingView;

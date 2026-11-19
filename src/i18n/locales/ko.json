@@ -379,5 +379,7 @@
   "money.short.man": "{value, number, ::integer}만",
   "money.short.thousand": "{value, number, ::integer}천",
   "format.rangeShort": "{low}–{high}",
-  "term.usd": "달러"
+  "term.usd": "달러",
+  "money.usd.zero": "0달러",
+  "money.short.zero": "0"
 }

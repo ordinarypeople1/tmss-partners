@@ -11,6 +11,9 @@ function withSign(value: number, text: string): string {
  */
 export function formatUsdThousand(intl: IntlShape, value: number, family: "usd" | "short" = "usd"): string {
   const absolute = Math.abs(value);
+  if (absolute === 0) {
+    return intl.formatMessage({ id: `money.${family}.zero` });
+  }
   if (absolute >= 1_000_000_000) {
     return withSign(value, intl.formatMessage({ id: `money.${family}.jo` }, { value: absolute / 1_000_000_000 }));
   }

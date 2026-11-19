@@ -13,7 +13,7 @@ describe("money", () => {
     expect(formatUsdThousand(intl, 1_800_000_000)).toBe("1.8조 달러");
     expect(formatUsdThousand(intl, 2_500)).toBe("250만 달러");
     expect(formatUsdThousand(intl, 5)).toBe("5천 달러");
-    expect(formatUsdThousand(intl, 0)).toBe("0천 달러");
+    expect(formatUsdThousand(intl, 0)).toBe("0달러");
     expect(formatUsdThousand(intl, -50_000)).toBe("-5,000만 달러");
   });
 

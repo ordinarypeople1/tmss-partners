@@ -72,3 +72,8 @@
   color: var(--ink-soft);
   font-size: 0.82rem;
 }
+
+/* With a company open the map is narrow; the checklist steps aside. */
+.shell[data-panel="open"] .guide {
+  display: none;
+}
