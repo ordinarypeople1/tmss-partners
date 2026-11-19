@@ -707,7 +707,10 @@ impl World {
             // The founder leaves with the money. Whoever follows knows less.
             let target = &mut self.companies[company];
             target.replace_ceo(&mut self.rng);
-            target.management = (target.management - 2).max(1);
+            // A succession the plan already provides for costs nothing extra.
+            if !offer.plan.contains(&InitiativeKind::ManagementChange) {
+                target.management = (target.management - 2).max(1);
+            }
         }
         let target = &mut self.companies[company];
         target.acquire(&industry, ev, financing.debt);

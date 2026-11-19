@@ -513,3 +513,20 @@
 .deals-table .deals-locked .btn {
   min-width: 64px;
 }
+
+.deals-stage > span:last-child {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  word-break: keep-all;
+}
+.deals-final {
+  min-width: max-content;
+}
+/* With the company panel open the board is narrow: scroll sideways before the cells collapse. */
+.deals-table .table {
+  min-width: 1120px;
+}
+.deals-table .table th {
+  word-break: keep-all;
+}

@@ -387,6 +387,7 @@ export function Deals() {
             {t("deals.filter.reach")}
           </button>
           <small className="muted">{t("deals.filter.reachHint")}</small>
+          <small className="muted">{t("deals.unit", { unit: t("term.usd") })}</small>
         </div>
         {abroadLocked && abroadCount > 0 && country !== "home" ? (
           <p className="deals-lock-note">
@@ -498,22 +499,22 @@ export function Deals() {
                           <span>
                             {t(`stage.${sale.stage}`)}
                             <span className="sub">{t("format.months", { months: sale.months_left })}</span>
+                            {sale.final_round ? (
+                              <span className="deals-final">
+                                <Icon name="gavel" size={11} />
+                                {t("deals.final.tag")}
+                              </span>
+                            ) : null}
                           </span>
-                          {sale.final_round ? (
-                            <span className="deals-final">
-                              <Icon name="gavel" size={11} />
-                              {t("deals.final.tag")}
-                            </span>
-                          ) : null}
                         </span>
                       </td>
                       <td>
                         <Rivals row={row} />
                       </td>
-                      <td className="num">{f.figure(row.revenue)}</td>
-                      <td className="num">{f.figure(row.ebitda)}</td>
+                      <td className="num">{f.shortFigure(row.revenue)}</td>
+                      <td className="num">{f.shortFigure(row.ebitda)}</td>
                       <td className="num">
-                        {f.figure(row.ev)}
+                        {f.shortFigure(row.ev)}
                         {withinReach(row) ? null : <span className="sub">{t("deals.outOfReach")}</span>}
                       </td>
                       <td className="deals-rel">

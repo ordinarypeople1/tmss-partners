@@ -347,7 +347,7 @@ function Scorecard({ card, titleId }: { card: Extract<Card, { kind: "exit" }>; t
       </header>
       <div className="row">
         <Tag tone="accent">{t(`route.${message.route}`)}</Tag>
-        <Tag>{t("moments.exit.buyer", { buyer: bidderName(t, game.view, message.buyer) })}</Tag>
+        <Tag icon={<Icon name="handshake" size={13} />}>{bidderName(t, game.view, message.buyer)}</Tag>
       </div>
       <div className="scorecard-main">
         <div className="scorecard-moic" data-tone={tone}>
@@ -451,7 +451,7 @@ function FundReport({ card, titleId }: { card: Extract<Card, { kind: "fund" }>; 
       </div>
       <div className="moment-tiles">
         <Stat label={t("moments.fund.exits")} value={f.integer(at.exits)} />
-        <Stat label={t("moments.fund.best")} value={at.bestMoic > 0 ? f.multiple(at.bestMoic, 2) : t("moments.none")} tone={moicTone(at.bestMoic)} />
+        <Stat label={t("moments.fund.best")} value={at.bestMoic > 0 ? f.multiple(at.bestMoic, 2) : t("moments.none")} tone={at.bestMoic > 0 ? moicTone(at.bestMoic) : undefined} />
         <LeagueStat at={at} />
       </div>
       {next ? (

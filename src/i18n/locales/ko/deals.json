@@ -74,5 +74,6 @@
   "deals.standing.lead": "최고 경쟁가",
   "deals.standing.mine": "내 입찰",
   "deals.standing.ceiling": "승인 상한",
-  "deals.next.raise_bid": "입찰가 인상"
+  "deals.next.raise_bid": "입찰가 인상",
+  "deals.unit": "금액 단위: {unit}"
 }

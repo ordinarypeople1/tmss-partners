@@ -10,7 +10,6 @@
   "moments.deal.acquired": "인수",
   "moments.deal.value": "거래 가격",
   "moments.exit.kicker": "엑시트",
-  "moments.exit.buyer": "매수자 {buyer}",
   "moments.exit.proceeds": "회수",
   "moments.exit.fundAfter": "{fund} 현황",
   "moments.verdict.loss": "원금을 잃었습니다. IC는 이 딜을 기억합니다.",

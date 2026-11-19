@@ -112,10 +112,10 @@ export function dealNeedsAction(company: CompanyView): boolean {
     const sale = company.sale;
     return Boolean(
       sale?.final_round &&
-        sale.standing &&
-        sale.standing.rank > 1 &&
-        sale.my_bid !== null &&
-        sale.bid_ceiling > sale.my_bid,
+      sale.standing &&
+      sale.standing.rank > 1 &&
+      sale.my_bid !== null &&
+      sale.bid_ceiling > sale.my_bid,
     );
   }
   if (!deal.offer || !deal.committee) {
@@ -137,7 +137,6 @@ function Cost({ points }: { points: number }) {
     </span>
   );
 }
-
 
 /** The deal file: diligence, the offer, the committee and the bid. */
 export function DealRoom({ company }: { company: CompanyView }) {
@@ -192,7 +191,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const myBid = company.sale?.my_bid ?? null;
   const ceiling = company.sale?.bid_ceiling ?? 0;
   const raiseEv =
-    myBid === null ? 0 : Math.min(Math.max(raise, myBid), Math.max(ceiling, myBid));
+    myBid === null
+      ? 0
+      : Math.min(Math.max(raise, myBid), Math.max(ceiling, myBid));
   const raisePreview = useMemo(() => {
     if (!deal?.offer || myBid === null) {
       return null;
@@ -863,7 +864,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
                             </li>
                           ))}
                         </ul>
-                      ) : vote.stance === "for" && vote.partner < SEAT_LINES.length ? (
+                      ) : vote.stance === "for" &&
+                        vote.partner < SEAT_LINES.length ? (
                         <q className="dr-say-for">
                           {t(`dealroom.say.${vote.partner}.for`)}
                         </q>
@@ -931,7 +933,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
         </h3>
         {finalRound && sale ? (
           <div className="dr-final">
-            <Ring fraction={sale.months_left / STAGE_MONTHS} size={44} tone="bad">
+            <Ring
+              fraction={sale.months_left / STAGE_MONTHS}
+              size={44}
+              tone="bad"
+            >
               {sale.months_left}
             </Ring>
             <div>
@@ -941,7 +947,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
           </div>
         ) : null}
         <div className="dr-bid">
-          {sale ? (
+          {sale && !finalRound ? (
             <Ring
               fraction={sale.months_left / STAGE_MONTHS}
               size={48}
@@ -961,13 +967,15 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 </span>
               </div>
             ) : null}
-            <span className="muted">
-              {t(
-                sale?.stage === "exclusive"
-                  ? "dealroom.bid.exclusiveNote"
-                  : "dealroom.bid.resolves",
-              )}
-            </span>
+            {finalRound ? null : (
+              <span className="muted">
+                {t(
+                  sale?.stage === "exclusive"
+                    ? "dealroom.bid.exclusiveNote"
+                    : "dealroom.bid.resolves",
+                )}
+              </span>
+            )}
           </div>
           <Stat
             label={t("dealroom.bid.certainty")}
@@ -981,7 +989,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
             {sale.rivals.length ? (
               sale.rivals.map((rival, index) => {
                 const style =
-                  rival.kind === "house" ? HOUSE_STYLES[rival.house] : undefined;
+                  rival.kind === "house"
+                    ? HOUSE_STYLES[rival.house]
+                    : undefined;
                 return (
                   <span key={index} className="chip dr-rival">
                     <Icon
@@ -1063,7 +1073,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
                     onChange={(event) => setRaise(Number(event.target.value))}
                   />
                   <small className="dr-slider-notes">
-                    <b data-tone={raiseEv > deal.approved_ev ? "warn" : undefined}>
+                    <b
+                      data-tone={
+                        raiseEv > deal.approved_ev ? "warn" : undefined
+                      }
+                    >
                       {t("dealroom.raise.overApproved", {
                         pct: signedPct(overApprovedBps),
                       })}

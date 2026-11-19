@@ -612,7 +612,9 @@ function AddOnCard({ company, holding }: SectionProps) {
                   <tr key={row.i}>
                     <td className="name">
                       {row.name}
-                      <span className="sub">{t(`admin1.${row.admin1}`)}</span>
+                      <span className="sub">
+                        {row.country === HOME ? t(`admin1.${row.admin1}`) : `${t(`admin1.${row.admin1}`)} · ${t(`country.${row.country}`)}`}
+                      </span>
                       <span className="hd-row-actions">
                         <button type="button" className="btn small ghost" title={t("holding.addon.open", { name: row.name })} onClick={() => select(row.i)}>
                           <Icon name="eye" size={14} />
