@@ -36,3 +36,21 @@ export function formatUsdFromKrwMillion(
     maximumFractionDigits: 2,
   });
 }
+
+/** Format an integer amount stored in thousand USD for the active catalog. */
+export function formatUsdThousand(intl: IntlShape, value: number): string {
+  const absolute = Math.abs(value);
+  if (absolute >= 1_000_000_000) {
+    return withSign(
+      value,
+      intl.formatMessage({ id: "money.usd.jo" }, { value: absolute / 1_000_000_000 }),
+    );
+  }
+  if (absolute >= 100_000) {
+    return withSign(value, intl.formatMessage({ id: "money.usd.eok" }, { value: absolute / 100_000 }));
+  }
+  if (absolute >= 10) {
+    return withSign(value, intl.formatMessage({ id: "money.usd.man" }, { value: absolute / 10 }));
+  }
+  return withSign(value, intl.formatMessage({ id: "money.usd.thousand" }, { value: absolute }));
+}

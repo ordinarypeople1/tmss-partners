@@ -3,7 +3,7 @@ name = "sim-core"
 version = "0.0.0"
 edition = "2021"
 publish = false
-description = "Deal Atlas simulation core. Money is an integer count of million KRW."
+description = "Deal Atlas simulation core. Money is an integer count of thousand USD."
 
 [lib]
 crate-type = ["rlib", "cdylib"]
@@ -13,4 +13,6 @@ default = []
 wasm = ["dep:wasm-bindgen"]
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 wasm-bindgen = { version = "=0.2.100", optional = true }

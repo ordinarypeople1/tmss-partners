@@ -11,6 +11,7 @@ import { CompanyList } from "./companyList";
 import { CompanyStatus } from "./companyStatus";
 import { mountMapPin } from "./mapPin";
 import { joinBase } from "./publicPath";
+import { SimClock } from "./simClock";
 
 const EMPTY_STYLE: maplibregl.StyleSpecification = {
   version: 8,
@@ -162,6 +163,7 @@ export function App() {
         </div>
         <p className="era">{intl.formatMessage({ id: "app.era" })}</p>
       </header>
+      <SimClock />
       <main className="stage">
         <section className="map-panel" aria-label={intl.formatMessage({ id: "map.label" })}>
           <div ref={mapNode} className="map" />

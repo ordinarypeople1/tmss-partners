@@ -269,3 +269,87 @@ h1 {
     align-items: start;
   }
 }
+
+.clock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin: 0 max(24px, env(safe-area-inset-right)) 12px max(24px, env(safe-area-inset-left));
+  padding: 12px 16px;
+  border: 1px solid #d5cdbb;
+  border-radius: 14px;
+  background: #fbf7ee;
+}
+
+.clock-date {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+}
+
+.clock-facts dt {
+  color: #5d6b64;
+  font-size: 0.8rem;
+}
+
+.clock-facts dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-facts meter {
+  width: 96px;
+}
+
+.clock-events {
+  display: flex;
+  flex: 1 1 200px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 1.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clock-events li {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #e7efe8;
+  font-size: 0.85rem;
+}
+
+.clock-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.clock-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #24302c;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.clock-actions .clock-advance {
+  background: #24302c;
+  color: #fbf7ee;
+  font-weight: 700;
+}

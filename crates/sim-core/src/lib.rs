@@ -1,8 +1,12 @@
-//! Valuation and, later, the quarterly scheduler.
+//! Valuation and the monthly scheduler.
 //!
-//! Money is an `i64` count of million KRW. A model multiple is an `i64` count of
+//! Money is an `i64` count of thousand USD. A model multiple is an `i64` count of
 //! thousandths: 7200 means 7.200x. Rounding is half away from zero. Positive
 //! examples match the previous `Math.round` results (2549 × 7.2 = 18353).
+
+pub mod calendar;
+pub mod rng;
+pub mod world;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SimError {
@@ -49,8 +53,42 @@ fn div_round_half_away(numerator: i64, denominator: i64) -> i64 {
 
 #[cfg(feature = "wasm")]
 mod wasm_api {
+    use super::world::{Command, World};
     use super::{enterprise_value, equity_value, SimError};
     use wasm_bindgen::prelude::*;
+
+    /// One running game. The host holds it and never reads its fields directly.
+    #[wasm_bindgen]
+    pub struct Session {
+        world: World,
+    }
+
+    #[wasm_bindgen]
+    impl Session {
+        #[wasm_bindgen(constructor)]
+        pub fn new(seed: u64) -> Session {
+            Session {
+                world: World::new(seed),
+            }
+        }
+
+        pub fn load(save: &str) -> Result<Session, JsValue> {
+            World::from_save(save)
+                .map(|world| Session { world })
+                .map_err(|err| JsValue::from_str(&err.to_string()))
+        }
+
+        /// The save file. The same text is the state the screen draws.
+        pub fn save(&self) -> String {
+            self.world.to_save()
+        }
+
+        /// Closes one month and returns the events as a JSON array.
+        pub fn advance_month(&mut self) -> String {
+            let events = self.world.apply(Command::AdvanceMonth);
+            serde_json::to_string(&events).expect("events serialize")
+        }
+    }
 
     fn into_js(error: SimError) -> JsValue {
         JsValue::from_str(&error.to_string())

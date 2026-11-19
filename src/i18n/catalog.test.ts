@@ -36,6 +36,26 @@ const REQUIRED = [
   "money.krw.jo",
   "money.krw.eok",
   "money.krw.million",
+  "money.usd.jo",
+  "money.usd.eok",
+  "money.usd.man",
+  "money.usd.thousand",
+  "clock.label",
+  "clock.date",
+  "clock.advance",
+  "clock.restart",
+  "clock.loading",
+  "clock.error",
+  "clock.policyRate",
+  "clock.rateValue",
+  "clock.uncalled",
+  "clock.investmentPeriod",
+  "clock.monthsLeft",
+  "event.month_closed",
+  "event.quarter_closed",
+  "event.policy_rate_changed",
+  "event.investment_period_ended",
+  "event.fund_term_ended",
 ] as const;
 
 describe("ko catalog", () => {
@@ -57,5 +77,6 @@ describe("ko catalog", () => {
   it("keeps years ungrouped", () => {
     expect(ko["company.meta"]).toContain("group-off");
     expect(ko["card.disclaimer"]).toContain("group-off");
+    expect(ko["clock.date"]).toContain("group-off");
   });
 });
