@@ -92,6 +92,9 @@ const HAIR_TONES = [
 
 const CLOTH_DARK = mix(86);
 
+/** The drawing is laid out on 100 × 120; the frame crops the empty margin. */
+const VIEW_BOX = "5 6 90 108";
+
 /** Line weights, in viewBox units. */
 const W = { contour: 1.9, feature: 1.5, fine: 0.9 } as const;
 
@@ -182,7 +185,7 @@ export const PARTNERS: Spec[] = [
   },
   // 4 Tom Kowalski: operating partner, 50s, broad face, short hair, no tie, work jacket.
   {
-    presentation: 0, skin: 0, head: 2, hair: HAIR.sidePart, hairTone: 2, beardTone: 2,
+    presentation: 0, skin: 0, head: 2, hair: HAIR.sidePart, hairTone: 1, beardTone: 1,
     brows: 0, eyes: 1, glasses: 0, nose: 1, mouth: 0, facialHair: 0, age: 1, earrings: 0,
     clothing: CLOTHING.workJacket, dark: false, accent: 0, accentOn: 0,
   },
@@ -246,7 +249,7 @@ function hairWeights(presentation: number, textured: boolean): number[] {
   if (presentation === 0) {
     set(
       textured
-        ? [[HAIR.bald, 14], [HAIR.receding, 8], [HAIR.crop, 34], [HAIR.shortNatural, 26], [HAIR.afro, 8], [HAIR.longLocs, 10]]
+        ? [[HAIR.bald, 14], [HAIR.receding, 8], [HAIR.crop, 34], [HAIR.shortNatural, 26], [HAIR.afro, 10], [HAIR.longLocs, 6]]
         : [[HAIR.bald, 10], [HAIR.receding, 17], [HAIR.crop, 19], [HAIR.sidePart, 30], [HAIR.quiff, 24]],
     );
   } else {
@@ -264,13 +267,13 @@ export function portraitSpec(seed: string): Spec {
   const random = generator(hash(seed));
   const presentation = random() < 0.5 ? 0 : 1;
   const skin = weighted(random, [19, 18, 17, 15, 16, 15]);
-  const age = weighted(random, [30, 44, 26]);
+  const age = weighted(random, [34, 42, 24]);
   const head = weighted(random, presentation === 0 ? [20, 14, 20, 16, 8, 22] : [26, 18, 8, 16, 22, 10]);
 
   const texturedChance = [0.03, 0.04, 0.14, 0.45, 0.85, 0.9][skin];
   const hair = weighted(random, hairWeights(presentation, random() < texturedChance));
-  const greyChance = [0.02, 0.22, 0.72][age];
-  const naturalTone = weighted(random, skin <= 1 ? [38, 36, 26] : skin === 2 ? [62, 34, 4] : [88, 12, 0]);
+  const greyChance = [0.02, 0.12, 0.55][age];
+  const naturalTone = weighted(random, skin <= 1 ? [42, 38, 20] : skin === 2 ? [62, 34, 4] : [88, 12, 0]);
   const hairTone = random() < greyChance ? 3 : naturalTone;
   const beardTone = age === 2 && random() < 0.6 ? 3 : hairTone;
 
@@ -476,8 +479,8 @@ function behind(h: Head, length: number, spread: number): string {
 const HAIR_SHAPES: ((h: Head) => HairShape)[] = [
   // 0 bald: a short fringe above each ear
   (h) => {
-    const patch: Pt[] = [[h.hw + 0.9, 57], [h.hw + 1.1, 50], [h.hw - 0.6, 44.5]];
-    const inner: Pt[] = [[h.hw - 2.8, 46.5], [h.hw - 2.2, 51.5], [h.hw - 1, 57]];
+    const patch: Pt[] = [[h.hw + 0.6, 57], [h.hw + 0.8, 51.5], [h.hw - 0.3, 47]];
+    const inner: Pt[] = [[h.hw - 2.4, 48.6], [h.hw - 2, 52.5], [h.hw - 1, 57]];
     return { front: [shape(patch, inner), shape(flip(patch), flip(inner))] };
   },
   // 1 receding: thin on top, back at the temples
@@ -485,14 +488,14 @@ const HAIR_SHAPES: ((h: Head) => HairShape)[] = [
     front: [
       shape(
         cap(h, 1.5, 0.9, 57),
-        sym([[h.hw - 0.6, 57], [h.hw - 1.7, 48], [h.hw - 3, 40.5], [h.hw - 5.6, 33.8], [h.hw - 8.4, 30.4], [5, 32.2], [0, 32.8]]),
+        sym([[h.hw - 0.6, 57], [h.hw - 1.7, 48], [h.hw - 3, 40.5], [h.hw - 6, 32.6], [h.hw - 9.4, 29.2], [5.4, 32.2], [0, 33.4]]),
       ),
     ],
     strands: [line([[-3, 32], [-4.5, 28.5], [-7, 26.6]]), line([[3.5, 32], [6, 28.6], [9, 27.2]])],
   }),
   // 2 close crop
   (h) => ({
-    front: [shape(cap(h, 1, 0.5, 56), sym([[h.hw - 0.7, 56], [h.hw - 1.6, 48], [h.hw - 2.6, 41], [h.hw - 5, 36.6], [8, 35.3], [0, 35]]))],
+    front: [shape(cap(h, 1, 0.5, 56), sym([[h.hw - 0.7, 56], [h.hw - 1.6, 48], [h.hw - 3, 40.6], [h.hw - 6, 35.6], [7.5, 33.9], [0, 33.5]]))],
   }),
   // 3 short with a side part
   (h) => ({
@@ -749,7 +752,7 @@ function Brows({ spec, mood }: { spec: Spec; mood: Mood }) {
         if (mood === "for") {
           [inner, mid, outer] = [inner - 0.9, mid - 1.1, outer - 0.7];
         } else if (mood === "against") {
-          [inner, mid, outer] = [inner + 2.2, mid + 0.9, outer - 0.3];
+          [inner, mid, outer] = [inner + 1.8, mid + 0.7, outer - 0.2];
         } else if (mood === "hold") {
           [inner, mid, outer] = s === 1 ? [inner - 1.2, mid - 3, outer - 1.5] : [inner + 1.1, mid + 0.7, outer + 0.2];
         }
@@ -832,8 +835,8 @@ function Mouth({ spec, mood }: { spec: Spec; mood: Mood }) {
   if (mood === "for") {
     d = `M${n(50 - half)},${n(y - 0.9)} Q50,${n(y + 2.6)} ${n(50 + half)},${n(y - 0.9)}`;
   } else if (mood === "against") {
-    d = `M${n(50 - half)},${n(y + 1)} Q50,${n(y - 0.9)} ${n(50 + half)},${n(y + 1)}`;
-    width = 2;
+    d = `M${n(50 - half)},${n(y + 0.7)} Q50,${n(y - 0.5)} ${n(50 + half)},${n(y + 0.7)}`;
+    width = 1.9;
   } else if (mood === "hold") {
     d = `M${n(50 - half)},${n(y + 0.5)} L${n(50 + half - 0.6)},${n(y - 0.2)} M${n(50 + half - 0.6)},${n(y - 0.2)} l1.4,-1.1`;
   } else {
@@ -851,7 +854,7 @@ function Mouth({ spec, mood }: { spec: Spec; mood: Mood }) {
         />
       ) : null}
       <path d={d} fill="none" stroke={INK} strokeWidth={width} />
-      {spec.mouth !== 2 ? (
+      {spec.mouth !== 2 && spec.facialHair !== 1 && spec.facialHair !== 3 ? (
         <path
           d={
             spec.mouth === 1
@@ -896,36 +899,48 @@ function FacialHair({ spec, h, clip }: { spec: Spec; h: Head; clip: string }) {
     return null;
   }
   const tone = HAIR_TONES[spec.beardTone] ?? HAIR_TONES[0];
-  const moustache = "M43,74.6 Q46.5,71.2 50,72.4 Q53.5,71.2 57,74.6 Q53.4,74.2 50,74.6 Q46.6,74.2 43,74.6 Z";
+  const moustache = "M43,74.4 Q46,70.6 50,71.8 Q54,70.6 57,74.4 Q53.4,72.9 50,73.5 Q46.6,72.9 43,74.4 Z";
   if (spec.facialHair === 2) {
     return <path d={moustache} fill={tone.fill} stroke={INK} strokeWidth={W.fine} />;
   }
   if (spec.facialHair === 3) {
+    // A goatee: a ring around the mouth, left open over the lips.
     return (
-      <>
-        <path
-          d={`M43.2,74.4 Q46.5,71 50,72.2 Q53.5,71 56.8,74.4 L57.4,80 Q56.6,${n(h.cy + 1)} 50,${n(h.cy + 1.6)} Q43.4,${n(h.cy + 1)} 42.6,80 Z`}
-          fill={tone.fill}
-          stroke={INK}
-          strokeWidth={W.fine}
-          clipPath={clip}
-        />
-        <path d="M45,75.4 Q50,73.8 55,75.4 Q55.6,79.4 50,80.2 Q44.4,79.4 45,75.4 Z" fill={SKIN[spec.skin]} />
-      </>
-    );
-  }
-  // A short full beard: everything below a line from the sideburns to above the lip.
-  return (
-    <>
       <path
-        d={`M${n(50 - h.hw - 2)},60 Q${n(50 - h.cw + 4.5)},64 ${n(50 - 10.5)},71.4 Q46,70.6 50,72 Q54,70.6 ${n(50 + 10.5)},71.4 Q${n(50 + h.cw - 4.5)},64 ${n(50 + h.hw + 2)},60 L${n(50 + h.hw + 2)},${n(h.cy + 4)} L${n(50 - h.hw - 2)},${n(h.cy + 4)} Z`}
+        d={
+          `M43,74.2 Q46.5,70.9 50,72 Q53.5,70.9 57,74.2 L57.6,80 Q57,${n(h.cy + 1)} 50,${n(h.cy + 1.6)} Q43,${n(h.cy + 1)} 42.4,80 Z ` +
+          "M45,75.3 Q50,73.8 55,75.3 Q56,79.8 50,80.6 Q44,79.8 45,75.3 Z"
+        }
         fill={tone.fill}
-        fillOpacity={0.82}
+        fillRule="evenodd"
         stroke={INK}
         strokeWidth={W.fine}
         clipPath={clip}
       />
-      <path d="M44.6,75.6 Q50,73.6 55.4,75.6 Q56,80 50,81 Q44,80 44.6,75.6 Z" fill={SKIN[spec.skin]} />
+    );
+  }
+  // A short full beard: below a line from the sideburns, under the cheeks, to above the lip.
+  const top =
+    `M${n(50 - h.hw - 2)},59 C${n(50 - h.hw + 3)},63 ${n(50 - h.cw + 5)},71.6 ${n(50 - 9)},72.4 ` +
+    `C46.6,72.6 46.4,70.8 50,71.8 C53.6,70.8 53.4,72.6 ${n(50 + 9)},72.4 ` +
+    `C${n(50 + h.cw - 5)},71.6 ${n(50 + h.hw - 3)},63 ${n(50 + h.hw + 2)},59`;
+  return (
+    <>
+      <path
+        d={`${top} L${n(50 + h.hw + 2)},${n(h.cy + 4)} L${n(50 - h.hw - 2)},${n(h.cy + 4)} Z`}
+        fill={spec.beardTone === 3 ? mix(56) : tone.fill}
+        fillOpacity={0.86}
+        stroke={INK}
+        strokeWidth={W.fine}
+        clipPath={clip}
+      />
+      <g clipPath={clip} fill="none" stroke={PAPER} strokeWidth={0.7} opacity={0.45}>
+        {[-15, -11.5, -7.5, 7.5, 11.5, 15].map((dx) => (
+          <path key={dx} d={`M${n(50 + dx)},${n(77 - Math.abs(dx) * 0.42)} l${dx < 0 ? 0.9 : -0.9},3.4`} />
+        ))}
+        <path d={`M47.6,${n(h.cy - 4.4)} l0.3,2.6 M50,${n(h.cy - 4.8)} l0,2.8 M52.4,${n(h.cy - 4.4)} l-0.3,2.6`} />
+      </g>
+      <path d="M45.4,75.9 Q50,74.6 54.6,75.9 Q54.8,78.6 50,79.3 Q45.2,78.6 45.4,75.9 Z" fill={SKIN[spec.skin]} />
     </>
   );
 }
@@ -1017,15 +1032,30 @@ function bodyPath(b: Build): string {
 
 const poly = (points: [number, number][]) => `M${points.map(([x, y]) => `${n(x)},${n(y)}`).join(" L")} Z`;
 
-function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: string; accent: string }) {
+function Clothing(props: { spec: Spec; b: Build; skin: string; accent: string; neck: ReactNode }) {
+  const { spec, b, skin, accent, neck } = props;
   const [l, r] = [50 - b.nw, 50 + b.nw];
   const onGarment = spec.accentOn === 0;
   const cloth = spec.dark ? CLOTH_DARK : PAPER;
   const seam = spec.dark ? PAPER : INK;
-  const body = (fill: string) => <path d={bodyPath(b)} fill={fill} stroke={INK} strokeWidth={W.contour} />;
+  /** The garment's mass, then the neck over its top edge. */
+  const body = (fill: string, under?: ReactNode) => (
+    <>
+      <path d={bodyPath(b)} fill={fill} stroke={INK} strokeWidth={W.contour} />
+      {under}
+      {neck}
+    </>
+  );
+  /** Bare skin inside a neckline: filled closed, stroked along the cloth edge only. */
+  const opening = (d: string, width = 1.1) => (
+    <>
+      <path d={`${d} Z`} fill={skin} />
+      <path d={d} fill="none" stroke={INK} strokeWidth={width} />
+    </>
+  );
   const pin =
     spec.accentOn === 3 ? (
-      <circle cx={n(50 - b.nw - 9)} cy={110} r={2} fill={accent} stroke={spec.dark ? PAPER : INK} strokeWidth={0.7} />
+      <circle cx={38} cy={106.6} r={1.9} fill={accent} stroke={spec.dark ? PAPER : INK} strokeWidth={0.7} />
     ) : null;
   /** Both lapels of a jacket, from the neck to the hem. */
   const lapels = (notchX: number, notchY: number, foldX: number, foldY: number, hem: number) =>
@@ -1064,8 +1094,7 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
     case CLOTHING.suit:
       return (
         <>
-          {body(cloth)}
-          <path d={poly([[l - 2.4, 93], [46.4, 123], [53.6, 123], [r + 2.4, 93]])} fill={PAPER} stroke={INK} strokeWidth={1} />
+          {body(cloth, <path d={poly([[l - 2.4, 93], [46.4, 123], [53.6, 123], [r + 2.4, 93]])} fill={PAPER} stroke={INK} strokeWidth={1} />)}
           <path d={poly([[47.5, 99.8], [52.5, 99.8], [51.9, 104.4], [48.1, 104.4]])} fill={onGarment ? accent : mix(70)} stroke={INK} strokeWidth={0.9} />
           <path d={poly([[48.1, 104.4], [51.9, 104.4], [53.8, 123], [46.2, 123]])} fill={onGarment ? accent : mix(70)} stroke={INK} strokeWidth={0.9} />
           {collar(1.2, 100, 8, 104.6)}
@@ -1076,8 +1105,7 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
     case CLOTHING.openCollar:
       return (
         <>
-          {body(cloth)}
-          <path d={poly([[l - 2.4, 93], [46.6, 123], [53.4, 123], [r + 2.4, 93]])} fill={onGarment ? accent : PAPER} stroke={INK} strokeWidth={1} />
+          {body(cloth, <path d={poly([[l - 2.4, 93], [46.6, 123], [53.4, 123], [r + 2.4, 93]])} fill={onGarment ? accent : PAPER} stroke={INK} strokeWidth={1} />)}
           <path d={poly([[l + 0.6, 92], [50, 106.4], [r - 0.6, 92]])} fill={skin} />
           <path d="M50,106.4 L50,123" stroke={INK} strokeWidth={0.9} />
           {collar(2.2, 105.4, 10.4, 104)}
@@ -1089,7 +1117,7 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
       return (
         <>
           {body(PAPER)}
-          <path d={`M${n(l - 1)},93 Q${n(l + 1)},102 50,109.4 Q${n(r - 1)},102 ${n(r + 1)},93 Z`} fill={skin} stroke={INK} strokeWidth={1.2} />
+          {opening(`M${n(l - 1)},93 Q${n(l + 1)},102 50,109.4 Q${n(r - 1)},102 ${n(r + 1)},93`, 1.2)}
           <path d={`M${n(l - 9)},102 Q${n(l - 6)},111 ${n(l - 8)},122 M${n(r + 9)},102 Q${n(r + 6)},111 ${n(r + 8)},122`} fill="none" stroke={INK} strokeWidth={W.fine} opacity={0.6} />
           <path d="M50,109.4 L50,123" stroke={INK} strokeWidth={W.fine} />
           {onGarment ? (
@@ -1128,9 +1156,8 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
     case CLOTHING.cardigan:
       return (
         <>
-          {body(cloth)}
-          <path d={poly([[l - 3, 93], [47, 123], [53, 123], [r + 3, 93]])} fill={onGarment ? accent : PAPER} stroke={INK} strokeWidth={1} />
-          <path d={`M${n(l - 0.6)},92 Q50,104.6 ${n(r + 0.6)},92 Z`} fill={skin} stroke={INK} strokeWidth={1.1} />
+          {body(cloth, <path d={poly([[l - 3, 93], [47, 123], [53, 123], [r + 3, 93]])} fill={onGarment ? accent : PAPER} stroke={INK} strokeWidth={1} />)}
+          {opening(`M${n(l - 0.6)},92 Q50,104.6 ${n(r + 0.6)},92`)}
           <path
             d={`M${n(l - 5.4)},95.4 L44.4,123 M${n(r + 5.4)},95.4 L55.6,123`}
             fill="none"
@@ -1145,9 +1172,8 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
     case CLOTHING.workJacket:
       return (
         <>
-          {body(spec.dark ? mix(22) : PAPER)}
-          <path d={poly([[l - 1, 93], [50, 108.5], [r + 1, 93]])} fill={onGarment ? accent : mix(70)} stroke={INK} strokeWidth={1} />
-          <path d={`M${n(l)},91.6 Q50,100.6 ${n(r)},91.6 Z`} fill={skin} stroke={INK} strokeWidth={1} />
+          {body(spec.dark ? mix(22) : PAPER, <path d={poly([[l - 1, 93], [50, 108.5], [r + 1, 93]])} fill={onGarment ? accent : mix(70)} stroke={INK} strokeWidth={1} />)}
+          {opening(`M${n(l)},91.6 Q50,100.6 ${n(r)},91.6`, 1)}
           {[-1, 1].map((s) => (
             <path
               key={s}
@@ -1163,18 +1189,34 @@ function Clothing({ spec, b, skin, accent }: { spec: Spec; b: Build; skin: strin
             />
           ))}
           <path d="M49.2,108.6 L49.2,123 M50.8,108.6 L50.8,123" stroke={INK} strokeWidth={0.8} />
-          <path d={`M${n(r + 6.4)},112.6 L${n(r + 18.6)},112.6 L${n(r + 18.6)},116 L${n(r + 12.5)},117.6 L${n(r + 6.4)},116 Z`} fill="none" stroke={INK} strokeWidth={1} />
-          <circle cx={n(r + 12.5)} cy={115} r={0.8} fill={INK} />
-          <path d={`M${n(l - 6.4)},112.6 L${n(l - 18.6)},112.6 L${n(l - 18.6)},116 L${n(l - 12.5)},117.6 L${n(l - 6.4)},116 Z`} fill="none" stroke={INK} strokeWidth={1} />
-          {spec.accentOn === 3 ? <circle cx={n(l - 12.5)} cy={108.6} r={1.9} fill={accent} stroke={INK} strokeWidth={0.7} /> : null}
+          {[-1, 1].map((s) =>
+            s === -1 && spec.accentOn === 3 ? (
+              <circle key={s} cx={n(l - 11.5)} cy={108.4} r={1.9} fill={accent} stroke={INK} strokeWidth={0.7} />
+            ) : (
+              <g key={s}>
+                <path
+                  d={poly([
+                    [50 + s * (b.nw + 7.4), 107.2],
+                    [50 + s * (b.nw + 18.6), 107.6],
+                    [50 + s * (b.nw + 18.6), 110.2],
+                    [50 + s * (b.nw + 13), 111.4],
+                    [50 + s * (b.nw + 7.4), 110],
+                  ])}
+                  fill="none"
+                  stroke={INK}
+                  strokeWidth={1}
+                />
+                <circle cx={n(50 + s * (b.nw + 13))} cy={109.4} r={0.7} fill={INK} />
+              </g>
+            ),
+          )}
         </>
       );
     default:
       return (
         <>
-          {body(cloth)}
-          <path d={poly([[l - 2.4, 93], [47.6, 123], [52.4, 123], [r + 2.4, 93]])} fill={onGarment ? accent : PAPER} stroke={INK} strokeWidth={1} />
-          <path d={`M${n(l - 1)},92 Q50,107.4 ${n(r + 1)},92 Z`} fill={skin} stroke={INK} strokeWidth={1.1} />
+          {body(cloth, <path d={poly([[l - 2.4, 93], [47.6, 123], [52.4, 123], [r + 2.4, 93]])} fill={onGarment ? accent : spec.dark ? PAPER : mix(70)} stroke={INK} strokeWidth={1} />)}
+          {opening(`M${n(l - 1)},92 Q50,107.4 ${n(r + 1)},92`)}
           {lapels(19.6, 100.8, 14.2, 105.4, 2.6)}
           {pin}
         </>
@@ -1207,14 +1249,13 @@ function Face({ spec, mood }: { spec: Spec; mood: Mood }) {
       <g transform={tilt}>
         <Hair spec={spec} h={h} layer="back" />
       </g>
-      <Neck b={b} h={h} skin={skin} />
-      <Clothing spec={spec} b={b} skin={skin} accent={accent} />
+      <Clothing spec={spec} b={b} skin={skin} accent={accent} neck={<Neck b={b} h={h} skin={skin} />} />
       <g transform={tilt}>
         <Ears h={h} skin={skin} />
         <path d={`M${head}`} fill={skin} stroke={INK} strokeWidth={W.contour} />
-        <g clipPath={clip} stroke={INK} strokeWidth={0.7} opacity={0.4}>
-          {[0, 1, 2, 3].map((index) => (
-            <path key={index} d={`M${n(60.5 + index * 2.3)},${n(73.5 - index * 1.6)} l3.4,-6.4`} />
+        <g clipPath={clip} stroke={INK} strokeWidth={0.6} opacity={0.3}>
+          {[0, 1, 2].map((index) => (
+            <path key={index} d={`M${n(60.5 + index * 2.3)},${n(73.5 - index * 1.6)} l2.8,-5.2`} />
           ))}
         </g>
         <FacialHair spec={spec} h={h} clip={clip} />
@@ -1260,7 +1301,7 @@ export function Portrait(props: { seed?: string; partner?: number; mood?: Mood; 
   const spec = resolve(seed, partner);
   return (
     <span className="portrait" data-mood={mood} aria-hidden="true" style={{ width: size, height: size * 1.2 }}>
-      <svg viewBox="0 0 100 120" strokeLinecap="round" strokeLinejoin="round" focusable="false">
+      <svg viewBox={VIEW_BOX} strokeLinecap="round" strokeLinejoin="round" focusable="false">
         {spec ? <Face spec={spec} mood={mood} /> : <Silhouette />}
       </svg>
     </span>

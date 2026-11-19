@@ -27,6 +27,7 @@ const PATHS: Record<string, ReactNode> = {
   down: <path d="M12 5v14M5 12l7 7 7-7" />,
   check: <path d="M4 12l5 5L20 6" />,
   exit: <path d="M14 4h6v16h-6M3 12h12M11 8l4 4-4 4" />,
+  lock: <path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />,
   link: <path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1" />,
   food_manufacturing: <path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 9v9" />,
   industrial_components: (

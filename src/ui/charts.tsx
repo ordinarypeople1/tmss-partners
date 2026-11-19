@@ -294,6 +294,7 @@ export function Meter({
   value,
   max,
   marker,
+  markers,
   tone = "accent",
   label,
   text,
@@ -301,6 +302,8 @@ export function Meter({
   value: number;
   max: number;
   marker?: number;
+  /** Several thresholds on one bar. */
+  markers?: number[];
   tone?: "accent" | "good" | "warn" | "bad" | "ink";
   label?: string;
   text?: string;
@@ -317,6 +320,7 @@ export function Meter({
       <div className="meter-track">
         <span style={{ width: share(value) }} />
         {marker !== undefined ? <i style={{ left: share(marker) }} /> : null}
+        {markers?.map((at) => <i key={at} style={{ left: share(at) }} />)}
       </div>
     </div>
   );

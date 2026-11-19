@@ -500,7 +500,10 @@ export function MapHub() {
         pin.dataset.alert = String(row.alert);
         pin.dataset.exiting = String(row.exiting);
       }
-      const marker = new maplibregl.Marker({ element: pin, anchor: "center" }).setLngLat([row.lon, row.lat]).addTo(map);
+      // MapLibre positions the marker element itself, so the pin sits inside a bare host.
+      const host = document.createElement("div");
+      host.append(pin);
+      const marker = new maplibregl.Marker({ element: host, anchor: "center" }).setLngLat([row.lon, row.lat]).addTo(map);
       markers.current.set(key, marker);
     }
   }, [ready, view.companies, view.messages, view.date, visible, layer, game.rows]);
@@ -578,7 +581,7 @@ export function MapHub() {
     } else if (target === "home") {
       map?.fitBounds(HOME_BOUNDS, { padding: 30, duration: 600 });
     } else {
-      map?.easeTo({ center: [10, 30], zoom: 1.4, duration: 600 });
+      map?.easeTo({ center: [25, 32], zoom: 1.15, duration: 600 });
     }
   };
 

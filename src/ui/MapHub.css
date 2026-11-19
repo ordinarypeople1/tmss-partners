@@ -66,12 +66,14 @@
   background: var(--raised);
   box-shadow: var(--shadow);
 }
-.map-zoom .btn[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--panel);
-}
 .map-zoom .btn.primary {
   background: var(--accent);
+}
+.map-zoom .btn[aria-pressed="true"],
+.map-zoom .btn[aria-pressed="true"]:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--panel);
 }
 
 .map-legend {
