@@ -12,8 +12,10 @@ pub mod economy;
 pub mod fund;
 pub mod market;
 pub mod math;
+pub mod people;
 pub mod portfolio;
 pub mod rng;
+pub mod story;
 pub mod view;
 pub mod world;
 
@@ -62,7 +64,7 @@ fn div_round_half_away(numerator: i64, denominator: i64) -> i64 {
 
 #[cfg(feature = "wasm")]
 mod wasm_api {
-    use super::world::{Command, World};
+    use super::world::{Command, Options, World};
     use super::{enterprise_value, equity_value, SimError};
     use wasm_bindgen::prelude::*;
 
@@ -80,8 +82,14 @@ mod wasm_api {
     impl Session {
         /// Opens a new game on the content generator's universe file.
         #[wasm_bindgen(constructor)]
-        pub fn new(seed: u64, universe: &str) -> Result<Session, JsValue> {
-            World::new(seed, universe)
+        pub fn new(seed: u64, universe: &str, options: &str) -> Result<Session, JsValue> {
+            // `options` is JSON such as {"difficulty":"hard","era":"cheap_money"}; empty means the defaults.
+            let options: Options = if options.trim().is_empty() {
+                Options::default()
+            } else {
+                serde_json::from_str(options).map_err(|err| JsValue::from_str(&err.to_string()))?
+            };
+            World::new(seed, universe, options)
                 .map(|world| Session { world })
                 .map_err(|err| JsValue::from_str(&err.to_string()))
         }

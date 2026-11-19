@@ -11,15 +11,67 @@ use crate::calendar::GameDate;
 use crate::company::{Budget, Company, DdStream, IssueKind};
 use crate::content::{Industry, Universe, UNIVERSE_SCHEMA_VERSION};
 use crate::deal::{Deal, IcOutcome, Offer};
-use crate::economy::{Economy, EconomyNews, Phase};
+use crate::economy::{Economy, EconomyNews, Era, Phase};
 use crate::fund::{Career, Fund, Rank};
-use crate::market::{Bidder, SaleReason};
+use crate::market::{Bidder, HouseRecord, SaleReason, RIVAL_HOUSES};
 use crate::portfolio::{ExitRoute, InitiativeKind};
 use crate::rng::Rng;
+use crate::story::{opening_lps, Achievement, EventKind, Lp, Objective, Records, Unlocked, YearStats};
 
-pub const SAVE_SCHEMA_VERSION: u32 = 3;
+pub const SAVE_SCHEMA_VERSION: u32 = 4;
 const FUND_COMMITTED: i64 = 750_000;
 const MAX_MESSAGES: usize = 300;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Difficulty {
+    Relaxed,
+    #[default]
+    Standard,
+    Hard,
+}
+
+impl Difficulty {
+    /// Added to every rival bid.
+    pub fn rival_bias_bps(self) -> i64 {
+        match self {
+            Difficulty::Relaxed => -300,
+            Difficulty::Standard => 0,
+            Difficulty::Hard => 250,
+        }
+    }
+    pub fn attention_bonus(self) -> i64 {
+        match self {
+            Difficulty::Relaxed => 1,
+            _ => 0,
+        }
+    }
+    /// The fund multiple below which a junior is let go at the end of the term, in thousandths.
+    pub fn survival_tvpi_millis(self) -> i64 {
+        match self {
+            Difficulty::Relaxed => 1_100,
+            Difficulty::Standard => 1_300,
+            Difficulty::Hard => 1_500,
+        }
+    }
+    /// Multiplier on reputation losses, in percent.
+    pub fn penalty_pct(self) -> i64 {
+        match self {
+            Difficulty::Relaxed => 75,
+            Difficulty::Standard => 100,
+            Difficulty::Hard => 130,
+        }
+    }
+}
+
+/// Chosen once, when a game opens.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Options {
+    #[serde(default)]
+    pub difficulty: Difficulty,
+    #[serde(default)]
+    pub era: Era,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -33,6 +85,9 @@ pub enum Choice {
     HoldOut,
     ReportNow,
     ReportLater,
+    /// The two options of an event. The catalog names them per event.
+    First,
+    Second,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,6 +102,7 @@ pub enum MessageKind {
     SaleFailed,
     RivalDeal { buyer: Bidder, ev: i64 },
     AuctionLost { winner: Bidder, ev: i64 },
+    FinalRound { rank: usize, bidders: usize },
     DiligenceReport { stream: DdStream, found: Vec<IssueKind> },
     CommitteeDecision { outcome: IcOutcome },
     DealClosed { ev: i64, equity: i64, debt: i64 },
@@ -68,6 +124,9 @@ pub enum MessageKind {
     FundTermEnded { tvpi_millis: i64, carry: i64 },
     NextFund { committed: i64, own_house: bool },
     Promotion { rank: Rank },
+    Event { event: EventKind, amount: i64 },
+    AchievementUnlocked { achievement: Achievement },
+    ObjectivesReview { met: usize, total: usize, bonus: i64 },
     Fired,
 }
 
@@ -103,6 +162,8 @@ pub enum Command {
     SetOffer { company: usize, offer: Offer },
     SubmitIc { company: usize },
     SubmitBid { company: usize },
+    RaiseBid { company: usize, ev: i64 },
+    ResearchSector { sector: usize },
     ProposeExclusive { company: usize },
     DropDeal { company: usize },
     SetBudget { company: usize, budget: Budget },
@@ -148,6 +209,9 @@ pub enum CommandError {
     WindowClosed,
     UnknownMessage,
     InvalidChoice,
+    NoBid,
+    AboveApproval,
+    UnknownSector,
 }
 
 #[derive(Debug)]
@@ -191,13 +255,26 @@ pub struct World {
     pub career: Career,
     pub attention_left: i64,
     pub messages: Vec<Message>,
+    pub options: Options,
+    /// One record per rival house.
+    pub houses: Vec<HouseRecord>,
+    /// Months of sector research left, per sector.
+    pub insight: Vec<u32>,
+    /// 0 to 100 per committee seat.
+    pub partner_trust: Vec<i64>,
+    pub lps: Vec<Lp>,
+    pub objectives: Vec<Objective>,
+    pub year: YearStats,
+    pub achievements: Vec<Unlocked>,
+    pub records: Records,
+    pub fund_started_month: u32,
     next_message_id: u64,
     pub(crate) rng: Rng,
 }
 
 impl World {
     /// Opens a game on the generator's universe.
-    pub fn new(seed: u64, universe: &str) -> Result<World, SaveError> {
+    pub fn new(seed: u64, universe: &str, options: Options) -> Result<World, SaveError> {
         let universe: Universe =
             serde_json::from_str(universe).map_err(|err| SaveError::Malformed(err.to_string()))?;
         if universe.schema_version != UNIVERSE_SCHEMA_VERSION {
@@ -214,7 +291,8 @@ impl World {
             companies.push(Company::from_seed(item, sector, &universe.industries[sector], &mut rng));
         }
         let career = Career::new();
-        let economy = Economy::new(universe.industries.len(), &mut rng);
+        let sectors = universe.industries.len();
+        let economy = Economy::new(universe.industries.len(), &mut rng, options.era);
         let mut world = World {
             schema_version: SAVE_SCHEMA_VERSION,
             seed,
@@ -227,13 +305,33 @@ impl World {
             fund: Fund::new("Fund III", FUND_COMMITTED, universe.opens),
             fund_number: 3,
             own_house: false,
-            attention_left: career.rank.attention(),
+            attention_left: career.rank.attention() + options.difficulty.attention_bonus(),
             career,
             messages: Vec::new(),
+            options,
+            houses: vec![HouseRecord::default(); RIVAL_HOUSES],
+            insight: vec![0; sectors],
+            partner_trust: vec![50; crate::deal::PARTNERS],
+            lps: opening_lps(),
+            objectives: Vec::new(),
+            year: YearStats::default(),
+            achievements: Vec::new(),
+            records: Records::default(),
+            fund_started_month: 0,
             next_message_id: 0,
             rng,
         };
+        // What the rival houses already own is their opening book.
+        for index in 0..world.companies.len() {
+            if let crate::company::Owner::Sponsor { house, .. } = world.companies[index].owner {
+                let target = &world.companies[index];
+                let equity = target.model_equity(&world.industries[target.sector], &world.economy).max(1);
+                world.companies[index].sponsor_cost = equity;
+                world.houses[house as usize % RIVAL_HOUSES].invested += equity;
+            }
+        }
         world.post(MessageKind::Welcome, None);
+        world.set_objectives();
         Ok(world)
     }
 
@@ -270,6 +368,8 @@ impl World {
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
             Command::SubmitIc { company } => self.submit_ic(company),
             Command::SubmitBid { company } => self.submit_bid(company),
+            Command::RaiseBid { company, ev } => self.raise_bid(company, ev),
+            Command::ResearchSector { sector } => self.research_sector(sector),
             Command::ProposeExclusive { company } => self.propose_exclusive(company),
             Command::DropDeal { company } => self.drop_deal(company),
             Command::SetBudget { company, budget } => self.set_budget(company, budget),
@@ -298,6 +398,27 @@ impl World {
             return Err(CommandError::NoAttention);
         }
         self.attention_left -= cost;
+        Ok(())
+    }
+
+    /// How many attention points a month the player has.
+    pub fn attention_max(&self) -> i64 {
+        self.career.rank.attention() + self.options.difficulty.attention_bonus()
+    }
+
+    /// Relationship at which an owner tells the player about a sale before the teaser.
+    pub(crate) fn early_notice_threshold(&self) -> i64 {
+        40
+    }
+
+    /// A month of reading and calls on one sector: sales there are heard of
+    /// early and figures are less foggy, for a year.
+    fn research_sector(&mut self, sector: usize) -> Result<(), CommandError> {
+        if sector >= self.insight.len() {
+            return Err(CommandError::UnknownSector);
+        }
+        self.spend_attention(1)?;
+        self.insight[sector] = 12;
         Ok(())
     }
 
@@ -368,6 +489,7 @@ impl World {
             MessageKind::IssueSurfaced { .. } => self.decide_report(choice),
             MessageKind::CovenantBreach { cure, .. } => self.decide_breach(company, choice, cure),
             MessageKind::ExitOffer { .. } => self.decide_exit(company, choice),
+            MessageKind::Event { event, amount } => self.decide_event(company, event, amount, choice),
             _ => {}
         }
     }
@@ -419,6 +541,10 @@ impl World {
         self.market_step();
         if closes_quarter {
             self.close_quarter();
+            self.update_lps();
+        }
+        if closing.month == 12 {
+            self.review_objectives();
         }
         self.receive_pending();
         self.expire_decisions();
@@ -427,7 +553,14 @@ impl World {
         self.months_elapsed += 1;
         self.career_step();
         self.fund_clock();
-        self.attention_left = self.career.rank.attention();
+        if closing.month == 12 {
+            self.set_objectives();
+        }
+        self.monthly_achievements();
+        self.attention_left = self.attention_max();
+        for months in &mut self.insight {
+            *months = months.saturating_sub(1);
+        }
     }
 
     fn close_quarter(&mut self) {
@@ -484,7 +617,7 @@ impl World {
         // A deal professional with no deals is noticed.
         let idle = self.career.deals_closed == 0 && self.deals.is_empty() && self.fund.investing(self.date);
         if idle && self.months_elapsed >= 24 && self.months_elapsed % 3 == 0 {
-            self.career.adjust_reputation(-2);
+            self.career.adjust_reputation(-1);
         }
         let tvpi = self.fund.tvpi_millis(self.nav());
         if let Some(rank) = self.career.promotion(tvpi) {
@@ -527,7 +660,7 @@ impl World {
         self.career.carry_paid += share;
         self.post(MessageKind::FundTermEnded { tvpi_millis, carry }, None);
 
-        let strong = tvpi_millis >= 1_300;
+        let strong = tvpi_millis >= self.options.difficulty.survival_tvpi_millis();
         if !strong && !self.own_house && self.career.rank < Rank::Partner {
             self.career.fired = true;
             self.post(MessageKind::Fired, None);
@@ -535,8 +668,7 @@ impl World {
         }
         // A partner with a record leaves to raise under their own name.
         let own_house = self.own_house || (self.career.rank >= Rank::Partner && self.career.reputation >= 70);
-        let scale = tvpi_millis.clamp(700, 1_900);
-        let committed = self.fund.committed * scale / 1_300 / 10_000 * 10_000;
+        let committed = self.next_fund_size(own_house && !self.own_house);
         if own_house && !self.own_house {
             self.own_house = true;
             self.fund_number = 0;
@@ -545,7 +677,11 @@ impl World {
         }
         self.fund_number += 1;
         let name = format!("Fund {}", roman(self.fund_number));
-        self.fund = Fund::new(&name, committed.max(200_000), self.date);
+        self.fund = Fund::new(&name, committed, self.date);
+        self.fund_started_month = self.months_elapsed;
+        for lp in &mut self.lps {
+            lp.satisfaction = (lp.satisfaction + 55) / 2;
+        }
         self.post(MessageKind::NextFund { committed: self.fund.committed, own_house }, None);
     }
 }
@@ -576,12 +712,13 @@ pub mod tests {
     }
 
     pub fn world(seed: u64) -> World {
-        World::new(seed, &universe()).expect("the universe opens")
+        World::new(seed, &universe(), Options::default()).expect("the universe opens")
     }
 
     fn run(world: &mut World, months: u32) {
         for _ in 0..months {
-            world.apply(Command::AdvanceMonth).unwrap();
+            // An idle player is eventually let go; the caller checks `career.fired`.
+            let _ = world.apply(Command::AdvanceMonth);
         }
     }
 
@@ -697,7 +834,7 @@ pub mod tests {
 
     #[test]
     fn rejects_a_save_from_another_schema() {
-        let save = world(1).to_save().replacen("\"schema_version\":3", "\"schema_version\":99", 1);
+        let save = world(1).to_save().replacen("\"schema_version\":4", "\"schema_version\":99", 1);
         assert!(matches!(World::from_save(&save), Err(SaveError::UnsupportedVersion(99))));
         assert!(matches!(World::from_save("not json"), Err(SaveError::Malformed(_))));
     }
@@ -729,8 +866,11 @@ pub mod tests {
             let mut world = world(seed);
             run(&mut world, 24);
             // An idle player is let go at the end of the fund; the market runs until then.
-            for _ in 0..90 {
+            for _ in 0..60 {
                 run(&mut world, 1);
+                if world.career.fired {
+                    break;
+                }
                 let active = world.companies.iter().filter(|company| company.is_active()).count();
                 shares.push(world.live_processes() * 10_000 / active);
             }
@@ -776,12 +916,12 @@ pub mod tests {
     #[test]
     fn attention_runs_out_and_comes_back() {
         let mut world = world(6);
-        for company in 0..4 {
+        for company in 0..world.attention_max() as usize {
             world.apply(Command::MeetOwner { company }).unwrap();
         }
-        assert_eq!(world.apply(Command::MeetOwner { company: 5 }), Err(CommandError::NoAttention));
+        assert_eq!(world.apply(Command::MeetOwner { company: 9 }), Err(CommandError::NoAttention));
         world.apply(Command::AdvanceMonth).unwrap();
-        assert!(world.apply(Command::MeetOwner { company: 5 }).is_ok());
+        assert!(world.apply(Command::MeetOwner { company: 9 }).is_ok());
     }
 
     #[test]

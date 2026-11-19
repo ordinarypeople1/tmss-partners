@@ -22,6 +22,19 @@ pub enum Phase {
     Recovery,
 }
 
+/// Where the game opens.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Era {
+    /// Rates well above neutral, a mature expansion. Entries are cheap, debt is dear.
+    #[default]
+    HighRates,
+    /// Rates at the floor early in an expansion. Everything is expensive and lenders are generous.
+    CheapMoney,
+    /// A long expansion with tight money. A downturn is close.
+    LateCycle,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EconomyPoint {
     pub policy_rate_bps: i64,
@@ -50,13 +63,19 @@ pub enum EconomyNews {
 
 impl Economy {
     /// Each game draws its own neutral rate, so not every era ends in cheap money.
-    pub fn new(sectors: usize, rng: &mut Rng) -> Self {
+    pub fn new(sectors: usize, rng: &mut Rng, era: Era) -> Self {
+        let neutral_rate_bps = 275 + 25 * rng.range(0, 6);
+        let (policy_rate_bps, phase_months, credit_spread_bps) = match era {
+            Era::HighRates => (525, 18, 400),
+            Era::CheapMoney => (150, 8, 340),
+            Era::LateCycle => (neutral_rate_bps + 225, 58, 380),
+        };
         let mut economy = Economy {
-            policy_rate_bps: 525,
-            neutral_rate_bps: 275 + 25 * rng.range(0, 6),
+            policy_rate_bps,
+            neutral_rate_bps,
             phase: Phase::Expansion,
-            phase_months: 18,
-            credit_spread_bps: 400,
+            phase_months,
+            credit_spread_bps,
             sector_cycle_bps: vec![0; sectors],
             history: Vec::new(),
         };
@@ -266,7 +285,7 @@ mod tests {
         let industries = industries();
         for seed in 0..20 {
             let mut rng = Rng::new(seed);
-            let mut economy = Economy::new(1, &mut rng);
+            let mut economy = Economy::new(1, &mut rng, Era::HighRates);
             for month in 1..=480 {
                 let before = economy.policy_rate_bps;
                 economy.step(&mut rng, &industries, month % 3 == 0);
@@ -285,7 +304,7 @@ mod tests {
     fn forty_years_visit_every_phase() {
         let industries = industries();
         let mut rng = Rng::new(11);
-        let mut economy = Economy::new(1, &mut rng);
+        let mut economy = Economy::new(1, &mut rng, Era::HighRates);
         let mut seen = Vec::new();
         for month in 1..=480 {
             economy.step(&mut rng, &industries, month % 3 == 0);
@@ -296,12 +315,19 @@ mod tests {
         assert_eq!(seen.len(), 4);
     }
 
+    fn open_high() -> i64 {
+        Economy::new(1, &mut Rng::new(0), Era::HighRates).max_senior_millis()
+    }
+
     #[test]
     fn higher_rates_lower_the_rate_factor_and_recessions_shut_credit() {
-        let mut economy = Economy::new(1, &mut Rng::new(0));
+        let mut economy = Economy::new(1, &mut Rng::new(0), Era::HighRates);
         let high = economy.rate_factor_millis(6_000);
         economy.policy_rate_bps = economy.neutral_rate_bps;
         assert_eq!(economy.rate_factor_millis(6_000), 1_000);
+        let cheap = Economy::new(1, &mut Rng::new(0), Era::CheapMoney);
+        assert!(cheap.rate_factor_millis(6_000) > 1_000);
+        assert!(cheap.max_senior_millis() > open_high());
         assert!(high < 1_000);
         let open = economy.max_senior_millis();
         economy.credit_spread_bps = 750;

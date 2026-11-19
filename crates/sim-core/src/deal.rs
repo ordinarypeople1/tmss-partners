@@ -9,7 +9,7 @@ use crate::fund::Rank;
 use crate::market::{PlayerBid, Stage};
 use crate::math::{div_round, irr_bps, mul_bps, mul_millis, ratio_bps, ratio_millis};
 use crate::portfolio::{Holding, InitiativeKind};
-use crate::world::{CommandError, MessageKind, World};
+use crate::world::{Choice, CommandError, MessageKind, World};
 
 pub const FEE_BPS: i64 = 200;
 pub const MAX_ROLLOVER_BPS: i64 = 3_000;
@@ -126,6 +126,14 @@ pub struct Deal {
     pub offer: Option<Offer>,
     pub ic: Option<IcResult>,
     pub bid_submitted: bool,
+    /// The price the committee approved. A bid may go 5% above it without going back.
+    #[serde(default)]
+    pub approved_ev: i64,
+    /// Investors take a fifth of the equity alongside the fund.
+    #[serde(default)]
+    pub coinvest: bool,
+    #[serde(default)]
+    pub coinvest_asked: bool,
 }
 
 impl Deal {
@@ -163,6 +171,9 @@ impl World {
             offer: None,
             ic: None,
             bid_submitted: false,
+            approved_ev: 0,
+            coinvest: false,
+            coinvest_asked: false,
         });
         self.companies[company].watched = true;
         Ok(())
@@ -462,14 +473,19 @@ impl World {
         }
         self.validate_offer(company, &offer)?;
         self.spend_attention(1)?;
-        let votes = self.committee_votes(company, &self.deals[index], &offer);
+        let mut votes = self.committee_votes(company, &self.deals[index], &offer);
+        self.weigh_by_trust(&mut votes);
         let outcome = self.committee_outcome(&votes);
+        if outcome == IcOutcome::Approved {
+            self.deals[index].approved_ev = offer.ev;
+        }
         match outcome {
             IcOutcome::Approved => self.career.adjust_reputation(1),
             IcOutcome::Held => {}
             IcOutcome::Rejected => {
                 self.career.adjust_reputation(-2);
                 self.career.ic_rejections += 1;
+                self.year.rejections += 1;
             }
         }
         self.deals[index].ic = Some(IcResult {
@@ -478,6 +494,17 @@ impl World {
             date: self.date,
         });
         self.post(MessageKind::CommitteeDecision { outcome }, Some(company));
+        // A large check: an investor asks to come in alongside.
+        let equity = self.financing(company, &offer).equity;
+        if outcome == IcOutcome::Approved && !self.deals[index].coinvest_asked && equity > self.fund.committed / 10 {
+            self.deals[index].coinvest_asked = true;
+            self.post_decision(
+                MessageKind::Event { event: crate::story::EventKind::CoInvestRequest, amount: equity / 5 },
+                Some(company),
+                vec![Choice::First, Choice::Second],
+                2,
+            );
+        }
         Ok(())
     }
 
@@ -487,7 +514,18 @@ impl World {
             return 0;
         };
         let streams = DD_STREAMS.iter().filter(|stream| self.deals[index].has(**stream)).count() as i64;
-        streams * 50 + self.companies[company].relationship * 2
+        // An owner who cares who buys favors a buyer they know with no layoffs planned.
+        let target = &self.companies[company];
+        let layoffs = self.deals[index]
+            .offer
+            .as_ref()
+            .is_some_and(|offer| offer.plan.contains(&InitiativeKind::HeadcountReduction));
+        let sentiment = match target.stance {
+            crate::company::Stance::Sentimental if target.relationship >= 50 && !layoffs => 300,
+            crate::company::Stance::Sentimental => -200,
+            _ => 0,
+        };
+        streams * 50 + target.relationship * 2 + sentiment
     }
 
     pub(crate) fn submit_bid(&mut self, company: usize) -> Result<(), CommandError> {
@@ -527,6 +565,37 @@ impl World {
             }
             _ => Err(CommandError::NotBiddingYet),
         }
+    }
+
+    /// The most the player may bid without returning to the committee.
+    pub fn bid_ceiling(&self, company: usize) -> i64 {
+        self.deal_index(company).map(|index| mul_bps(self.deals[index].approved_ev, 10_500)).unwrap_or(0)
+    }
+
+    /// Raises a bid already in, within the committee's approval.
+    pub(crate) fn raise_bid(&mut self, company: usize, ev: i64) -> Result<(), CommandError> {
+        let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
+        let current = self.companies[company]
+            .process
+            .as_ref()
+            .and_then(|process| process.player_bid.as_ref())
+            .map(|bid| bid.ev)
+            .ok_or(CommandError::NoBid)?;
+        if ev <= current {
+            return Err(CommandError::BidTooLow);
+        }
+        if ev > self.bid_ceiling(company) {
+            return Err(CommandError::AboveApproval);
+        }
+        let mut offer = self.deals[index].offer.clone().ok_or(CommandError::NoOffer)?;
+        offer.ev = ev;
+        if self.financing(company, &offer).equity > self.fund.uncalled() {
+            return Err(CommandError::FundExhausted);
+        }
+        self.deals[index].offer = Some(offer);
+        let process = self.companies[company].process.as_mut().expect("a bid has a process");
+        process.player_bid.as_mut().expect("bid exists").ev = ev;
+        Ok(())
     }
 
     pub(crate) fn propose_exclusive(&mut self, company: usize) -> Result<(), CommandError> {
@@ -595,7 +664,13 @@ impl World {
         offer.ev = ev;
         offer.senior_millis = offer.senior_millis.min(self.economy.max_senior_millis());
         offer.mezz_millis = offer.mezz_millis.min(self.economy.max_mezz_millis());
-        let financing = self.financing(company, &offer);
+        let mut financing = self.financing(company, &offer);
+        if deal.coinvest {
+            // Co-investors buy a fifth of the fund's stake at the same price.
+            financing.equity = financing.equity * 8 / 10;
+            financing.ownership_bps = financing.ownership_bps * 8 / 10;
+        }
+        let process = self.companies[company].process.clone();
         if financing.equity <= 0 || !self.fund.call(financing.equity, self.months_elapsed) {
             self.end_process(company, 6, 12);
             self.deals.remove(index);
@@ -603,8 +678,17 @@ impl World {
             self.post(MessageKind::DealBroken, Some(company));
             return;
         }
+        self.record_house_exit(company, ev);
         let industry = self.industries[self.companies[company].sector].clone();
         let multiple = self.companies[company].multiple_millis(&industry, &self.economy);
+        let retiring = self.companies[company].ceo.founder
+            && self.companies[company].process.as_ref().is_some_and(|process| process.reason == crate::market::SaleReason::Retirement);
+        if retiring {
+            // The founder leaves with the money. Whoever follows knows less.
+            let target = &mut self.companies[company];
+            target.replace_ceo(&mut self.rng);
+            target.management = (target.management - 2).max(1);
+        }
         let target = &mut self.companies[company];
         target.acquire(&industry, ev, financing.debt);
         target.debt_spread_bps = financing.spread_bps;
@@ -629,8 +713,19 @@ impl World {
             financing.leverage_millis + 1_500,
             offer.plan.clone(),
         ));
+        {
+            let founder_seller = matches!(process.as_ref().map(|p| p.reason), Some(crate::market::SaleReason::Retirement | crate::market::SaleReason::Succession));
+            let holding = self.companies[company].holding.as_mut().expect("just created");
+            holding.votes = deal.ic.as_ref().map(|ic| ic.votes.iter().map(|vote| vote.stance).collect()).unwrap_or_default();
+            holding.earnout_open = founder_seller;
+            holding.full_diligence = DD_STREAMS.iter().all(|stream| deal.has(*stream));
+            holding.distressed_entry = process.as_ref().is_some_and(|p| p.reason == crate::market::SaleReason::Distress);
+        }
         self.deals.remove(index);
         self.career.deals_closed += 1;
+        let rivals = process.as_ref().map(|p| p.rivals.len()).unwrap_or(0);
+        let exclusive = process.as_ref().is_some_and(|p| p.stage == Stage::Exclusive);
+        self.after_close(company, ev, financing.equity, rivals, exclusive);
         self.career.adjust_reputation(2);
         self.post(
             MessageKind::DealClosed {

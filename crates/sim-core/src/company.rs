@@ -66,6 +66,70 @@ impl IssueKind {
     }
 }
 
+/// What makes one company unlike the next. Each trait changes a rule somewhere.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Trait {
+    /// One site makes everything. An outage stops the company.
+    SinglePlant,
+    /// Multi-year contracts: steady revenue.
+    LongTermContracts,
+    /// Old machines: more maintenance spending, a lower multiple.
+    AgingEquipment,
+    /// A name customers pay for: price rises land better.
+    BrandStrength,
+    /// A long-tenured local workforce: cuts cost more goodwill.
+    FamilyWorkforce,
+    /// Sells abroad: swings harder with the cycle.
+    ExportHeavy,
+    /// Subscriptions or service contracts: steadier and worth more.
+    RecurringRevenue,
+    /// Many small competitors: bolt-ons integrate cheaply.
+    FragmentedMarket,
+    /// Demand comes in seasons: noisier months.
+    SeasonalDemand,
+    /// A process competitors cannot copy: worth more.
+    ProprietaryProcess,
+    /// Nobody has pushed sales: an expansion pays more.
+    UnderinvestedSales,
+    /// Paid by regulated or public payers: exposed to rule changes.
+    RegulatedCustomers,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CeoStyle {
+    Operator,
+    Seller,
+    Engineer,
+    Financier,
+    Patriarch,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Ceo {
+    pub name: String,
+    pub age: u8,
+    /// Years in the job.
+    pub tenure: u8,
+    pub style: CeoStyle,
+    /// The owner runs the company.
+    pub founder: bool,
+}
+
+/// How an owner behaves across the table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Stance {
+    /// Cares who buys and what happens to the people.
+    Sentimental,
+    /// Holds out for the last dollar.
+    PriceMaximizer,
+    /// Wants it done.
+    Hurried,
+    Balanced,
+}
+
 /// Something diligence can find. Unfound, it goes off after the close.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Issue {
@@ -157,6 +221,9 @@ pub struct Budget {
 pub struct GrowthEffect {
     pub months_left: u32,
     pub growth_bps: i64,
+    /// Months before it starts to bite.
+    #[serde(default)]
+    pub starts_in: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -188,6 +255,11 @@ pub struct Company {
     pub management: i64,
     pub customer_concentration_bps: i64,
     pub issues: Vec<Issue>,
+    pub traits: Vec<Trait>,
+    /// Index into the sector's product lines; the catalog names it.
+    pub product: u8,
+    pub ceo: Ceo,
+    pub stance: Stance,
     pub effects: Vec<GrowthEffect>,
     /// Margin the efficiency budget has added so far.
     pub efficiency_gained_bps: i64,
@@ -211,13 +283,39 @@ pub struct Company {
     pub holding: Option<Holding>,
     /// A liquidity shortfall the lenders would not fund this month.
     pub shortfall: bool,
+    /// Equity the current sponsor paid. Zero unless a rival house owns it.
+    #[serde(default)]
+    pub sponsor_cost: i64,
 }
 
 fn monthly_ebitda(revenue: i64, gross_margin_bps: i64, sga_fixed: i64, sga_variable_bps: i64) -> i64 {
     mul_bps(revenue, gross_margin_bps) - sga_fixed - mul_bps(revenue, sga_variable_bps)
 }
 
+impl Ceo {
+    /// A professional manager brought in from outside.
+    pub fn hired(rng: &mut Rng) -> Ceo {
+        Ceo {
+            name: crate::people::name(rng),
+            age: rng.range(42, 62) as u8,
+            tenure: rng.range(0, 9) as u8,
+            style: [CeoStyle::Operator, CeoStyle::Seller, CeoStyle::Engineer, CeoStyle::Financier][rng.below(4) as usize],
+            founder: false,
+        }
+    }
+}
+
 impl Company {
+    pub fn has(&self, wanted: Trait) -> bool {
+        self.traits.contains(&wanted)
+    }
+
+    /// The founder steps back; an outsider takes the chair.
+    pub fn replace_ceo(&mut self, rng: &mut Rng) {
+        self.ceo = Ceo::hired(rng);
+        self.ceo.tenure = 0;
+    }
+
     pub fn from_seed(seed: &CompanySeed, sector: usize, industry: &Industry, rng: &mut Rng) -> Company {
         let sga_total = mul_bps(seed.monthly_revenue, seed.sga_ratio_bps);
         let sga_fixed = sga_total * 45 / 100;
@@ -280,6 +378,49 @@ impl Company {
             }
         }
         let has_concentration = issues.iter().any(|issue| issue.kind == IssueKind::CustomerConcentration);
+        // Plants and machines only where there are plants and machines.
+        let asset_heavy = industry.capex_ratio_bps >= 150;
+        let mut pool = vec![
+            Trait::LongTermContracts,
+            Trait::BrandStrength,
+            Trait::FamilyWorkforce,
+            Trait::FragmentedMarket,
+            Trait::SeasonalDemand,
+            Trait::UnderinvestedSales,
+            Trait::ProprietaryProcess,
+        ];
+        if asset_heavy {
+            pool.extend([Trait::SinglePlant, Trait::AgingEquipment, Trait::ExportHeavy]);
+        } else {
+            pool.extend([Trait::RecurringRevenue, Trait::RegulatedCustomers]);
+        }
+        let mut traits = Vec::new();
+        for _ in 0..rng.range(2, 3) {
+            let pick = pool.remove(rng.below(pool.len() as u64) as usize);
+            traits.push(pick);
+        }
+        let ceo = match owner {
+            Owner::Founder { age } => Ceo {
+                name: crate::people::name(rng),
+                age,
+                tenure: (age.saturating_sub(32)).min(40),
+                style: if rng.chance_bps(4_000) {
+                    CeoStyle::Patriarch
+                } else {
+                    [CeoStyle::Operator, CeoStyle::Seller, CeoStyle::Engineer][rng.below(3) as usize]
+                },
+                founder: true,
+            },
+            _ => Ceo::hired(rng),
+        };
+        let stance = match (owner, rng.below(100)) {
+            (Owner::Founder { .. }, 0..=34) => Stance::Sentimental,
+            (Owner::Founder { .. }, 35..=59) => Stance::PriceMaximizer,
+            (Owner::Founder { .. }, 60..=74) => Stance::Hurried,
+            (Owner::Founder { .. }, _) => Stance::Balanced,
+            (_, 0..=39) => Stance::PriceMaximizer,
+            _ => Stance::Balanced,
+        };
         let free_cash = ebitda - mul_bps(seed.monthly_revenue, industry.capex_ratio_bps);
         Company {
             id: seed.id.clone(),
@@ -308,6 +449,10 @@ impl Company {
                 rng.range(600, 3_000)
             },
             issues,
+            traits,
+            product: rng.below(6) as u8,
+            ceo,
+            stance,
             effects: Vec::new(),
             efficiency_gained_bps: 0,
             revenue: seed.monthly_revenue,
@@ -324,6 +469,7 @@ impl Company {
             watched: false,
             holding: None,
             shortfall: false,
+            sponsor_cost: 0,
         }
     }
 
@@ -386,7 +532,20 @@ impl Company {
             ebitda if ebitda < 40_000 => 600,
             _ => 1_200,
         };
-        10_000 + management + concentration + growth + size
+        let mut character = 0;
+        for (wanted, worth) in [
+            (Trait::RecurringRevenue, 400),
+            (Trait::ProprietaryProcess, 250),
+            (Trait::BrandStrength, 200),
+            (Trait::LongTermContracts, 150),
+            (Trait::AgingEquipment, -250),
+            (Trait::SinglePlant, -150),
+        ] {
+            if self.has(wanted) {
+                character += worth;
+            }
+        }
+        10_000 + management + concentration + growth + size + character
     }
 
     /// base × rate × cycle × phase × quality, clamped. Thousandths of a turn.
@@ -426,12 +585,19 @@ impl Company {
         let budget = if player { self.budget } else { Budget::default() };
 
         // Revenue.
+        let steady = self.has(Trait::RecurringRevenue) || self.has(Trait::LongTermContracts);
+        let noise_pct = if self.has(Trait::SeasonalDemand) { 160 } else if steady { 55 } else { 100 };
+        let cycle_pct = if self.has(Trait::ExportHeavy) { 150 } else { 100 };
         let mut growth = self.growth_bps
-            + economy.growth_bps(self.sector, industry)
-            + rng.noise(industry.monthly_growth_std_bps)
+            + economy.growth_bps(self.sector, industry) * cycle_pct / 100
+            + rng.noise(industry.monthly_growth_std_bps * noise_pct / 100)
             + (self.management - 10) * 2;
         growth += budget.growth_bps.min(200) * 12 / 100 + (budget.growth_bps - 200).max(0) * 6 / 100;
         for effect in &mut self.effects {
+            if effect.starts_in > 0 {
+                effect.starts_in -= 1;
+                continue;
+            }
             growth += effect.growth_bps;
             effect.months_left -= 1;
         }
@@ -464,7 +630,8 @@ impl Company {
         let change_in_nwc = (receivable + inventory - payable) - self.books.net_working_capital();
 
         // Investing.
-        let capex = mul_bps(revenue, industry.capex_ratio_bps + budget.growth_bps + budget.efficiency_bps);
+        let upkeep = if self.has(Trait::AgingEquipment) { 50 } else { 0 };
+        let capex = mul_bps(revenue, industry.capex_ratio_bps + upkeep + budget.growth_bps + budget.efficiency_bps);
 
         // Financing.
         let opening_cash = self.books.cash;
@@ -694,7 +861,7 @@ pub mod tests {
         let industry = industry();
         for rng_seed in 0..25 {
             let mut rng = Rng::new(rng_seed);
-            let mut economy = Economy::new(1, &mut rng);
+            let mut economy = Economy::new(1, &mut rng, crate::economy::Era::HighRates);
             let mut company = company(rng_seed);
             let industries = [industry.clone()];
             for month in 1..=360 {
@@ -727,7 +894,7 @@ pub mod tests {
     #[test]
     fn value_is_trailing_ebitda_times_the_model_multiple() {
         let industry = industry();
-        let economy = Economy::new(1, &mut Rng::new(0));
+        let economy = Economy::new(1, &mut Rng::new(0), crate::economy::Era::HighRates);
         let company = company(1);
         let multiple = company.multiple_millis(&industry, &economy);
         assert_eq!(company.model_ev(&industry, &economy), mul_millis(company.ttm_ebitda(), multiple));
@@ -740,7 +907,7 @@ pub mod tests {
     #[test]
     fn lower_rates_raise_the_multiple() {
         let industry = industry();
-        let mut economy = Economy::new(1, &mut Rng::new(0));
+        let mut economy = Economy::new(1, &mut Rng::new(0), crate::economy::Era::HighRates);
         let company = company(1);
         let high_rates = company.multiple_millis(&industry, &economy);
         economy.policy_rate_bps = 200;
@@ -764,7 +931,7 @@ pub mod tests {
     #[test]
     fn the_player_budget_sweeps_debt_and_pays_dividends() {
         let industry = industry();
-        let economy = Economy::new(1, &mut Rng::new(0));
+        let economy = Economy::new(1, &mut Rng::new(0), crate::economy::Era::HighRates);
         let mut rng = Rng::new(4);
         let mut company = company(4);
         company.owner = Owner::Player;

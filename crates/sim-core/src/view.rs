@@ -11,6 +11,26 @@ use crate::math::{mul_bps, mul_millis, ratio_millis};
 use crate::portfolio::INITIATIVES;
 use crate::world::World;
 
+pub struct LeagueRow {
+    /// `None` is the player's fund.
+    pub house: Option<usize>,
+    pub deals: u32,
+    pub exits: u32,
+    pub invested: i64,
+    pub returned: i64,
+    pub held: i64,
+}
+
+impl LeagueRow {
+    pub fn multiple_millis(&self) -> i64 {
+        if self.invested <= 0 {
+            1_000
+        } else {
+            ratio_millis(self.returned + self.held, self.invested)
+        }
+    }
+}
+
 fn hash(text: &str, salt: u64) -> u64 {
     let mut value: u64 = 0xcbf2_9ce4_8422_2325 ^ salt;
     for byte in text.bytes() {
@@ -30,10 +50,12 @@ fn two_figures(value: i64) -> i64 {
 
 /// A range around the truth. The same company always shows the same range
 /// for the same figure, so the band itself leaks nothing new on a reload.
-fn fog(value: i64, id: &str, salt: u64) -> Value {
+fn fog(value: i64, id: &str, salt: u64, sharp: bool) -> Value {
     let shift = (hash(id, salt) % 11) as i64;
-    let low = two_figures(value * (88 - shift) / 100);
-    let high = two_figures(value * (118 - shift) / 100);
+    // Sector research halves the band.
+    let (down, up) = if sharp { (94 - shift / 2, 109 - shift / 2) } else { (88 - shift, 118 - shift) };
+    let low = two_figures(value * down / 100);
+    let high = two_figures(value * up / 100);
     json!([low.min(high), low.max(high)])
 }
 
@@ -57,6 +79,7 @@ impl World {
             return Value::Null;
         }
         let process = self.companies[index].process.as_ref().expect("visible process exists");
+        let company_id = self.companies[index].id.clone();
         let open = process.stage != Stage::Preparing && process.stage != Stage::Exclusive;
         json!({
             "stage": process.stage,
@@ -64,13 +87,26 @@ impl World {
             "reason": process.reason,
             "rivals": if open { process.rivals.iter().map(|rival| json!(rival.bidder)).collect::<Vec<_>>() } else { Vec::new() },
             "bid_in": process.player_bid.is_some(),
+            "final_round": process.final_round,
+            "standing": if process.final_round {
+                self.standing(index).map(|standing| json!({
+                    "rank": standing.rank,
+                    "bidders": standing.bidders,
+                    "lead": fog(standing.lead_ev, &company_id, 7, true),
+                }))
+            } else {
+                None
+            },
+            "my_bid": process.player_bid.as_ref().map(|bid| bid.ev),
+            "bid_ceiling": self.bid_ceiling(index),
         })
     }
 
     fn row(&self, index: usize) -> Value {
         let company = &self.companies[index];
         let revealed = self.revealed(index);
-        let figure = |value: i64, salt: u64| if revealed { exact(value) } else { fog(value, &company.id, salt) };
+        let sharp = self.insight.get(company.sector).copied().unwrap_or(0) > 0;
+        let figure = |value: i64, salt: u64| if revealed { exact(value) } else { fog(value, &company.id, salt, sharp) };
         let alert = company.holding.as_ref().is_some_and(|holding| holding.breaches > 0 || holding.strike)
             || (company.is_player_owned() && company.shortfall);
         json!({
@@ -144,7 +180,21 @@ impl World {
                 "salary": self.career.rank.salary(),
                 "fired": self.career.fired,
             },
-            "attention": { "left": self.attention_left, "max": self.career.rank.attention() },
+            "attention": { "left": self.attention_left, "max": self.attention_max() },
+            "options": self.options,
+            "insight": self.insight,
+            "league": self.league(),
+            "partners": self.partner_trust.iter().map(|trust| json!({ "trust": trust })).collect::<Vec<_>>(),
+            "lps": self.lps,
+            "next_fund_estimate": self.next_fund_size(false),
+            "objectives": self.objectives.iter().map(|objective| json!({
+                "kind": objective.kind,
+                "target": objective.target,
+                "progress": self.objective_progress(objective),
+                "met": self.objective_met(objective),
+            })).collect::<Vec<_>>(),
+            "achievements": self.achievements,
+            "records": self.records,
             "limits": {
                 "deals": self.career.rank.max_live_deals(),
                 "initiatives": self.career.rank.max_initiatives(),
@@ -197,6 +247,66 @@ impl World {
         })
     }
 
+    /// Every house by gross multiple: what it has taken out plus what it still
+    /// holds at model value, over what it has put in. The player's fund is one row.
+    pub fn league_rows(&self) -> Vec<LeagueRow> {
+        let mut rows: Vec<LeagueRow> = Vec::new();
+        for (house, record) in self.houses.iter().enumerate() {
+            let held: i64 = self
+                .companies
+                .iter()
+                .filter(|company| matches!(company.owner, Owner::Sponsor { house: owner, .. } if owner as usize == house))
+                .map(|company| company.model_equity(&self.industries[company.sector], &self.economy).max(0))
+                .sum();
+            rows.push(LeagueRow {
+                house: Some(house),
+                deals: record.deals,
+                exits: record.exits,
+                invested: record.invested,
+                returned: record.returned,
+                held,
+            });
+        }
+        let realized_cost: i64 = self.fund.realized.iter().map(|item| item.cost).sum();
+        let realized: i64 = self.fund.realized.iter().map(|item| item.proceeds).sum();
+        let live_dividends: i64 = self
+            .companies
+            .iter()
+            .filter(|company| company.is_player_owned())
+            .filter_map(|company| company.holding.as_ref())
+            .map(|holding| holding.dividends)
+            .sum();
+        rows.push(LeagueRow {
+            house: None,
+            deals: self.career.deals_closed,
+            exits: self.career.exits,
+            invested: realized_cost + self.invested_cost(),
+            returned: realized + live_dividends,
+            held: self.nav(),
+        });
+        // A house that has put nothing in has no multiple; it sorts as 1.0x.
+        rows.sort_by_key(|row| std::cmp::Reverse(row.multiple_millis()));
+        rows
+    }
+
+    fn league(&self) -> Value {
+        json!(self
+            .league_rows()
+            .iter()
+            .enumerate()
+            .map(|(rank, row)| json!({
+                "rank": rank + 1,
+                "house": row.house,
+                "deals": row.deals,
+                "exits": row.exits,
+                "invested": row.invested,
+                "returned": row.returned,
+                "held": row.held,
+                "multiple_millis": row.multiple_millis(),
+            }))
+            .collect::<Vec<_>>())
+    }
+
     /// One company in full, as far as the player may see it.
     pub fn company_view(&self, index: usize) -> Value {
         let Some(company) = self.companies.get(index) else {
@@ -225,6 +335,26 @@ impl World {
             .map(|issue| json!({ "kind": issue.kind, "stream": issue.kind.stream(), "severity_bps": issue.severity_bps, "found": issue.found, "triggered": issue.triggered }))
             .collect();
         detail.insert("issues".into(), json!(issues));
+        // One trait is common knowledge; the rest come with the data room.
+        let known = if revealed { company.traits.len() } else { 1 };
+        detail.insert("traits".into(), json!(company.traits.iter().take(known).collect::<Vec<_>>()));
+        detail.insert("traits_hidden".into(), json!(company.traits.len() - known));
+        detail.insert("product".into(), json!(company.product));
+        let met = company.relationship > 0 || revealed;
+        detail.insert(
+            "ceo".into(),
+            json!({
+                "name": company.ceo.name,
+                "age": company.ceo.age,
+                "tenure": company.ceo.tenure,
+                "founder": company.ceo.founder,
+                "style": if met { json!(company.ceo.style) } else { Value::Null },
+            }),
+        );
+        detail.insert(
+            "stance".into(),
+            if company.relationship >= 40 || self.deal_index(index).is_some() { json!(company.stance) } else { Value::Null },
+        );
         if revealed {
             detail.insert(
                 "financials".into(),
@@ -272,6 +402,8 @@ impl World {
                     "bid_submitted": deal.bid_submitted,
                     "certainty_bps": self.certainty_bps(index),
                     "can_roll": matches!(company.owner, Owner::Founder { .. }),
+                    "coinvest": deal.coinvest,
+                    "approved_ev": deal.approved_ev,
                 }),
             );
         }

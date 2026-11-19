@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::calendar::GameDate;
-use crate::company::{Budget, GrowthEffect, IssueKind, Owner};
+use crate::company::{Budget, GrowthEffect, IssueKind, Owner, Trait};
 use crate::economy::Phase;
 use crate::fund::Realized;
 use crate::market::{Bidder, RIVAL_HOUSES};
@@ -137,6 +137,15 @@ pub struct Holding {
     /// (month index, amount) from the fund's side: money in is negative.
     pub flows: Vec<(u32, i64)>,
     pub strike: bool,
+    /// How each partner voted at entry, by seat.
+    pub votes: Vec<crate::deal::Stance>,
+    pub earnout_open: bool,
+    pub incentive_asked: bool,
+    pub full_diligence: bool,
+    /// Something diligence missed has gone off.
+    pub surprised: bool,
+    pub distressed_entry: bool,
+    pub cured: bool,
 }
 
 impl Holding {
@@ -176,6 +185,13 @@ impl Holding {
             add_ons: 0,
             flows: vec![(month, -cost)],
             strike: false,
+            votes: Vec::new(),
+            earnout_open: false,
+            incentive_asked: false,
+            full_diligence: false,
+            surprised: false,
+            distressed_entry: false,
+            cured: false,
         }
     }
 }
@@ -271,14 +287,15 @@ impl World {
         let roll = |world: &mut World, low: i64, high: i64| world.rng.range(low, high) * skill / 100;
         match kind {
             InitiativeKind::PricingReview => {
-                let gain = roll(self, 80, 180);
+                let brand = if self.companies[company].has(Trait::BrandStrength) { 140 } else { 100 };
+                let gain = roll(self, 80, 180) * brand / 100;
                 let risky = self.companies[company].customer_concentration_bps > 4_000;
                 lost_customer = risky && self.rng.chance_bps(2_500);
                 let target = &mut self.companies[company];
                 target.gross_margin_bps += gain;
                 target.effects.push(GrowthEffect {
                     months_left: 6,
-                    growth_bps: -12,
+                    growth_bps: -12, starts_in: 0,
                 });
                 if lost_customer {
                     target.revenue = mul_bps(target.revenue, 9_200);
@@ -294,7 +311,8 @@ impl World {
                 target.sga_fixed = mul_bps(target.sga_fixed, 10_000 - cut);
             }
             InitiativeKind::SalesExpansion => {
-                let gain = roll(self, 8, 20);
+                let untapped = if self.companies[company].has(Trait::UnderinvestedSales) { 150 } else { 100 };
+                let gain = roll(self, 8, 20) * untapped / 100;
                 let target = &mut self.companies[company];
                 target.growth_bps += gain;
                 target.sga_fixed = mul_bps(target.sga_fixed, 10_400);
@@ -302,7 +320,11 @@ impl World {
             InitiativeKind::HeadcountReduction => {
                 let cut = self.rng.range(700, 1_200);
                 let union = self.companies[company].union_strength_bps;
-                strike = self.rng.chance_bps((union * 6 / 10) as u32);
+                let loyal = self.companies[company].has(Trait::FamilyWorkforce);
+                strike = self.rng.chance_bps((union * 6 / 10 + if loyal { 2_000 } else { 0 }).min(9_500) as u32);
+                if loyal {
+                    self.career.adjust_reputation(-1);
+                }
                 let target = &mut self.companies[company];
                 target.sga_fixed = mul_bps(target.sga_fixed, 10_000 - cut);
                 target.employees = target.employees * 88 / 100;
@@ -310,11 +332,12 @@ impl World {
             }
             InitiativeKind::ManagementChange => {
                 let change = self.rng.range(-2, 6);
+                self.companies[company].replace_ceo(&mut self.rng);
                 let target = &mut self.companies[company];
                 target.management = (target.management + change).clamp(1, 20);
                 target.effects.push(GrowthEffect {
                     months_left: 3,
-                    growth_bps: -15,
+                    growth_bps: -15, starts_in: 0,
                 });
                 for issue in &mut target.issues {
                     if issue.kind == IssueKind::KeyPerson {
@@ -338,7 +361,15 @@ impl World {
                 target.dio_adjust_days -= 8;
             }
         }
+        let planned = self.holding_mut(company).plan.contains(&kind);
         self.holding_mut(company).done.push(kind);
+        self.year.initiatives += 1;
+        if planned {
+            self.trust(4, 2);
+        }
+        if kind == InitiativeKind::HeadcountReduction {
+            self.trust(5, -3);
+        }
         self.post(MessageKind::InitiativeDone { kind }, Some(company));
         if lost_customer {
             self.post(
@@ -360,7 +391,7 @@ impl World {
         self.holding_mut(company).strike = true;
         self.companies[company].effects.push(GrowthEffect {
             months_left: 1,
-            growth_bps: -2_000,
+            growth_bps: -2_000, starts_in: 0,
         });
         self.career.adjust_reputation(-3);
         self.post_decision(MessageKind::Strike, Some(company), vec![Choice::Settle, Choice::HoldOut], 2);
@@ -376,17 +407,17 @@ impl World {
             target.sga_fixed = mul_bps(target.sga_fixed, 10_400);
             target.effects.push(GrowthEffect {
                 months_left: 1,
-                growth_bps: 2_300,
+                growth_bps: 2_300, starts_in: 0,
             });
         } else {
             // The line holds. Output comes back slowly, without the raise.
             target.effects.push(GrowthEffect {
                 months_left: 2,
-                growth_bps: -900,
+                growth_bps: -900, starts_in: 0,
             });
             target.effects.push(GrowthEffect {
                 months_left: 6,
-                growth_bps: 620,
+                growth_bps: 620, starts_in: 2,
             });
             self.career.adjust_reputation(-2);
         }
@@ -417,6 +448,8 @@ impl World {
                 self.finish_initiative(company, kind);
             }
             self.surface_issues(company);
+            self.maybe_event(company);
+            self.maybe_approach(company);
             if closes_quarter {
                 self.test_covenants(company);
                 // The lenders may just have taken the company.
@@ -442,6 +475,7 @@ impl World {
                 continue;
             }
             self.companies[company].issues[slot].triggered = true;
+            self.holding_mut(company).surprised = true;
             let target = &mut self.companies[company];
             let revenue = target.ttm_revenue();
             match issue.kind {
@@ -468,7 +502,7 @@ impl World {
                     target.management = (target.management - 3).max(1);
                     target.effects.push(GrowthEffect {
                         months_left: 6,
-                        growth_bps: -20,
+                        growth_bps: -20, starts_in: 0,
                     });
                 }
                 IssueKind::LaborDispute => {
@@ -489,9 +523,11 @@ impl World {
     pub(crate) fn decide_report(&mut self, choice: Choice) {
         if choice == Choice::ReportNow {
             self.career.adjust_reputation(1);
+            self.after_report(true, false);
         } else if self.rng.chance_bps(6_000) {
             // The chair hears it from the lender instead.
             self.career.adjust_reputation(-6);
+            self.after_report(false, true);
         }
     }
 
@@ -530,6 +566,7 @@ impl World {
         let allowed = mul_millis(ebitda, max_leverage - 250).max(0);
         let cure = (target.net_debt() - allowed).max(target.min_cash(&self.industries[target.sector]));
         self.career.adjust_reputation(-3);
+        self.after_breach();
         self.post_decision(
             MessageKind::CovenantBreach {
                 leverage_millis: leverage,
@@ -550,7 +587,9 @@ impl World {
         match choice {
             Choice::Cure => {
                 if self.equity_cure(company, cure).is_ok() {
-                    self.holding_mut(company).breaches = 0;
+                    let holding = self.holding_mut(company);
+                    holding.breaches = 0;
+                    holding.cured = true;
                 }
             }
             Choice::Waiver => {
@@ -609,6 +648,7 @@ impl World {
         });
         let _ = month;
         self.career.adjust_reputation(-12);
+        self.after_keys();
         self.post(MessageKind::LendersTookKeys, Some(company));
     }
 
@@ -707,7 +747,8 @@ impl World {
         }
         self.spend_attention(2)?;
         self.fund.call(from_fund, self.months_elapsed);
-        let synergy_bps = self.rng.range(800, 1_500);
+        let fragmented = if self.companies[platform].has(Trait::FragmentedMarket) { 400 } else { 0 };
+        let synergy_bps = self.rng.range(800, 1_500) + fragmented;
         let month = self.months_elapsed;
         let absorbed = self.companies[target].clone();
         let operating = absorbed.books.net_working_capital() + absorbed.books.net_ppe();
@@ -721,7 +762,7 @@ impl World {
         buyer.books.retained_earnings -= fees;
         buyer.effects.push(GrowthEffect {
             months_left: 6,
-            growth_bps: -15,
+            growth_bps: -15, starts_in: 0,
         });
         let holding = self.holding_mut(platform);
         holding.add_ons += 1;
@@ -813,6 +854,30 @@ impl World {
         );
     }
 
+    /// In good markets a strategic buyer sometimes calls first, and pays for the privilege.
+    fn maybe_approach(&mut self, company: usize) {
+        let Ok(holding) = self.held(company) else {
+            return;
+        };
+        let held = self.months_elapsed - holding.acquired_month;
+        if holding.exit.is_some() || held < 18 || self.economy.phase != Phase::Expansion || !self.rng.chance_bps(60) {
+            return;
+        }
+        let ev = mul_bps(self.model_ev(company), self.rng.range(10_800, 12_200));
+        let proceeds = self.exit_proceeds(company, ev);
+        self.holding_mut(company).exit = Some(ExitProcess {
+            route: ExitRoute::Strategic,
+            months_left: 0,
+            offer_ev: Some(ev),
+        });
+        self.post_decision(
+            MessageKind::ExitOffer { route: ExitRoute::Strategic, ev, proceeds },
+            Some(company),
+            vec![Choice::Accept, Choice::Decline],
+            1,
+        );
+    }
+
     /// What the fund receives if the company sells at `ev`.
     pub fn exit_proceeds(&self, company: usize, ev: i64) -> i64 {
         let target = &self.companies[company];
@@ -847,14 +912,17 @@ impl World {
         let industry = self.industries[self.companies[company].sector].clone();
         let house = self.rng.below(RIVAL_HOUSES as u64) as u8;
         let senior = self.economy.max_senior_millis();
+        let mut secondary_equity = None;
         let target = &mut self.companies[company];
         let mut holding = target.holding.take().expect("held company has a holding");
         let name = target.legal_name.clone();
         let ebitda = target.ttm_ebitda().max(0);
         match exit.route {
             ExitRoute::Secondary => {
-                target.acquire(&industry, ev, (ebitda * senior / 1_000).min(ev * 6 / 10));
+                let debt = (ebitda * senior / 1_000).min(ev * 6 / 10);
+                target.acquire(&industry, ev, debt);
                 target.owner = Owner::Sponsor { house, months_held: 0 };
+                secondary_equity = Some(ev - debt);
             }
             _ => {
                 target.acquire(&industry, ev, (ev / 5).min(ebitda * 2));
@@ -865,6 +933,9 @@ impl World {
         target.budget = Budget::default();
         target.cooldown = 36;
         target.relationship = 0;
+        if let Some(equity) = secondary_equity {
+            self.record_house_entry(company, house, equity);
+        }
         self.fund.distribute(now, month);
         holding.flows.push((month, now));
         if proceeds > now {
@@ -889,6 +960,7 @@ impl World {
             irr_bps: irr,
         });
         self.career.exits += 1;
+        self.after_exit(&holding, total, moic_millis);
         self.career.best_moic_millis = self.career.best_moic_millis.max(moic_millis);
         self.career.adjust_reputation(((moic_millis - 1_500) * 6 / 1_000).clamp(-12, 10));
         let buyer = match exit.route {
