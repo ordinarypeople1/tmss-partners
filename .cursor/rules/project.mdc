@@ -7,7 +7,7 @@ alwaysApply: true
 
 - Player-facing prose and design docs are Korean. Code identifiers, file names, and formulas are English.
 - The game is single-player and offline. Do not add accounts, analytics endpoints, or required network calls to the runtime.
-- Money is an integer count of the market's storage unit (million KRW, thousand USD, million JPY, ten-thousand CNY). The sim is currency-agnostic; currency and formatting are market metadata. Do not accumulate currency in floating point. Multiples cross the Rust boundary as thousandths (7200 = 7.200x).
+- Money is an integer count of thousand USD (migrating from million KRW in M0). One currency, no FX. Locales change number formatting only. Do not accumulate currency in floating point. Multiples cross the Rust boundary as thousandths (7200 = 7.200x).
 - Simulation math lives in `crates/sim-core`. Do not reimplement it in TypeScript. `src/sim` is the wasm loader and stays free of DOM, React, and MapLibre.
 - The client reads a page of company cards. Do not import the full content JSON into the UI bundle.
 - Player-facing UI strings live in `src/i18n/locales/ko.json`. Do not add en, ja, zh-Hans, or zh-Hant catalogs until copy is frozen. Storybook stories live in `stories/` and use those keys. `*.stories.tsx` is exempt from the UI string scan.
