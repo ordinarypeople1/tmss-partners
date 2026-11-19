@@ -4,6 +4,7 @@ import {
   DD_STREAMS,
   INITIATIVES,
   type CompanyView,
+  type Concern,
   type DdStream,
   type InitiativeKind,
   type IssueKind,
@@ -14,6 +15,8 @@ import { Bridge, Meter, Ring, StackBar, Stat, Tag, Tower } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { bidderName } from "./messages";
+import { Portrait } from "./Portrait";
 import "./DealRoom.css";
 
 type Tone = "good" | "bad" | "warn";
@@ -43,6 +46,33 @@ const OUTCOME_TONE = {
   held: "warn",
   rejected: "bad",
 } as const;
+/**
+ * How each rival house bids. Mirrors `HOUSE_STYLES` in
+ * crates/sim-core/src/market.rs (index = house number): the sign of its bid
+ * bias and its focus sector. Shown as a hint; the sim prices the bids.
+ */
+const HOUSE_STYLES: { aggression: -1 | 0 | 1; focus: string | null }[] = [
+  { aggression: -1, focus: "industrial_components" },
+  { aggression: 1, focus: "healthcare_services" },
+  { aggression: 0, focus: "cold_chain_logistics" },
+  { aggression: 1, focus: null },
+  { aggression: -1, focus: "building_products" },
+  { aggression: 1, focus: "business_services" },
+  { aggression: -1, focus: "food_manufacturing" },
+  { aggression: 1, focus: null },
+];
+/** The concerns each seat has a spoken line for in the catalog (`dealroom.say.<seat>.<concern>`). */
+const SEAT_LINES: Concern[][] = [
+  ["leverage", "price", "interest_cover", "no_financial_dd"],
+  ["no_operational_dd", "inventory_days"],
+  ["thin_returns", "multiple_reliance", "no_commercial_dd"],
+  ["downside", "no_legal_dd", "open_issue"],
+  ["no_plan", "no_operational_dd", "layoffs_in_union_shop"],
+  ["fund_concentration", "layoffs_in_union_shop", "open_issue"],
+];
+/** Partner trust marks: a doubt passes at 70, and becomes a no at 30. */
+const TRUST_LOW = 30;
+const TRUST_HIGH = 70;
 const MAX_PLAN = 3;
 const MAX_ROLLOVER_BPS = 3000;
 const TURN_STEP = 100;
@@ -74,8 +104,19 @@ function sameOffer(a: Offer, b: Offer | null): boolean {
 /** Whether the deal tab has a next step waiting on the player. */
 export function dealNeedsAction(company: CompanyView): boolean {
   const deal = company.deal;
-  if (!deal || deal.bid_submitted) {
+  if (!deal) {
     return false;
+  }
+  if (deal.bid_submitted) {
+    // The final round: behind, with approval left to raise.
+    const sale = company.sale;
+    return Boolean(
+      sale?.final_round &&
+        sale.standing &&
+        sale.standing.rank > 1 &&
+        sale.my_bid !== null &&
+        sale.bid_ceiling > sale.my_bid,
+    );
   }
   if (!deal.offer || !deal.committee) {
     return true;
@@ -97,13 +138,6 @@ function Cost({ points }: { points: number }) {
   );
 }
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((word) => word.charAt(0))
-    .join("")
-    .slice(0, 2);
-}
 
 /** The deal file: diligence, the offer, the committee and the bid. */
 export function DealRoom({ company }: { company: CompanyView }) {
@@ -128,6 +162,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
       },
   );
   const [confirmDrop, setConfirmDrop] = useState(false);
+  const [raise, setRaise] = useState(0);
 
   // When the saved offer changes under the draft (a save, or the closing), follow it.
   const savedKey = deal?.offer ? JSON.stringify(deal.offer) : null;
@@ -152,6 +187,22 @@ export function DealRoom({ company }: { company: CompanyView }) {
     () => game.previewOffer(company.i, offer),
     [offer, company],
   );
+
+  // The final round: what a higher bid would cost the fund. The sim prices both.
+  const myBid = company.sale?.my_bid ?? null;
+  const ceiling = company.sale?.bid_ceiling ?? 0;
+  const raiseEv =
+    myBid === null ? 0 : Math.min(Math.max(raise, myBid), Math.max(ceiling, myBid));
+  const raisePreview = useMemo(() => {
+    if (!deal?.offer || myBid === null) {
+      return null;
+    }
+    const at = (ev: number) =>
+      game.previewOffer(company.i, { ...deal.offer!, ev })?.financing.equity;
+    const before = at(myBid);
+    const after = at(raiseEv);
+    return before === undefined || after === undefined ? null : after - before;
+  }, [company, myBid, raiseEv]);
 
   if (!deal) {
     return null;
@@ -227,6 +278,17 @@ export function DealRoom({ company }: { company: CompanyView }) {
       : (returns?.irr_bps ?? 0) >= 1200
         ? "warn"
         : "bad";
+
+  const finalRound = Boolean(sale?.final_round);
+  const standing = sale?.standing ?? null;
+  const rankTone: Tone =
+    standing?.rank === 1 ? "good" : standing?.rank === 2 ? "warn" : "bad";
+  const canRaise = myBid !== null && ceiling > myBid;
+  const raiseStep = Math.max(1, Math.round((myBid ?? 0) * 0.0025));
+  const overApprovedBps = deal.approved_ev
+    ? Math.round((raiseEv / deal.approved_ev - 1) * 10000)
+    : 0;
+  const signedPct = (bps: number) => `${bps > 0 ? "+" : ""}${f.pct(bps, 1)}`;
 
   const bidBlock = locked
     ? null
@@ -491,7 +553,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
       {financing && returns ? (
         <>
           <section className="card">
-            <h3>{t("dealroom.structure")}</h3>
+            <h3>
+              {t("dealroom.structure")}
+              {deal.coinvest ? (
+                <Tag tone="accent" icon={<Icon name="handshake" size={12} />}>
+                  {t("dealroom.coinvest")}
+                </Tag>
+              ) : null}
+            </h3>
             <div className="dr-structure">
               <div className="stack dr-bars">
                 <StackBar
@@ -638,6 +707,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 </div>
               ) : null}
             </div>
+            {deal.coinvest ? (
+              <p className="dr-note" data-tone="accent">
+                {t("dealroom.coinvestNote")}
+              </p>
+            ) : null}
           </section>
 
           <section className="card">
@@ -728,11 +802,42 @@ export function DealRoom({ company }: { company: CompanyView }) {
             <ul className="dr-seats">
               {committee.votes.map((vote) => {
                 const name = t(`partner.${vote.partner}.name`);
+                const trust = Math.min(
+                  Math.max(view.partners[vote.partner]?.trust ?? 50, 0),
+                  100,
+                );
+                const lines = SEAT_LINES[vote.partner] ?? [];
                 return (
                   <li key={vote.partner} data-tone={STANCE_TONE[vote.stance]}>
-                    <span className="dr-avatar" aria-hidden>
-                      {initials(name)}
-                    </span>
+                    <div className="dr-seat-side">
+                      <span className="dr-portrait" aria-hidden>
+                        <Portrait
+                          partner={vote.partner}
+                          mood={vote.stance}
+                          size={52}
+                        />
+                      </span>
+                      <div
+                        className="chart meter dr-trust"
+                        data-tone={
+                          trust >= TRUST_HIGH
+                            ? "good"
+                            : trust <= TRUST_LOW
+                              ? "bad"
+                              : "ink"
+                        }
+                      >
+                        <div className="meter-head">
+                          <span>{t("dealroom.trust")}</span>
+                          <b>{f.integer(trust)}</b>
+                        </div>
+                        <div className="meter-track">
+                          <span style={{ width: `${trust}%` }} />
+                          <i style={{ left: `${TRUST_LOW}%` }} />
+                          <i style={{ left: `${TRUST_HIGH}%` }} />
+                        </div>
+                      </div>
+                    </div>
                     <div className="dr-seat-main">
                       <div className="dr-seat-head">
                         <span>
@@ -744,17 +849,31 @@ export function DealRoom({ company }: { company: CompanyView }) {
                         </Tag>
                       </div>
                       {vote.concerns.length ? (
-                        <div className="dr-found">
+                        <ul className="dr-says">
                           {vote.concerns.map((concern) => (
-                            <Tag key={concern}>{t(`concern.${concern}`)}</Tag>
+                            <li key={concern}>
+                              <Tag tone={STANCE_TONE[vote.stance]}>
+                                {t(`concern.${concern}`)}
+                              </Tag>
+                              {lines.includes(concern) ? (
+                                <q>
+                                  {t(`dealroom.say.${vote.partner}.${concern}`)}
+                                </q>
+                              ) : null}
+                            </li>
                           ))}
-                        </div>
+                        </ul>
+                      ) : vote.stance === "for" && vote.partner < SEAT_LINES.length ? (
+                        <q className="dr-say-for">
+                          {t(`dealroom.say.${vote.partner}.for`)}
+                        </q>
                       ) : null}
                     </div>
                   </li>
                 );
               })}
             </ul>
+            <p className="dr-note">{t("dealroom.trustRule")}</p>
           </>
         ) : (
           <p className="muted">
@@ -802,7 +921,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
       </section>
 
       {/* ---------- bid ---------- */}
-      <section className="card">
+      <section className="card" data-final={finalRound || undefined}>
         <h3>
           <Icon name="flag" size={14} />
           {t("dealroom.bid")}
@@ -810,6 +929,17 @@ export function DealRoom({ company }: { company: CompanyView }) {
             <Tag tone="good">{t("dealroom.bid.submitted")}</Tag>
           ) : null}
         </h3>
+        {finalRound && sale ? (
+          <div className="dr-final">
+            <Ring fraction={sale.months_left / STAGE_MONTHS} size={44} tone="bad">
+              {sale.months_left}
+            </Ring>
+            <div>
+              <strong>{t("dealroom.final")}</strong>
+              <span>{t("dealroom.finalNote")}</span>
+            </div>
+          </div>
+        ) : null}
         <div className="dr-bid">
           {sale ? (
             <Ring
@@ -845,7 +975,145 @@ export function DealRoom({ company }: { company: CompanyView }) {
             tone="good"
           />
         </div>
-        {locked ? (
+        {sale && sale.stage !== "exclusive" ? (
+          <div className="dr-rivals">
+            <span className="muted">{t("dealroom.rivals")}</span>
+            {sale.rivals.length ? (
+              sale.rivals.map((rival, index) => {
+                const style =
+                  rival.kind === "house" ? HOUSE_STYLES[rival.house] : undefined;
+                return (
+                  <span key={index} className="chip dr-rival">
+                    <Icon
+                      name={rival.kind === "strategic" ? "layers" : "fund"}
+                      size={13}
+                    />
+                    <b>{bidderName(t, view, rival)}</b>
+                    {style && style.aggression !== 0 ? (
+                      <small data-tone={style.aggression > 0 ? "bad" : "good"}>
+                        {t(
+                          style.aggression > 0
+                            ? "dealroom.style.aggressive"
+                            : "dealroom.style.disciplined",
+                        )}
+                      </small>
+                    ) : null}
+                    {style?.focus ? (
+                      <small
+                        data-tone={
+                          style.focus === company.sector ? "warn" : undefined
+                        }
+                      >
+                        {t("dealroom.style.focus", {
+                          sector: t(`sector.${style.focus}`),
+                        })}
+                      </small>
+                    ) : null}
+                  </span>
+                );
+              })
+            ) : (
+              <Tag tone="muted">{t("dealroom.rivalsNone")}</Tag>
+            )}
+          </div>
+        ) : null}
+        {sale?.reason === "strategic_review" ? (
+          <p className="dr-note" data-tone="warn">
+            {t("dealroom.listedNote")}
+          </p>
+        ) : null}
+        {finalRound && sale && !sale.bid_in ? (
+          <p className="dr-note" data-tone="bad">
+            {t("dealroom.finalNoBid")}
+          </p>
+        ) : null}
+        {finalRound && sale && myBid !== null ? (
+          <div className="dr-round">
+            <div className="dr-round-stats">
+              {standing ? (
+                <Stat
+                  label={t("dealroom.standing")}
+                  value={t("dealroom.standingValue", {
+                    rank: standing.rank,
+                    bidders: standing.bidders,
+                  })}
+                  tone={rankTone}
+                />
+              ) : null}
+              {standing ? (
+                <Stat
+                  label={t("dealroom.lead")}
+                  value={f.figure(standing.lead)}
+                />
+              ) : null}
+              <Stat label={t("dealroom.myBid")} value={f.money(myBid)} />
+            </div>
+            {canRaise ? (
+              <div className="dr-raise">
+                <div className="slider">
+                  <label htmlFor="dr-raise">{t("dealroom.raise")}</label>
+                  <output>{f.money(raiseEv)}</output>
+                  <input
+                    id="dr-raise"
+                    type="range"
+                    min={myBid}
+                    max={ceiling}
+                    step={raiseStep}
+                    value={raiseEv}
+                    onChange={(event) => setRaise(Number(event.target.value))}
+                  />
+                  <small className="dr-slider-notes">
+                    <b data-tone={raiseEv > deal.approved_ev ? "warn" : undefined}>
+                      {t("dealroom.raise.overApproved", {
+                        pct: signedPct(overApprovedBps),
+                      })}
+                    </b>
+                    {raisePreview !== null ? (
+                      <span>
+                        {t("dealroom.raise.equity", {
+                          amount: f.money(raisePreview),
+                        })}
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="dr-link"
+                      onClick={() => setRaise(ceiling)}
+                    >
+                      {t("dealroom.raise.max")}
+                    </button>
+                  </small>
+                  <small>
+                    {t("dealroom.raise.ceiling", { amount: f.money(ceiling) })}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={raiseEv <= myBid}
+                  onClick={() => {
+                    if (
+                      game.act({
+                        type: "raise_bid",
+                        company: company.i,
+                        ev: raiseEv,
+                      })
+                    ) {
+                      setRaise(0);
+                    }
+                  }}
+                >
+                  <Icon name="up" size={16} />
+                  {t("dealroom.raise.submit")}
+                </button>
+              </div>
+            ) : (
+              <p className="dr-note" data-tone="warn">
+                {t("dealroom.raise.exhausted")}
+              </p>
+            )}
+          </div>
+        ) : locked ? (
           <p className="dr-note" data-tone="good">
             {t("dealroom.bid.waiting", {
               ev: f.money(deal.offer?.ev ?? offer.ev),

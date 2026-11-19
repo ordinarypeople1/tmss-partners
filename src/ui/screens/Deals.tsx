@@ -21,6 +21,28 @@ const STAGE_ORDER: Record<Stage, number> = { exclusive: 0, bidding: 1, marketing
 const STAGE_MONTHS = 4;
 /** Rough share of a purchase the fund pays in equity. A guide for the "within reach" filter only. */
 const EQUITY_SHARE = 0.5;
+const HOME = "US";
+type CountryFilter = "" | "home" | "abroad";
+const COUNTRY_FILTERS: CountryFilter[] = ["", "home", "abroad"];
+
+function Lock({ size = 13 }: { size?: number }) {
+  return (
+    <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" />
+    </svg>
+  );
+}
+
+/** Region, with the country for companies abroad. */
+function placeText(t: Translate, row: CompanyRow): string {
+  return row.country === HOME ? t(`admin1.${row.admin1}`) : `${t(`admin1.${row.admin1}`)} · ${t(`country.${row.country}`)}`;
+}
+
+/** Second or worse in the final round, with room under the approved ceiling. */
+function canRaise(row: CompanyRow): boolean {
+  const sale = row.sale;
+  return Boolean(sale && sale.final_round && sale.standing && sale.standing.rank > 1 && sale.my_bid !== null && sale.bid_ceiling > sale.my_bid);
+}
 
 interface MyDeal {
   row: CompanyRow;
@@ -44,7 +66,7 @@ function dealStage(deal: DealView): DealStage {
 /** The one thing to do next on a deal file. */
 function nextAction(row: CompanyRow, deal: DealView): { id: string; tone: Tone } {
   if (deal.bid_submitted) {
-    return { id: "wait_result", tone: "muted" };
+    return canRaise(row) ? { id: "raise_bid", tone: "warn" } : { id: "wait_result", tone: "muted" };
   }
   if (deal.committee?.outcome === "approved") {
     const biddable = row.sale?.stage === "bidding" || row.sale?.stage === "exclusive";
@@ -88,6 +110,11 @@ export function Deals() {
   const [sector, setSector] = useState("");
   const [stages, setStages] = useState<Stage[]>([]);
   const [reach, setReach] = useState(false);
+  const [country, setCountry] = useState<CountryFilter>("");
+  const [finalOnly, setFinalOnly] = useState(false);
+  /** Deals abroad open at the rank of principal. */
+  const abroadLocked = view.career.rank === "vice_president";
+  const insightOf = (id: string) => view.insight[view.economy.sectors.findIndex((item) => item.id === id)] ?? 0;
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; down: boolean }>({ key: "stage", down: false });
 
@@ -118,6 +145,12 @@ export function Deals() {
         return false;
       }
       if (reach && row.ev[0] * EQUITY_SHARE > limit) {
+        return false;
+      }
+      if (country !== "" && (row.country === HOME) !== (country === "home")) {
+        return false;
+      }
+      if (finalOnly && !row.sale?.final_round) {
         return false;
       }
       if (needle && !row.name.toLowerCase().includes(needle)) {
@@ -157,7 +190,7 @@ export function Deals() {
       const order = typeof left === "string" ? left.localeCompare(String(right)) : left - Number(right);
       return (sort.down ? -order : order) || a.i - b.i;
     });
-  }, [forSale, sector, stages, reach, limit, query, funnel, stageOf, sort, t]);
+  }, [forSale, sector, stages, reach, country, finalOnly, limit, query, funnel, stageOf, sort, t]);
 
   const funnelStages = FUNNEL.map((id) => ({
     id,
@@ -166,7 +199,10 @@ export function Deals() {
   }));
   const slotsFull = view.deals.length >= view.limits.deals;
   const periodLeft = Math.max(monthsBetween(view.date, view.fund.investment_period_ends), 0);
-  const filtered = sector !== "" || stages.length > 0 || reach || query.trim() !== "" || funnel !== null;
+  const filtered = sector !== "" || stages.length > 0 || reach || country !== "" || finalOnly || query.trim() !== "" || funnel !== null;
+  const abroadCount = forSale.filter((row) => row.country !== HOME).length;
+  const finalCount = forSale.filter((row) => row.sale?.final_round).length;
+  const myFinal = mine.filter((item) => item.row.sale?.final_round).length;
 
   const header = (key: SortKey, label: string, numeric = false) => (
     <th className={numeric ? "num" : undefined} aria-sort={sort.key === key ? (sort.down ? "descending" : "ascending") : undefined}>
@@ -202,6 +238,13 @@ export function Deals() {
             {t("deals.funnel.title")}
           </h2>
           <Funnel stages={funnelStages} active={funnel ?? undefined} onSelect={(id) => setFunnel(funnel === id ? null : (id as FunnelStage))} />
+          {myFinal > 0 ? (
+            <div className="row deals-funnel-note">
+              <Tag tone="bad" icon={<Icon name="gavel" size={12} />}>
+                {t("deals.final.mine", { count: myFinal })}
+              </Tag>
+            </div>
+          ) : null}
         </section>
         <section className="card deals-capacity">
           <div className="deals-slots">
@@ -325,12 +368,32 @@ export function Deals() {
               );
             })}
           </div>
+          <div className="deals-chips" role="group" aria-label={t("deals.filter.country")}>
+            {COUNTRY_FILTERS.map((item) => (
+              <button key={item || "all"} type="button" className="deals-chip" aria-pressed={country === item} onClick={() => setCountry(item)}>
+                {item === "abroad" && abroadLocked ? <Lock size={12} /> : null}
+                {t(`deals.filter.country.${item || "all"}`)}
+                <small>{item === "" ? forSale.length : item === "home" ? forSale.length - abroadCount : abroadCount}</small>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="deals-chip" data-kind="final" aria-pressed={finalOnly} onClick={() => setFinalOnly(!finalOnly)}>
+            <Icon name="gavel" size={13} />
+            {t("deals.final.tag")}
+            <small>{finalCount}</small>
+          </button>
           <button type="button" className="deals-chip" aria-pressed={reach} onClick={() => setReach(!reach)} title={t("deals.filter.reachHint")}>
             <Icon name="fund" size={13} />
             {t("deals.filter.reach")}
           </button>
           <small className="muted">{t("deals.filter.reachHint")}</small>
         </div>
+        {abroadLocked && abroadCount > 0 && country !== "home" ? (
+          <p className="deals-lock-note">
+            <Lock size={13} />
+            <span>{t("country.locked")}</span>
+          </p>
+        ) : null}
         {forSale.length === 0 ? (
           <div className="empty">
             <Icon name="search" size={26} />
@@ -349,6 +412,7 @@ export function Deals() {
                     <Icon name="eye" size={14} title={t("deals.col.watch")} />
                   </th>
                   {header("name", t("deals.col.company"))}
+                  <th>{t("deals.col.country")}</th>
                   {header("sector", t("term.sector"))}
                   <th>{t("term.owner")}</th>
                   <th>{t("deals.col.reason")}</th>
@@ -368,8 +432,12 @@ export function Deals() {
                     return null;
                   }
                   const mineStage = stageOf.get(row.i);
+                  const abroad = row.country !== HOME;
+                  const locked = abroad && abroadLocked;
+                  const insight = insightOf(row.sector);
+                  const listed = sale.reason === "strategic_review";
                   return (
-                    <tr key={row.i} aria-selected={game.selected === row.i} onClick={() => game.select(row.i)}>
+                    <tr key={row.i} aria-selected={game.selected === row.i} data-locked={locked ? "true" : undefined} onClick={() => game.select(row.i)}>
                       <td>
                         <button
                           type="button"
@@ -390,14 +458,37 @@ export function Deals() {
                         <span className="sub">{t(`admin1.${row.admin1}`)}</span>
                       </td>
                       <td>
+                        {abroad ? (
+                          <span className="deals-country" data-locked={locked ? "true" : undefined} title={locked ? t("country.locked") : undefined}>
+                            {locked ? <Lock size={12} /> : null}
+                            {t(`country.${row.country}`)}
+                          </span>
+                        ) : (
+                          <span className="muted">{t(`country.${row.country}`)}</span>
+                        )}
+                      </td>
+                      <td>
                         <span className="deals-sector">
                           <Icon name={row.sector} size={14} />
                           {t(`sector.${row.sector}`)}
+                          {insight > 0 ? (
+                            <span className="deals-insight" title={t("deals.insight", { months: insight })}>
+                              <Icon name="search" size={11} title={t("deals.insight", { months: insight })} />
+                              {insight}
+                            </span>
+                          ) : null}
                         </span>
                       </td>
                       <td>{ownerText(t, view, row)}</td>
                       <td>
-                        <Tag tone={sale.reason === "distress" ? "bad" : "muted"}>{t(`reason.${sale.reason}`)}</Tag>
+                        {listed ? (
+                          <span className="deals-reason">
+                            <Tag tone="warn">{t("reason.strategic_review")}</Tag>
+                            <span className="sub">{t("deals.listed.premium")}</span>
+                          </span>
+                        ) : (
+                          <Tag tone={sale.reason === "distress" ? "bad" : "muted"}>{t(`reason.${sale.reason}`)}</Tag>
+                        )}
                       </td>
                       <td>
                         <span className="deals-stage">
@@ -408,6 +499,12 @@ export function Deals() {
                             {t(`stage.${sale.stage}`)}
                             <span className="sub">{t("format.months", { months: sale.months_left })}</span>
                           </span>
+                          {sale.final_round ? (
+                            <span className="deals-final">
+                              <Icon name="gavel" size={11} />
+                              {t("deals.final.tag")}
+                            </span>
+                          ) : null}
                         </span>
                       </td>
                       <td>
@@ -430,6 +527,14 @@ export function Deals() {
                       <td className="num">
                         {mineStage ? (
                           <Tag tone="accent">{t(`deals.column.${mineStage}`)}</Tag>
+                        ) : locked ? (
+                          <span className="deals-locked">
+                            <button type="button" className="btn small" disabled title={t("country.locked")}>
+                              <Lock size={12} />
+                              {t("deals.nda")}
+                            </button>
+                            <span className="sub">{t("deals.lockedShort")}</span>
+                          </span>
                         ) : (
                           <button
                             type="button"
@@ -487,6 +592,8 @@ function DealCard({ item }: { item: MyDeal }) {
   const financing = deal.offer ? deal.preview?.financing : undefined;
   const premium = financing ? financing.price_to_model_bps - 10_000 : 0;
   const outcome = deal.committee?.outcome;
+  const standing = sale?.standing ?? null;
+  const raise = canRaise(row);
 
   return (
     <button
@@ -494,6 +601,7 @@ function DealCard({ item }: { item: MyDeal }) {
       className="deals-card"
       aria-pressed={game.selected === row.i}
       data-urgent={sale && sale.months_left <= 1 ? "true" : undefined}
+      data-final={sale?.final_round ? "true" : undefined}
       onClick={() => game.select(row.i)}
     >
       <span className="deals-card-head">
@@ -502,7 +610,7 @@ function DealCard({ item }: { item: MyDeal }) {
         </span>
         <span className="deals-card-name">
           <b>{row.name}</b>
-          <small>{`${t(`sector.${row.sector}`)} · ${t(`admin1.${row.admin1}`)}`}</small>
+          <small>{`${t(`sector.${row.sector}`)} · ${placeText(t, row)}`}</small>
         </span>
         {sale ? (
           <Ring fraction={sale.months_left / STAGE_MONTHS} size={28} tone={monthsTone(sale.months_left)}>
@@ -519,10 +627,50 @@ function DealCard({ item }: { item: MyDeal }) {
         ) : (
           <Tag tone="muted">{t("deals.card.noSale")}</Tag>
         )}
+        {sale?.final_round ? (
+          <span className="deals-final" data-size="card">
+            <Icon name="gavel" size={12} />
+            {t("deals.final.tag")}
+          </span>
+        ) : null}
         <Tag tone="muted" icon={<Icon name="flag" size={12} />}>
           {t("deals.card.rivals", { count: sale?.rivals.length ?? 0 })}
         </Tag>
       </span>
+
+      {row.country !== HOME || sale?.reason === "strategic_review" || deal.coinvest ? (
+        <span className="deals-card-row">
+          {row.country !== HOME ? <Tag icon={<Icon name="map" size={12} />}>{t(`country.${row.country}`)}</Tag> : null}
+          {sale?.reason === "strategic_review" ? <Tag tone="warn">{`${t("owner.public")} · ${t("deals.listed.premium")}`}</Tag> : null}
+          {deal.coinvest ? (
+            <Tag tone="accent" icon={<Icon name="handshake" size={12} />}>
+              {t("deals.card.coinvest")}
+            </Tag>
+          ) : null}
+        </span>
+      ) : null}
+
+      {standing ? (
+        <span className="deals-standing" data-tone={standing.rank === 1 ? "good" : standing.rank === 2 ? "warn" : "bad"}>
+          <b>{t("deals.standing", { rank: standing.rank, bidders: standing.bidders })}</b>
+          <span>
+            <small>{t("deals.standing.lead")}</small>
+            {f.figure(standing.lead)}
+          </span>
+          {sale && sale.my_bid !== null ? (
+            <span>
+              <small>{t("deals.standing.mine")}</small>
+              {f.money(sale.my_bid)}
+            </span>
+          ) : null}
+          {raise && sale ? (
+            <span>
+              <small>{t("deals.standing.ceiling")}</small>
+              {f.money(sale.bid_ceiling)}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
 
       <span className="deals-card-row">
         <span className="deals-streams">

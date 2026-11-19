@@ -504,5 +504,11 @@
   "language.ko": "한국어",
   "language.en": "English",
   "language.ja": "日本語",
-  "language.zh-Hans": "简体中文"
+  "language.zh-Hans": "简体中文",
+  "money.usd.b": "{value, number, ::.##}십억 달러",
+  "money.usd.m": "{value, number, ::.#}백만 달러",
+  "money.usd.k": "{value, number, ::integer}천 달러",
+  "money.short.b": "{value, number, ::.##}십억",
+  "money.short.m": "{value, number, ::.#}백만",
+  "money.short.k": "{value, number, ::integer}천"
 }

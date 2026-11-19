@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useT } from "../../i18n/useT";
 import type { CompanyView, HoldingView } from "../../sim/types";
 import { LineChart, Meter, Stat, StackBar, Tag } from "../charts";
@@ -8,6 +8,22 @@ import { Icon } from "../icons";
 import "./FundScreen.css";
 
 type Held = CompanyView & { holding: HoldingView };
+
+/**
+ * What an investor commits to a successor fund, by satisfaction. Display of
+ * the thresholds behind `view.next_fund_estimate`: see `next_fund_size` in crates/sim-core/src/story.rs.
+ */
+const REUP: { from: number; pct: number; tone: "good" | "accent" | "warn" | "bad" }[] = [
+  { from: 70, pct: 150, tone: "good" },
+  { from: 55, pct: 110, tone: "accent" },
+  { from: 40, pct: 70, tone: "warn" },
+  { from: 0, pct: 0, tone: "bad" },
+];
+/** A first fund under the player's own name raises this share of the estimate (same file). */
+const OWN_HOUSE_PCT = 60;
+const COMMIT_PICKS = [10, 25, 50];
+/** Slider step for the personal commitment, thousand USD. */
+const COMMIT_STEP = 10;
 
 /** Total marked equity and cost of today's holdings at each quarter a mark was taken. */
 function markSeries(holdings: Held[], month: number) {
@@ -81,6 +97,11 @@ export function FundScreen() {
     [view.messages],
   );
   const bestMoic = Math.max(...fund.realized.map((deal) => deal.moic_millis), 3000);
+
+  const [commit, setCommit] = useState(0);
+  const commitAmount = Math.min(commit, career.wealth);
+  const raiseScale = Math.max(fund.committed, view.next_fund_estimate, 1);
+  const raiseShare = Math.round((view.next_fund_estimate / (fund.committed || 1)) * 10000);
 
   return (
     <div className="fundscreen stack">
@@ -206,6 +227,138 @@ export function FundScreen() {
               {t("fundscreen.harvestPeriod")}
             </li>
           </ul>
+        </div>
+      </section>
+
+      <section className="grid fund-investors">
+        <div className="card stack">
+          <div className="row between">
+            <h2 className="card-title">
+              <Icon name="handshake" size={16} />
+              {t("fundscreen.lps")}
+            </h2>
+            <ul className="reup-legend">
+              {REUP.map((step) => (
+                <li key={step.from} data-tone={step.tone}>
+                  <i />
+                  {step.pct > 0
+                    ? t("fundscreen.reup.rule", { from: step.from, pct: step.pct })
+                    : t("fundscreen.reup.ruleNone", { below: REUP[REUP.length - 2].from })}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <ul className="lp-list">
+            {view.lps.map((lp) => {
+              const step = REUP.find((item) => lp.satisfaction >= item.from) ?? REUP[REUP.length - 1];
+              return (
+                <li key={lp.kind}>
+                  <div className="lp-who">
+                    <strong>{t(`lp.${lp.kind}`)}</strong>
+                    <small>{t(`lp.${lp.kind}.cares`)}</small>
+                  </div>
+                  <div className="lp-share">
+                    <b>{f.pct(lp.share_bps, 0)}</b>
+                    <small>{f.money(Math.round((fund.committed * lp.share_bps) / 10000))}</small>
+                  </div>
+                  <div className="chart meter lp-mood" data-tone={step.tone}>
+                    <div className="meter-head">
+                      <span>{t("fundscreen.satisfaction")}</span>
+                      <b>{f.integer(lp.satisfaction)}</b>
+                    </div>
+                    <div className="meter-track">
+                      <span style={{ width: `${Math.min(Math.max(lp.satisfaction, 0), 100)}%` }} />
+                      {REUP.slice(0, -1).map((item) => (
+                        <i key={item.from} style={{ left: `${item.from}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                  <Tag tone={step.tone}>
+                    {step.pct > 0 ? t("fundscreen.reup", { pct: step.pct }) : t("fundscreen.reup.none")}
+                  </Tag>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="stack next-fund">
+            <Meter
+              label={t("fundscreen.thisFund")}
+              text={f.money(fund.committed)}
+              value={fund.committed}
+              max={raiseScale}
+              tone="ink"
+            />
+            <Meter
+              label={t("fundscreen.nextFund")}
+              text={`${f.money(view.next_fund_estimate)} · ${f.pct(raiseShare, 0)}`}
+              value={view.next_fund_estimate}
+              max={raiseScale}
+              marker={fund.committed}
+              tone={view.next_fund_estimate >= fund.committed ? "good" : "warn"}
+            />
+          </div>
+          <p className="muted">{t("fundscreen.nextFundNote", { pct: OWN_HOUSE_PCT })}</p>
+        </div>
+
+        <div className="card stack">
+          <div className="row between">
+            <h2 className="card-title">
+              <Icon name="fund" size={16} />
+              {t("fundscreen.gp")}
+            </h2>
+            <Tag tone={fund.investing ? "good" : "muted"}>
+              {fund.investing ? t("fundscreen.gp.open") : t("fundscreen.gp.closed")}
+            </Tag>
+          </div>
+          <div className="grid cols-2">
+            <Stat
+              label={t("fundscreen.gp.committed")}
+              value={f.money(career.gp_commit)}
+              tone={career.gp_commit > 0 ? "good" : undefined}
+              hint={t("fundscreen.gp.atMultiple", { tvpi: f.multiple(fund.tvpi_millis, 2) })}
+            />
+            <Stat label={t("fundscreen.gp.wealth")} value={f.money(career.wealth)} />
+          </div>
+          <div className="slider">
+            <label htmlFor="gp-commit">{t("fundscreen.gp.amount")}</label>
+            <output htmlFor="gp-commit">{f.money(commitAmount)}</output>
+            <input
+              id="gp-commit"
+              type="range"
+              min={0}
+              max={Math.max(career.wealth, 0)}
+              step={COMMIT_STEP}
+              value={commitAmount}
+              disabled={!fund.investing || career.wealth <= 0}
+              onChange={(event) => setCommit(Number(event.target.value))}
+            />
+          </div>
+          <div className="row gp-picks">
+            {COMMIT_PICKS.map((pct) => (
+              <button
+                key={pct}
+                type="button"
+                className="btn small"
+                disabled={!fund.investing || career.wealth <= 0}
+                onClick={() => setCommit(Math.floor((career.wealth * pct) / 100))}
+              >
+                {`${pct}%`}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="btn primary"
+              disabled={!fund.investing || commitAmount <= 0}
+              onClick={() => {
+                if (game.act({ type: "commit_personal", amount: commitAmount })) {
+                  setCommit(0);
+                }
+              }}
+            >
+              {t("fundscreen.gp.commit")}
+            </button>
+          </div>
+          <p className="muted">{t("fundscreen.gp.note")}</p>
         </div>
       </section>
 

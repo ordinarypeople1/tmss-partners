@@ -1,7 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
 import "./Portfolio.css";
 import { useT, type Translate } from "../../i18n/useT";
-import type { CompanyView, Financials, HoldingView } from "../../sim/types";
+import type { CompanyView, Financials, HoldingView, ObjectiveKind, Trait } from "../../sim/types";
 import { Meter, Ring, SERIES, StackBar, Stat, Tag } from "../charts";
 import { useFormat, type Format } from "../format";
 import { useGame } from "../game";
@@ -15,6 +15,30 @@ interface Item {
   financials: Financials | undefined;
   /** Mark plus dividends received, less cost. */
   gain: number;
+  /** Decisions about the company still waiting in the inbox. */
+  pending: number;
+}
+
+const HOME = "US";
+const MAX_TRAITS = 2;
+/** The chair's objectives that the portfolio moves. */
+const PORTFOLIO_OBJECTIVES: ObjectiveKind[] = ["finish_initiatives", "clean_covenants", "exit_count"];
+
+function TraitTags({ traits }: { traits: Trait[] }) {
+  const t = useT();
+  if (traits.length === 0) {
+    return null;
+  }
+  return (
+    <>
+      {traits.slice(0, MAX_TRAITS).map((trait) => (
+        <span key={trait} className="pf-trait" title={t(`trait.${trait}.effect`)}>
+          {t(`trait.${trait}`)}
+        </span>
+      ))}
+      {traits.length > MAX_TRAITS ? <span className="pf-trait" data-more="true">{`+${traits.length - MAX_TRAITS}`}</span> : null}
+    </>
+  );
 }
 
 interface Alert {
@@ -24,8 +48,11 @@ interface Alert {
   icon: string;
 }
 
-function alertsOf(t: Translate, holding: HoldingView): Alert[] {
+function alertsOf(t: Translate, holding: HoldingView, pending: number): Alert[] {
   const alerts: Alert[] = [];
+  if (pending > 0) {
+    alerts.push({ key: "pending", tone: "warn", text: t("portfolio.alert.pending", { count: pending }), icon: "inbox" });
+  }
   if (holding.breaches > 0) {
     alerts.push({ key: "breach", tone: "bad", text: t("portfolio.alert.breach", { count: holding.breaches }), icon: "alert" });
   }
@@ -70,7 +97,7 @@ function HoldingCard({ item, active, onOpen }: { item: Item; active: boolean; on
   const t = useT();
   const f = useFormat();
   const { company, holding, financials } = item;
-  const alerts = alertsOf(t, holding);
+  const alerts = alertsOf(t, holding, item.pending);
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -102,6 +129,11 @@ function HoldingCard({ item, active, onOpen }: { item: Item; active: boolean; on
           <span className="muted">
             {t(`sector.${company.sector}`)} · {t(`admin1.${company.admin1}`)}
           </span>
+          <span className="pf-ceo">
+            <Icon name="career" size={12} />
+            {t("portfolio.ceo", { name: company.ceo.name })}
+            {company.country !== HOME ? <Tag icon={<Icon name="map" size={11} />}>{t(`country.${company.country}`)}</Tag> : null}
+          </span>
         </div>
         <Tag tone={moicTone(holding.moic_millis)}>
           {t("term.moic")} {f.multiple(holding.moic_millis, 2)}
@@ -121,6 +153,12 @@ function HoldingCard({ item, active, onOpen }: { item: Item; active: boolean; on
           </Tag>
         </div>
       </div>
+
+      {company.traits.length > 0 ? (
+        <div className="row pf-traits">
+          <TraitTags traits={company.traits} />
+        </div>
+      ) : null}
 
       <ul className="pf-bridge">
         {bridge.map((part) => (
@@ -196,7 +234,7 @@ const COLUMNS: Column[] = [
     key: "alerts",
     label: "portfolio.col.alerts",
     numeric: false,
-    sort: (item) => item.holding.breaches * 4 + (item.holding.strike ? 2 : 0) + (item.holding.shortfall ? 2 : 0) + (item.holding.exit ? 1 : 0),
+    sort: (item) => item.pending * 8 + item.holding.breaches * 4 + (item.holding.strike ? 2 : 0) + (item.holding.shortfall ? 2 : 0) + (item.holding.exit ? 1 : 0),
   },
 ];
 
@@ -228,8 +266,8 @@ function HoldingsTable({ items, selected, onOpen }: { items: Item[]; selected: n
           </tr>
         </thead>
         <tbody>
-          {sorted.map(({ company, holding, financials }) => {
-            const alerts = alertsOf(t, holding);
+          {sorted.map(({ company, holding, financials, pending }) => {
+            const alerts = alertsOf(t, holding, pending);
             const ebitda = financials?.ttm_ebitda;
             const growth = ebitda !== undefined && holding.entry_ebitda > 0 ? Math.round(((ebitda - holding.entry_ebitda) * 10000) / holding.entry_ebitda) : null;
             return (
@@ -238,12 +276,18 @@ function HoldingsTable({ items, selected, onOpen }: { items: Item[]; selected: n
                   <button type="button" className="pf-link" onClick={() => onOpen(company.i)}>
                     {company.name}
                   </button>
-                  <span className="sub">{t(`admin1.${company.admin1}`)}</span>
+                  <span className="sub">
+                    {company.country === HOME ? t(`admin1.${company.admin1}`) : `${t(`admin1.${company.admin1}`)} · ${t(`country.${company.country}`)}`}
+                  </span>
+                  <span className="sub">{t("portfolio.ceo", { name: company.ceo.name })}</span>
                 </td>
                 <td>
                   <span className="pf-cell-sector">
                     <Icon name={company.sector} size={14} />
                     {t(`sector.${company.sector}`)}
+                  </span>
+                  <span className="row pf-traits">
+                    <TraitTags traits={company.traits} />
                   </span>
                 </td>
                 <td className="num">{t("format.months", { months: holding.months_held })}</td>
@@ -366,7 +410,13 @@ export function Portfolio() {
     }
     const company = game.peek(row.i);
     if (company?.holding) {
-      items.push({ company, holding: company.holding, financials: company.financials, gain: company.holding.value + company.holding.dividends - company.holding.cost });
+      items.push({
+        company,
+        holding: company.holding,
+        financials: company.financials,
+        gain: company.holding.value + company.holding.dividends - company.holding.cost,
+        pending: view.messages.filter((message) => message.company === row.i && message.decision !== null && message.decision.chosen === null).length,
+      });
     }
   }
 
@@ -374,6 +424,8 @@ export function Portfolio() {
   const worth = items.reduce((sum, item) => sum + item.holding.value + item.holding.dividends, 0);
   const gain = worth - cost;
   const blended = cost > 0 ? Math.round((worth * 1000) / cost) : null;
+  const objectives = view.objectives.filter((objective) => PORTFOLIO_OBJECTIVES.includes(objective.kind));
+  const pendingTotal = items.reduce((sum, item) => sum + item.pending, 0);
 
   return (
     <div className="portfolio stack">
@@ -402,6 +454,50 @@ export function Portfolio() {
         <Stat label={t("portfolio.stat.moic")} value={blended === null ? "–" : f.multiple(blended, 2)} tone={blended === null ? undefined : moicTone(blended)} />
         <Stat label={t("portfolio.stat.distributed")} value={f.money(view.fund.distributed)} tone={view.fund.distributed > 0 ? "good" : undefined} />
       </section>
+
+      {objectives.length > 0 || pendingTotal > 0 ? (
+        <section className="card pf-year">
+          <h2>
+            <Icon name="flag" size={15} />
+            {t("portfolio.year.title", { year: view.date.year })}
+          </h2>
+          <div className="pf-year-items">
+            {objectives.map((objective) => {
+              // `clean_covenants` holds while nothing has gone wrong; the others count up to a target.
+              const clean = objective.kind === "clean_covenants";
+              return (
+                <div key={objective.kind} className="pf-year-item" data-met={objective.met ? "true" : undefined}>
+                  <span className="pf-year-label">
+                    <Icon name={objective.met ? "check" : clean ? "alert" : "clock"} size={13} />
+                    {t(`objective.${objective.kind}`, { target: objective.target, amount: f.money(objective.target) })}
+                  </span>
+                  {clean ? (
+                    <Tag tone={objective.met ? "good" : "bad"}>
+                      {objective.met ? t("portfolio.year.clean") : t("portfolio.year.breached", { count: objective.progress })}
+                    </Tag>
+                  ) : (
+                    <Meter
+                      value={Math.min(objective.progress, objective.target)}
+                      max={objective.target || 1}
+                      tone={objective.met ? "good" : "accent"}
+                      text={`${f.integer(objective.progress)}/${f.integer(objective.target)}`}
+                    />
+                  )}
+                </div>
+              );
+            })}
+            {pendingTotal > 0 ? (
+              <button type="button" className="pf-year-item pf-year-pending" onClick={() => game.go("inbox")}>
+                <span className="pf-year-label">
+                  <Icon name="inbox" size={13} />
+                  {t("portfolio.year.pending")}
+                </span>
+                <Tag tone="warn">{t("portfolio.alert.pending", { count: pendingTotal })}</Tag>
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {items.length === 0 ? (
         <section className="card empty pf-empty">

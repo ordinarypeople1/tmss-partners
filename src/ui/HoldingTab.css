@@ -190,3 +190,86 @@
 .hd-picks {
   margin: 8px 0 10px;
 }
+
+.hd-pending {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--warn);
+  border-radius: 10px;
+  background: var(--warn-soft);
+}
+.hd-pending > .icon {
+  flex: none;
+  color: var(--warn);
+}
+.hd-pending ul {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 4px;
+  min-width: 0;
+}
+.hd-pending li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.hd-ceo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.hd-portrait {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--line-soft);
+}
+.hd-portrait > i {
+  color: var(--ink-soft);
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 700;
+}
+.hd-portrait > :not(i) {
+  position: absolute;
+  inset: 0;
+  background: var(--line-soft);
+}
+.hd-ceo-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.hd-ceo-main > b {
+  font-size: 1.02rem;
+}
+.hd-ceo-tags {
+  gap: 4px;
+}
+.hd-traits {
+  display: grid;
+  gap: 6px;
+}
+.hd-traits li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 0.84rem;
+}
+.hd-ownership {
+  margin-top: 12px;
+}
+.hd-item-meta:empty {
+  display: none;
+}

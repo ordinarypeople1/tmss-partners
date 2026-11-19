@@ -1,0 +1,356 @@
+/* Full-screen cards for a close, an exit, a promotion, a fund's end; and the achievement badges. */
+
+.moment-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+  background: rgb(31 41 37 / 62%);
+}
+.moment {
+  display: grid;
+  gap: 16px;
+  width: min(520px, 100%);
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--raised);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 35%);
+}
+.moment[data-kind="loss"] {
+  border-color: var(--bad);
+  background: var(--panel);
+}
+.moment-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.moment-more {
+  margin-right: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.moment-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.moment-head h2 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.moment-kicker,
+.moment-date {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.moment-icon,
+.moment-portrait {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.moment-portrait {
+  overflow: hidden;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.moment-icon[data-tone="good"] {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.moment-icon[data-tone="bad"] {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.moment-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--gap);
+}
+.moment-after {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--panel);
+}
+.moment-verdict {
+  padding-left: 12px;
+  border-left: 3px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.moment-verdict[data-tone="good"] {
+  border-left-color: var(--good);
+}
+.moment-verdict[data-tone="bad"] {
+  border-left-color: var(--bad);
+}
+
+/* The tombstone: the announcement a house prints when a deal closes. */
+.moment[data-kind="deal"] {
+  width: min(440px, 100%);
+  padding: 8px;
+  background: var(--panel);
+}
+.tombstone {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 22px 22px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  outline: 1px solid var(--ink);
+  outline-offset: -6px;
+  background: var(--raised);
+  text-align: center;
+}
+.moment[data-kind="deal"] .moment-foot {
+  padding: 4px 8px 8px;
+}
+.tombstone-rule {
+  width: 56px;
+  height: 2px;
+  background: var(--ink);
+}
+.tombstone-house {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+.tombstone-verb {
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+.tombstone-company {
+  font-size: 1.9rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.tombstone-where {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.tombstone-value {
+  display: grid;
+  gap: 2px;
+}
+.tombstone-value small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.tombstone-value b {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.tombstone .stack-bar {
+  width: 100%;
+  text-align: left;
+}
+.tombstone-fund {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* The exit scorecard and the fund report share the big-number row. */
+.scorecard,
+.promotion,
+.fund-report,
+.loss {
+  display: grid;
+  gap: 14px;
+}
+.scorecard-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--gap);
+  align-items: stretch;
+}
+.scorecard-moic {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--line-soft);
+}
+.scorecard-moic small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scorecard-moic b {
+  font-size: 3rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.scorecard-moic[data-tone="good"] {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.scorecard-moic[data-tone="bad"] {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.scorecard-side {
+  display: grid;
+  gap: 10px;
+  align-content: center;
+}
+.fund-report-next {
+  font-size: 1.3rem;
+}
+
+.promotion-rank {
+  color: var(--accent);
+  font-size: 2.2rem !important;
+}
+.promotion-perks {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+}
+.promotion-perks li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px 16px 56px;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+}
+.promotion-perks span {
+  color: var(--ink-soft);
+}
+.promotion-perks s {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.promotion-perks b {
+  color: var(--ink);
+  font-size: 1.1rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.promotion-perks li[data-up] b,
+.promotion-perks li[data-up] svg {
+  color: var(--good);
+}
+.promotion-unlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: #8f3a1b;
+  font-weight: 600;
+}
+
+/* Achievement badges: top right, a few seconds each. */
+.moment-badges {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 46;
+  display: grid;
+  gap: 8px;
+  width: min(300px, calc(100vw - 28px));
+}
+.moment-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--good);
+  border-radius: 12px;
+  background: var(--raised);
+  box-shadow: var(--shadow);
+  text-align: left;
+  cursor: pointer;
+}
+.moment-badge-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--good);
+  color: #fff;
+}
+.moment-badge-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.moment-badge-text small {
+  color: var(--good);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.moment-badge-text span {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 480px) {
+  .scorecard-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .moment-backdrop {
+    animation: moment-fade 160ms ease-out;
+  }
+  .moment {
+    animation: moment-rise 260ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  }
+  .moment-badge {
+    animation: moment-slide 280ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  }
+}
+@keyframes moment-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes moment-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+@keyframes moment-slide {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}

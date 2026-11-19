@@ -1,13 +1,36 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "./HoldingTab.css";
 import { useT } from "../i18n/useT";
-import type { Budget, CompanyView, ExitRoute, Financials, HoldingView } from "../sim/types";
-import { Bridge, Donut, Gauge, LineChart, Meter, Ring, SERIES, Stat, Tag } from "./charts";
+import type { Budget, CompanyView, ExitRoute, Financials, HoldingView, InitiativeKind, Trait } from "../sim/types";
+import { Bridge, Donut, Gauge, LineChart, Meter, Rating, Ring, SERIES, Stat, Tag } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { describeMessage } from "./messages";
+import { Portrait } from "./Portrait";
 
 const ROUTES: ExitRoute[] = ["strategic", "secondary", "ipo"];
+const HOME = "US";
+/** Traits that change what an initiative does. The rules are sim-core's; this only points at the lever. */
+const LEVER_TRAIT: Partial<Record<InitiativeKind, { trait: Trait; tone: "good" | "bad" }>> = {
+  pricing_review: { trait: "brand_strength", tone: "good" },
+  sales_expansion: { trait: "underinvested_sales", tone: "good" },
+  headcount_reduction: { trait: "family_workforce", tone: "bad" },
+};
+
+/** A tag on a lever that one of the company's traits changes. */
+function LeverMark({ company, kind }: { company: CompanyView; kind: InitiativeKind }) {
+  const t = useT();
+  const lever = LEVER_TRAIT[kind];
+  if (!lever || !company.traits.includes(lever.trait)) {
+    return null;
+  }
+  return (
+    <Tag tone={lever.tone} icon={<Icon name={lever.tone === "bad" ? "alert" : "up"} size={12} />}>
+      {t(`holding.lever.${lever.trait}`)}
+    </Tag>
+  );
+}
 
 interface SectionProps {
   company: CompanyView;
@@ -101,6 +124,91 @@ function AmountField({ id, label, value, onChange }: { id: string; label: string
   );
 }
 
+/** Decisions about this company that still wait in the inbox. */
+function PendingBanner({ company }: { company: CompanyView }) {
+  const t = useT();
+  const f = useFormat();
+  const { view, go } = useGame();
+  const pending = view.messages.filter((message) => message.company === company.i && message.decision !== null && message.decision.chosen === null);
+  if (pending.length === 0) {
+    return null;
+  }
+  return (
+    <section className="hd-pending" role="status">
+      <Icon name="alert" size={18} />
+      <ul>
+        {pending.map((message) => {
+          const left = message.decision ? message.decision.due_month - view.month : 0;
+          return (
+            <li key={message.id}>
+              <b>{describeMessage(t, f, view, message).title}</b>
+              <Tag tone={left <= 1 ? "bad" : "warn"} icon={<Icon name="clock" size={12} />}>
+                {t("holding.pending.due", { months: Math.max(left, 0) })}
+              </Tag>
+            </li>
+          );
+        })}
+      </ul>
+      <button type="button" className="btn primary small" onClick={() => go("inbox")}>
+        <Icon name="inbox" size={14} />
+        {t("holding.pending.inbox")}
+      </button>
+    </section>
+  );
+}
+
+/** Who runs the company and what kind of company it is. */
+function PeopleCard({ company }: SectionProps) {
+  const t = useT();
+  const { ceo } = company;
+  return (
+    <section className="card hd-card">
+      <h2>
+        <Icon name="career" size={15} />
+        <span>{t("holding.people.title")}</span>
+        {company.country !== HOME ? <Tag icon={<Icon name="map" size={12} />}>{t(`country.${company.country}`)}</Tag> : null}
+      </h2>
+      <div className="hd-ceo">
+        <span className="hd-portrait">
+          <i aria-hidden>{ceo.name.slice(0, 1)}</i>
+          <Portrait seed={ceo.name} size={48} />
+        </span>
+        <div className="hd-ceo-main">
+          <b>{ceo.name}</b>
+          <span className="row hd-ceo-tags">
+            <Tag tone="accent">{ceo.style ? t(`ceo_style.${ceo.style}`) : t("term.unknown")}</Tag>
+            {ceo.founder ? <Tag>{t("owner.founder")}</Tag> : null}
+            <Tag tone="muted">{t("holding.people.age", { age: ceo.age })}</Tag>
+            <Tag tone="muted" icon={<Icon name="clock" size={12} />}>
+              {t("holding.people.tenure", { years: ceo.tenure })}
+            </Tag>
+          </span>
+        </div>
+      </div>
+      <Rating value={company.management} label={t("holding.people.management")} />
+      {company.management === null ? <p className="hd-note muted">{t("holding.people.managementUnknown")}</p> : null}
+      <h3 className="hd-sub">{t("holding.people.traits")}</h3>
+      {company.traits.length === 0 ? (
+        <p className="muted">{t("term.none")}</p>
+      ) : (
+        <ul className="hd-traits">
+          {company.traits.map((trait) => (
+            <li key={trait}>
+              <Tag>{t(`trait.${trait}`)}</Tag>
+              <span className="muted">{t(`trait.${trait}.effect`)}</span>
+            </li>
+          ))}
+          {company.traits_hidden > 0 ? (
+            <li>
+              <Tag tone="muted">{t("holding.people.hidden", { count: company.traits_hidden })}</Tag>
+            </li>
+          ) : null}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function ValueCard({ holding }: SectionProps) {
   const t = useT();
   const f = useFormat();
@@ -121,8 +229,17 @@ function ValueCard({ holding }: SectionProps) {
         <Stat label={t("term.moic")} value={f.multiple(holding.moic_millis, 2)} tone={moicTone} />
         <Stat label={t("term.irr")} value={holding.irr_bps === null ? "–" : f.pct(holding.irr_bps)} tone={irrTone} />
         <Stat label={t("holding.value.held")} value={t("format.months", { months: holding.months_held })} />
-        <Stat label={t("holding.value.ownership")} value={f.pct(holding.ownership_bps)} />
         {holding.dividends > 0 ? <Stat label={t("holding.value.dividends")} value={f.money(holding.dividends)} tone="good" /> : null}
+      </div>
+      <div className="hd-ownership">
+        <Meter
+          value={holding.ownership_bps}
+          max={10_000}
+          tone={holding.ownership_bps >= 10_000 ? "good" : "accent"}
+          label={t("holding.value.ownership")}
+          text={t("holding.own.split", { fund: f.pct(holding.ownership_bps), others: f.pct(10_000 - holding.ownership_bps) })}
+        />
+        <p className="hd-note muted">{t(holding.ownership_bps >= 10_000 ? "holding.own.full" : "holding.own.shared")}</p>
       </div>
       <h3 className="hd-sub">{t("holding.bridge.title")}</h3>
       <Bridge
@@ -337,6 +454,20 @@ function BudgetCard({ company, holding, financials }: SectionProps) {
           );
         })}
       </div>
+      {company.traits.includes("aging_equipment") || company.traits.includes("single_plant") ? (
+        <div className="row hd-tags">
+          {company.traits.includes("aging_equipment") ? (
+            <Tag tone="warn" icon={<Icon name="alert" size={12} />}>
+              {t("holding.lever.aging_equipment")}
+            </Tag>
+          ) : null}
+          {company.traits.includes("single_plant") ? (
+            <Tag tone="warn" icon={<Icon name="alert" size={12} />}>
+              {t("holding.lever.single_plant")}
+            </Tag>
+          ) : null}
+        </div>
+      ) : null}
       <h3 className="hd-sub">{t("holding.budget.lastMonth")}</h3>
       <div className="hd-cash">
         <Donut parts={uses} size={104}>
@@ -390,6 +521,9 @@ function InitiativesCard({ company, holding }: SectionProps) {
               <div className="hd-item-main">
                 <b>{t(`initiative.${item.kind}`)}</b>
                 <span className="muted">{t(`initiative.${item.kind}.effect`)}</span>
+                <span className="row hd-item-meta">
+                  <LeverMark company={company} kind={item.kind} />
+                </span>
               </div>
               <Tag tone="accent">{t("holding.init.left", { months: item.months_left })}</Tag>
             </li>
@@ -412,6 +546,7 @@ function InitiativesCard({ company, holding }: SectionProps) {
                 <span className="row hd-item-meta">
                   <Tag>{t("holding.init.cost", { amount: f.money(item.cost) })}</Tag>
                   <Tag icon={<Icon name="clock" size={12} />}>{t("format.months", { months: item.months })}</Tag>
+                  <LeverMark company={company} kind={item.kind} />
                 </span>
               </div>
               <button type="button" className="btn small" disabled={full} onClick={() => act({ type: "start_initiative", company: company.i, kind: item.kind })}>
@@ -449,6 +584,11 @@ function AddOnCard({ company, holding }: SectionProps) {
         <Icon name="link" size={15} />
         <span>{t("holding.addon.title")}</span>
         <Tag tone={holding.add_ons > 0 ? "good" : "muted"}>{t("holding.addon.count", { count: holding.add_ons })}</Tag>
+        {company.traits.includes("fragmented_market") ? (
+          <Tag tone="good" icon={<Icon name="up" size={12} />}>
+            {t("holding.lever.fragmented_market")}
+          </Tag>
+        ) : null}
       </h2>
       {targets.length === 0 ? (
         <p className="muted">{t("holding.addon.empty")}</p>
@@ -622,6 +762,8 @@ export function HoldingTab(props: { company: CompanyView }) {
   const section = { company, holding, financials };
   return (
     <div className="holding-tab stack">
+      <PendingBanner company={company} />
+      <PeopleCard {...section} />
       <ValueCard {...section} />
       <CovenantCard {...section} />
       <BudgetCard {...section} />

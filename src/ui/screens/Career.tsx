@@ -1,9 +1,10 @@
 import { useT } from "../../i18n/useT";
-import type { Rank } from "../../sim/types";
+import { ACHIEVEMENTS, type Difficulty, type GameDate, type Perk, type Rank } from "../../sim/types";
 import { Gauge, Meter, Stat, StackBar, Tag } from "../charts";
 import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
 import { Icon } from "../icons";
+import { Portrait } from "../Portrait";
 import "./Career.css";
 
 /**
@@ -20,7 +21,6 @@ const RANKS: { rank: Rank; attention: number; deals: number; initiatives: number
 /** Promotion and dismissal thresholds, from the same file. */
 const RULES = {
   fireBelow: 15,
-  weakFundMillis: 1300,
   principal: { deals: 1, reputation: 56, months: 18 },
   partner: { reputation: 68, months: 24, moicMillis: 1800, deals: 3, tvpiMillis: 1350 },
   founder: { reputation: 70 },
@@ -38,6 +38,21 @@ const MOVES: { id: string; up: boolean }[] = [
   { id: "noDeals", up: false },
 ];
 const PARTNERS = [0, 1, 2, 3, 4, 5];
+/** The fund multiple below which a VP or principal is let go at term end: `survival_tvpi_millis` in crates/sim-core/src/world.rs. */
+const SURVIVAL_MILLIS: Record<Difficulty, number> = { relaxed: 1100, standard: 1300, hard: 1500 };
+/** Committee trust lines: at `pass` a hold counts as a yes, at `block` or below as a no (crates/sim-core/src/story.rs). */
+const TRUST = { block: 30, pass: 70 };
+/** What personal money buys, thousand USD: `Perk::cost` in crates/sim-core/src/fund.rs. */
+const PERKS: { perk: Perk; cost: number }[] = [
+  { perk: "industry_club", cost: 150 },
+  { perk: "conference_circuit", cost: 300 },
+];
+/** The founder's team, from the same file: `MAX_ASSOCIATES`, `ASSOCIATE_COST` (thousand USD a year). */
+const TEAM = { max: 6, cost: 400 };
+/** What the December review does to reputation per objective (crates/sim-core/src/story.rs). */
+const REVIEW = { met: 2, missed: 1 };
+/** The first rank allowed to open deals outside the home country. */
+const CROSS_BORDER_RANK: Rank = "principal";
 
 interface Check {
   id: string;
@@ -51,8 +66,10 @@ interface Check {
 export function Career() {
   const t = useT();
   const f = useFormat();
-  const { view } = useGame();
+  const game = useGame();
+  const { view } = game;
   const { career, fund } = view;
+  const survival = SURVIVAL_MILLIS[view.options.difficulty];
 
   const at = Math.max(RANKS.findIndex((item) => item.rank === career.rank), 0);
   const next = RANKS[at + 1]?.rank ?? null;
@@ -158,9 +175,38 @@ export function Career() {
     </li>
   );
 
+  const trustMeter = (trust: number) => {
+    const tone = trust >= TRUST.pass ? "good" : trust <= TRUST.block ? "bad" : "ink";
+    return (
+      <div className="chart meter trust" data-tone={tone}>
+        <div className="meter-head">
+          <span>{t("career.trust")}</span>
+          <b>
+            {f.integer(trust)}
+            {tone === "ink" ? "" : ` · ${t(tone === "good" ? "career.trust.high" : "career.trust.low")}`}
+          </b>
+        </div>
+        <div className="meter-track">
+          <span style={{ width: `${Math.min(Math.max(trust, 0), 100)}%` }} />
+          <i style={{ left: `${TRUST.block}%` }} />
+          <i style={{ left: `${TRUST.pass}%` }} />
+        </div>
+      </div>
+    );
+  };
+
   const savings = Math.max(career.wealth - career.carry_paid, 0);
   const belowPartner = career.rank === "vice_president" || career.rank === "principal";
-  const fundWeak = fund.called > 0 && fund.tvpi_millis < RULES.weakFundMillis;
+  const fundWeak = fund.called > 0 && fund.tvpi_millis < survival;
+  /** A month index (months since the game opened) as a calendar date, from today's date and index. */
+  const dateOf = (month: number): GameDate => {
+    const total = view.date.year * 12 + (view.date.month - 1) - (view.month - month);
+    return { year: Math.floor(total / 12), month: (total % 12) + 1 };
+  };
+  const earned = new Map(view.achievements.map((item) => [item.achievement, item.month]));
+  const objectivesMet = view.objectives.filter((item) => item.met).length;
+  const records = view.records;
+  const founder = career.rank === "founder";
   const initial = (name: string) =>
     name
       .split(/\s+/)
@@ -218,10 +264,85 @@ export function Career() {
                   <dt>{t("career.perk.salary")}</dt>
                   <dd>{f.money(item.salary)}</dd>
                 </div>
+                <div>
+                  <dt>{t("career.perk.abroad")}</dt>
+                  <dd data-on={index >= RANKS.findIndex((rank) => rank.rank === CROSS_BORDER_RANK)}>
+                    {index >= RANKS.findIndex((rank) => rank.rank === CROSS_BORDER_RANK) ? (
+                      <Icon name="check" size={14} title={t("career.perk.abroadYes")} />
+                    ) : (
+                      <Icon name="close" size={14} title={t("career.perk.abroadNo")} />
+                    )}
+                  </dd>
+                </div>
               </dl>
             </li>
           ))}
         </ol>
+        {view.attention.max !== RANKS[at].attention ? (
+          <p className="muted">{t("career.attentionNote", { max: view.attention.max })}</p>
+        ) : null}
+      </section>
+
+      <section className="grid career-year">
+        <div className="card stack">
+          <div className="row between">
+            <h2 className="card-title">
+              <Icon name="check" size={16} />
+              {t("career.objectives", { year: view.date.year })}
+            </h2>
+            <Tag tone={view.objectives.length && objectivesMet === view.objectives.length ? "good" : "muted"}>
+              {t("career.checksDone", { done: objectivesMet, total: view.objectives.length })}
+            </Tag>
+          </div>
+          {view.objectives.length ? (
+            <ul className="ticks">
+              {view.objectives.map((item) => {
+                const standing = item.kind === "clean_covenants" || item.kind === "no_rejections";
+                const money = item.kind === "deploy_capital";
+                return (
+                  <li key={item.kind} data-done={item.met} data-broken={standing && !item.met}>
+                    <span className="tick">{item.met ? <Icon name="check" size={14} /> : null}</span>
+                    <span className="tick-label">
+                      {t(`objective.${item.kind}`, { target: item.target, amount: f.money(item.target) })}
+                    </span>
+                    <b>
+                      {standing
+                        ? t(item.met ? "career.objective.holding" : "career.objective.broken", { count: item.progress })
+                        : money
+                          ? `${f.money(item.progress)} / ${f.money(item.target)}`
+                          : `${f.integer(item.progress)} / ${f.integer(item.target)}`}
+                    </b>
+                    <span className="tick-bar">
+                      <span style={{ width: `${(standing ? (item.met ? 1 : 0) : ratio(item.progress, item.target)) * 100}%` }} />
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="empty">{t("career.objectives.none")}</p>
+          )}
+          <p className="muted">{t("career.objectives.stakes", { up: REVIEW.met, down: REVIEW.missed })}</p>
+        </div>
+
+        <div className="card stack">
+          <h2 className="card-title">
+            <Icon name="layers" size={16} />
+            {t("career.options")}
+          </h2>
+          <ul className="option-list">
+            <li>
+              <Tag tone={view.options.difficulty === "hard" ? "bad" : view.options.difficulty === "relaxed" ? "good" : "accent"}>
+                {t("career.options.difficulty", { name: t(`difficulty.${view.options.difficulty}`) })}
+              </Tag>
+              <small>{t(`difficulty.${view.options.difficulty}.effect`)}</small>
+            </li>
+            <li>
+              <Tag tone="accent">{t("career.options.era", { name: t(`era.${view.options.era}`) })}</Tag>
+              <small>{t(`era.${view.options.era}.effect`)}</small>
+            </li>
+          </ul>
+        </div>
       </section>
 
       <section className="grid career-mid">
@@ -250,6 +371,7 @@ export function Career() {
                 </>
               ) : null}
               {career.rank === "partner" ? <p className="muted">{t("career.founderNote")}</p> : null}
+              {career.rank === "vice_president" ? <p className="muted">{t("career.principalNote")}</p> : null}
             </>
           ) : (
             <p className="muted">{t("career.topNote")}</p>
@@ -267,7 +389,7 @@ export function Career() {
                 </Tag>
               </li>
               <li data-risk={belowPartner && fundWeak}>
-                <span>{t("career.fire.fund", { tvpi: f.multiple(RULES.weakFundMillis, 1) })}</span>
+                <span>{t("career.fire.fund", { tvpi: f.multiple(survival, 1) })}</span>
                 <Tag tone={!belowPartner ? "muted" : fundWeak ? "warn" : "good"}>
                   {belowPartner ? t("career.tvpiNow", { tvpi: f.multiple(fund.tvpi_millis, 2) }) : t("career.fire.exempt")}
                 </Tag>
@@ -364,6 +486,165 @@ export function Career() {
         </div>
       </section>
 
+      <section className="grid career-money">
+        <div className="card stack">
+          <h2 className="card-title">
+            <Icon name="flag" size={16} />
+            {t("career.records")}
+          </h2>
+          <div className="grid cols-2">
+            <Stat
+              label={t("career.bestMoic")}
+              value={records.best_moic_millis ? f.multiple(records.best_moic_millis, 2) : t("term.none")}
+              tone={records.best_moic_millis >= 2000 ? "good" : undefined}
+            />
+            <Stat
+              label={t("career.records.fastest")}
+              value={records.fastest_exit_months ? months(records.fastest_exit_months) : t("term.none")}
+              hint={t("career.records.fastestHint")}
+            />
+            <Stat
+              label={t("career.records.largestDeal")}
+              value={records.largest_deal_ev ? f.money(records.largest_deal_ev) : t("term.none")}
+            />
+            <Stat
+              label={t("career.records.largestExit")}
+              value={records.largest_exit_proceeds ? f.money(records.largest_exit_proceeds) : t("term.none")}
+            />
+          </div>
+          <Stat
+            label={t("career.records.totalProceeds")}
+            value={records.total_proceeds ? f.money(records.total_proceeds) : t("term.none")}
+            tone={records.total_proceeds > 0 ? "good" : undefined}
+          />
+        </div>
+
+        <div className="card stack">
+          <div className="row between">
+            <h2 className="card-title">
+              <Icon name="fund" size={16} />
+              {t("career.spend")}
+            </h2>
+            <Tag>{t("career.spend.wealth", { amount: f.money(career.wealth) })}</Tag>
+          </div>
+          <ul className="perk-list">
+            {PERKS.map((item) => {
+              const owned = career.perks.includes(item.perk);
+              return (
+                <li key={item.perk} data-owned={owned}>
+                  <div>
+                    <strong>{t(`perk.${item.perk}`)}</strong>
+                    <small>{t(`perk.${item.perk}.effect`)}</small>
+                  </div>
+                  {owned ? (
+                    <Tag tone="good" icon={<Icon name="check" size={14} />}>
+                      {t("career.spend.owned")}
+                    </Tag>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn small"
+                      disabled={career.wealth < item.cost}
+                      onClick={() => game.act({ type: "buy_perk", perk: item.perk })}
+                    >
+                      {t("career.spend.buy", { amount: f.money(item.cost) })}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <dl className="kv">
+            <dt>{t("career.spend.gp")}</dt>
+            <dd>{f.money(career.gp_commit)}</dd>
+          </dl>
+          <button type="button" className="btn small ghost" onClick={() => game.go("fund")}>
+            {t("career.spend.gpLink")}
+            <Icon name="fund" size={14} />
+          </button>
+        </div>
+
+        <div className="card stack" data-locked={!founder}>
+          <div className="row between">
+            <h2 className="card-title">
+              <Icon name="handshake" size={16} />
+              {t("career.team")}
+            </h2>
+            <Tag tone={founder ? "accent" : "muted"}>
+              {founder
+                ? t("career.team.count", { count: career.associates, max: TEAM.max })
+                : t("career.team.locked")}
+            </Tag>
+          </div>
+          <div className="team-pips" role="img" aria-label={t("career.team.count", { count: career.associates, max: TEAM.max })}>
+            {Array.from({ length: TEAM.max }, (_, index) => (
+              <i key={index} data-on={index < career.associates} />
+            ))}
+          </div>
+          <div className="grid cols-2">
+            <Stat label={t("career.team.attention")} value={`+${f.integer(career.associates)}`} tone={career.associates ? "good" : undefined} />
+            <Stat
+              label={t("career.team.payroll")}
+              value={f.money(career.associates * TEAM.cost)}
+              hint={t("career.perYear")}
+              tone={career.associates ? "warn" : undefined}
+            />
+          </div>
+          <div className="row">
+            <button
+              type="button"
+              className="btn small"
+              disabled={!founder || career.associates >= TEAM.max}
+              onClick={() => game.act({ type: "hire_associate" })}
+            >
+              {t("career.team.hire")}
+            </button>
+            <button
+              type="button"
+              className="btn small"
+              disabled={!founder || career.associates <= 0}
+              onClick={() => game.act({ type: "release_associate" })}
+            >
+              {t("career.team.release")}
+            </button>
+          </div>
+          <p className="muted">
+            {founder ? t("career.team.note", { cost: f.money(TEAM.cost) }) : t("career.team.lockedNote", { cost: f.money(TEAM.cost) })}
+          </p>
+        </div>
+      </section>
+
+      <section className="card stack">
+        <div className="row between">
+          <h2 className="card-title">
+            <Icon name="bolt" size={16} />
+            {t("career.achievements")}
+          </h2>
+          <div className="row achievement-count">
+            <Tag tone={earned.size ? "good" : "muted"}>
+              {t("career.achievements.count", { done: earned.size, total: ACHIEVEMENTS.length })}
+            </Tag>
+            <Meter value={earned.size} max={ACHIEVEMENTS.length} tone="good" />
+          </div>
+        </div>
+        <ul className="achievements">
+          {ACHIEVEMENTS.map((id) => {
+            const month = earned.get(id);
+            const done = month !== undefined;
+            return (
+              <li key={id} data-done={done}>
+                <span className="achievement-mark">
+                  <Icon name={done ? "check" : "flag"} size={14} />
+                </span>
+                <strong>{t(`achievement.${id}`)}</strong>
+                <small>{t(`achievement.${id}.detail`)}</small>
+                {done ? <b>{f.shortDate(dateOf(month))}</b> : null}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
       <section className="card stack">
         <div className="row between">
           <h2 className="card-title">
@@ -378,15 +659,20 @@ export function Career() {
         <ul className="partners">
           {PARTNERS.map((seat) => (
             <li key={seat}>
-              <span className="avatar" data-seat={seat} aria-hidden>
-                {initial(t(`partner.${seat}.name`))}
+              <span className="avatar" data-seat={seat}>
+                <span aria-hidden>{initial(t(`partner.${seat}.name`))}</span>
+                <span className="avatar-face">
+                  <Portrait partner={seat} size={52} />
+                </span>
               </span>
               <strong>{t(`partner.${seat}.name`)}</strong>
               <Tag>{t(`partner.${seat}.role`)}</Tag>
               <small>{t(`career.partner.${seat}.trait`)}</small>
+              {trustMeter(view.partners[seat]?.trust ?? 50)}
             </li>
           ))}
         </ul>
+        <p className="muted">{t("career.trust.rule", { pass: TRUST.pass, block: TRUST.block })}</p>
       </section>
     </div>
   );

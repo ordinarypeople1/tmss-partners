@@ -43,5 +43,11 @@
   "portfolio.realized.empty": "실현한 엑시트가 없습니다.",
   "portfolio.empty.title": "보유 회사가 없습니다.",
   "portfolio.empty.body": "지도에서 매물을 찾아 첫 딜을 시작하세요.",
-  "portfolio.empty.action": "지도로"
+  "portfolio.empty.action": "지도로",
+  "portfolio.ceo": "CEO {name}",
+  "portfolio.alert.pending": "결정 대기 {count, number, ::integer}건",
+  "portfolio.year.title": "{year, number, ::integer group-off}년 목표 진행",
+  "portfolio.year.clean": "위반 없음",
+  "portfolio.year.breached": "위반 {count, number, ::integer}건",
+  "portfolio.year.pending": "인박스 결정"
 }

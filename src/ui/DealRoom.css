@@ -334,17 +334,56 @@
 .dr-seats li[data-tone="bad"] {
   border-left-color: var(--bad);
 }
-.dr-avatar {
+.dr-seat-side {
+  display: grid;
+  flex: none;
+  gap: 4px;
+  width: 64px;
+  justify-items: center;
+}
+.dr-portrait {
   display: grid;
   place-items: center;
-  flex: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--ink-soft);
-  color: var(--panel);
-  font-size: 0.78rem;
-  font-weight: 700;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--line-soft);
+}
+.dr-trust {
+  width: 100%;
+}
+.dr-trust .meter-head {
+  margin-bottom: 2px;
+  font-size: 0.68rem;
+}
+.dr-trust .meter-track {
+  height: 5px;
+}
+.dr-trust .meter-track i {
+  top: -2px;
+  width: 1px;
+  height: 9px;
+  background: var(--muted);
+}
+.dr-says {
+  display: grid;
+  gap: 5px;
+}
+.dr-says li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 6px;
+}
+.dr-says q,
+.dr-say-for {
+  flex: 1 1 150px;
+  min-width: 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 .dr-seat-main {
   display: grid;
@@ -408,4 +447,104 @@
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
+}
+
+/* ---------- round 2: co-invest, rivals, final round ---------- */
+.dr-note[data-tone="good"] {
+  color: var(--good);
+}
+.dr-note[data-tone="warn"] {
+  color: #7a5200;
+}
+.dr-note[data-tone="bad"] {
+  color: var(--bad);
+}
+.dr-note[data-tone="accent"] {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: #8f3a1b;
+}
+.card[data-final] {
+  border-color: var(--bad);
+}
+.dr-final {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.dr-final > div {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.dr-final strong {
+  font-size: 0.98rem;
+}
+.dr-final span {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.dr-final .ring b {
+  font-size: 1rem;
+}
+.dr-rivals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.82rem;
+}
+.dr-rival {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 26px;
+  padding: 3px 10px;
+  gap: 2px 6px;
+}
+.dr-rival small {
+  font-size: 0.72rem;
+}
+.dr-rival small[data-tone="bad"] {
+  color: var(--bad);
+}
+.dr-rival small[data-tone="good"] {
+  color: var(--good);
+}
+.dr-rival small[data-tone="warn"] {
+  color: #7a5200;
+  font-weight: 700;
+}
+.dr-round {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.dr-round-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px 12px;
+}
+.dr-round-stats .stat-value {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+.dr-raise {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
 }

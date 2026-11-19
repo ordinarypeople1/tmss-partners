@@ -205,15 +205,26 @@
   font-size: 0.8rem;
 }
 .career .avatar {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
   border-radius: 50%;
   background: var(--s1);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
+}
+.career .avatar-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.career .avatar-face:not(:empty) {
+  background: var(--raised);
 }
 .career .avatar[data-seat="1"] {
   background: var(--s4);
@@ -235,4 +246,167 @@
   .career .career-mid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.career .ladder-perks dd[data-on="true"] {
+  color: var(--good);
+}
+.career .ladder-perks dd[data-on="false"] {
+  color: var(--muted);
+}
+
+.career .career-year {
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: start;
+}
+.career .career-year .ticks {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.career .ticks li[data-broken="true"] {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.career .option-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.career .option-list li {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+.career .option-list small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.career .career-money {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+.career .perk-list {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+.career .perk-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.career .perk-list li[data-owned="true"] {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.career .perk-list li div {
+  display: grid;
+  flex: 1 1 150px;
+}
+.career .perk-list small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.career .card[data-locked="true"] .team-pips,
+.career .card[data-locked="true"] .stat {
+  opacity: 0.5;
+}
+.career .team-pips {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.career .team-pips i {
+  height: 26px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+}
+.career .team-pips i[data-on="true"] {
+  border: 2px solid var(--accent);
+  background: var(--accent);
+}
+
+.career .achievement-count .meter {
+  width: 140px;
+}
+.career .achievements {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.career .achievements li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  align-items: center;
+  align-content: start;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+}
+.career .achievements small {
+  grid-column: 2 / -1;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.career .achievements b {
+  grid-row: 1;
+  grid-column: 3;
+  color: var(--good);
+  font-size: 0.78rem;
+}
+.career .achievement-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--line-soft);
+}
+.career .achievements li[data-done="true"] {
+  border: 1px solid var(--good);
+  background: var(--good-soft);
+  color: var(--ink);
+}
+.career .achievements li[data-done="true"] small {
+  color: var(--ink-soft);
+}
+.career .achievements li[data-done="true"] .achievement-mark {
+  background: var(--good);
+  color: #fff;
+}
+
+.career .partners .trust {
+  width: 100%;
+  margin-top: 2px;
+}
+
+@media (max-width: 1250px) {
+  .career .career-money {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .career .career-year,
+  .career .career-money {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.career .career-year .ticks li {
+  grid-template-columns: 22px minmax(0, 1fr);
+}
+.career .career-year .ticks b {
+  grid-column: 2;
+  font-size: 0.86rem;
 }

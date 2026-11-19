@@ -629,7 +629,9 @@ export function Market() {
             </tr>
           </thead>
           <tbody>
-            {rivals.map((rival) => {
+            {[...rivals]
+              .sort((a, b) => (a.standing?.rank ?? 99) - (b.standing?.rank ?? 99))
+              .map((rival) => {
               const last = rival.deals[0];
               return (
                 <tr key={rival.house}>
