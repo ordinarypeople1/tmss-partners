@@ -1,0 +1,8 @@
+{
+  "objectives.title": "{year, number, ::group-off}年の目標",
+  "objectives.count": "{met, number, ::integer}/{total, number, ::integer}",
+  "objectives.met": "達成",
+  "objectives.kept": "維持中",
+  "objectives.broken": "未達",
+  "objectives.progress": "{progress} / {target}"
+}
