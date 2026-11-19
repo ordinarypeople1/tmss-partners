@@ -183,6 +183,10 @@ th,
 .sidebar-foot .me {
   display: grid;
   gap: 8px;
+  justify-items: start;
+}
+.sidebar-foot .me .meter {
+  justify-self: stretch;
 }
 .sidebar .meter-head {
   color: var(--side-muted);

@@ -49,7 +49,8 @@ describe("ko catalog", () => {
 
   it("has every id the screens ask for", () => {
     const literal = /\bt\(\s*"([a-zA-Z0-9_.]+)"/g;
-    const formatted = /\bid:\s*"([a-zA-Z0-9_.]+)"/g;
+    // Message ids always carry a dot; a bare `id: "deals"` is a tab or a layer, not a message.
+    const formatted = /\bid:\s*"([a-zA-Z0-9_]+\.[a-zA-Z0-9_.]+)"/g;
     for (const file of sources(join(here, ".."))) {
       const text = readFileSync(file, "utf8");
       for (const pattern of [literal, formatted]) {

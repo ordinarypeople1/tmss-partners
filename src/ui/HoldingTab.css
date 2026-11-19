@@ -1,0 +1,192 @@
+/* The operations tab inside the company panel (about 380–440px wide). */
+
+.holding-tab {
+  padding: 12px;
+}
+.hd-card > h2 {
+  flex-wrap: wrap;
+}
+.hd-push {
+  margin-left: auto;
+  font-weight: 400;
+}
+.hd-sub {
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.row > .hd-sub {
+  margin: 0;
+}
+.hd-note {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+.hd-bad {
+  color: var(--bad);
+}
+
+.hd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 10px 12px;
+}
+.hd-stats .stat-value {
+  font-size: 1.05rem;
+}
+
+.hd-gauges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 8px 16px;
+}
+.hd-gauges .gauge {
+  width: 150px;
+}
+.hd-tags {
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.hd-action {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.hd-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+.hd-amount {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.hd-amount label {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.hd-amount-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hd-amount-input input {
+  width: 110px;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.hd-amount-input small,
+.hd-amount b {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.hd-amount b {
+  font-weight: 600;
+}
+.hd-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.hd-sliders {
+  display: grid;
+  gap: 12px;
+}
+.hd-sliders input[type="range"] {
+  min-height: 28px;
+}
+.hd-cash {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.hd-cash .donut {
+  flex: none;
+}
+.hd-cash .donut-center b {
+  font-size: 0.82rem;
+}
+.hd-cash .donut-center small {
+  font-size: 0.7rem;
+}
+.hd-cash-side {
+  display: grid;
+  flex: 1 1 200px;
+  gap: 8px;
+  min-width: 0;
+}
+.hd-cash-side .stat-value {
+  font-size: 0.95rem;
+}
+.hd-cash-side .hd-stats {
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+}
+
+.hd-list {
+  display: grid;
+  gap: 0;
+}
+.hd-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 8px 0;
+}
+.hd-list .hd-item + .hd-item {
+  border-top: 1px solid var(--line-soft);
+}
+.hd-item-main {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 3px;
+  min-width: 0;
+}
+.hd-item-main > .muted {
+  font-size: 0.8rem;
+}
+.hd-item-name,
+.hd-item-meta {
+  gap: 6px;
+}
+.hd-item .ring b {
+  font-size: 0.74rem;
+}
+
+.hd-scroll {
+  overflow-x: auto;
+}
+.hd-table tbody tr {
+  cursor: default;
+}
+.hd-table td {
+  vertical-align: top;
+}
+.hd-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.hd-picks {
+  margin: 8px 0 10px;
+}

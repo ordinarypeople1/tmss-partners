@@ -229,6 +229,24 @@ export function GameProvider({
     setCompany(index === null || !session.current ? null : session.current.company(index));
   }, []);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) {
+      return;
+    }
+    // Development only: lets a script drive the game without clicking through it. See tools/dev/drive.cjs.
+    (window as unknown as Record<string, unknown>).__game = {
+      command: (command: Command) => {
+        const result = session.current?.command(command);
+        redraw();
+        return result;
+      },
+      view: () => session.current?.view(),
+      company: (index: number) => session.current?.company(index),
+      select,
+      go: setScreen,
+    };
+  }, [redraw, select]);
+
   const rows = useMemo(() => new Map((view?.companies ?? []).map((row) => [row.i, row])), [view]);
 
   const game = useMemo<Game | null>(() => {

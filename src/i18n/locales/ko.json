@@ -373,5 +373,11 @@
   "admin1.JP-44": "오이타",
   "admin1.JP-45": "미야자키",
   "admin1.JP-46": "가고시마",
-  "admin1.JP-47": "오키나와"
+  "admin1.JP-47": "오키나와",
+  "money.short.jo": "{value, number, ::.##}조",
+  "money.short.eok": "{value, number, ::.#}억",
+  "money.short.man": "{value, number, ::integer}만",
+  "money.short.thousand": "{value, number, ::integer}천",
+  "format.rangeShort": "{low}–{high}",
+  "term.usd": "달러"
 }

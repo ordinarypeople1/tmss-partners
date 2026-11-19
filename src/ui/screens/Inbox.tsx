@@ -1,3 +1,441 @@
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useT } from "../../i18n/useT";
+import type { Choice, Message, View } from "../../sim/types";
+import { Meter, Ring, Stat, Tag } from "../charts";
+import { monthsBetween, useFormat } from "../format";
+import { useGame } from "../game";
+import { Icon } from "../icons";
+import { describeMessage } from "../messages";
+import "./Inbox.css";
+
+type Filter = "all" | "decision" | "deals" | "portfolio" | "news";
+type Category = "deals" | "portfolio" | "news" | "house";
+type Tone = "good" | "bad" | "warn" | "accent";
+
+const FILTERS: Filter[] = ["all", "decision", "deals", "portfolio", "news"];
+
+const DEAL_TYPES = new Set<Message["type"]>([
+  "sale_early_notice",
+  "sale_started",
+  "sale_withdrawn",
+  "sale_failed",
+  "auction_lost",
+  "diligence_report",
+  "committee_decision",
+  "deal_closed",
+  "deal_broken",
+]);
+const PORTFOLIO_TYPES = new Set<Message["type"]>([
+  "initiative_done",
+  "issue_surfaced",
+  "strike",
+  "covenant_breach",
+  "lenders_took_keys",
+  "refinanced",
+  "recap_paid",
+  "add_on_closed",
+  "exit_offer",
+  "exit_pulled",
+  "exit_closed",
+  "proceeds_received",
+]);
+
+/** The choices the catalog has a consequence line for, by message type. */
+const CONSEQUENCES: Partial<Record<Message["type"], Choice[]>> = {
+  covenant_breach: ["cure", "waiver", "ignore"],
+  strike: ["settle", "hold_out"],
+  issue_surfaced: ["report_now", "report_later"],
+  exit_offer: ["accept", "decline"],
+};
+
+const CHOICE_TONE: Partial<Record<Choice, Tone>> = {
+  ignore: "bad",
+  hold_out: "warn",
+  report_later: "warn",
+  decline: "warn",
+};
+
+/** How much of a decision's time is left, 0 to 1. A decision due this month still shows a sliver. */
+function timeLeft(message: Message, view: View): number {
+  if (!message.decision) {
+    return 0;
+  }
+  const left = message.decision.due_month - view.month;
+  const given = left + monthsBetween(message.date, view.date);
+  return (left + 0.5) / (Math.max(given, 1) + 0.5);
+}
+
+function categoryOf(message: Message): Category {
+  if (message.news) {
+    return "news";
+  }
+  if (DEAL_TYPES.has(message.type)) {
+    return "deals";
+  }
+  if (PORTFOLIO_TYPES.has(message.type)) {
+    return "portfolio";
+  }
+  return "house";
+}
+
+function isOpen(message: Message): boolean {
+  return message.decision !== null && message.decision.chosen === null;
+}
+
+function matches(filter: Filter, message: Message): boolean {
+  if (filter === "all") {
+    return true;
+  }
+  if (filter === "decision") {
+    return isOpen(message);
+  }
+  return categoryOf(message) === filter;
+}
+
+function deadlineTone(left: number): "bad" | "warn" | "accent" {
+  return left <= 1 ? "bad" : left <= 2 ? "warn" : "accent";
+}
+
 export function Inbox() {
-  return null;
+  const game = useGame();
+  const { view } = game;
+  const t = useT();
+  const f = useFormat();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [picked, setPicked] = useState<number | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const counts = useMemo(() => {
+    const result: Record<Filter, number> = { all: 0, decision: 0, deals: 0, portfolio: 0, news: 0 };
+    for (const message of view.messages) {
+      for (const id of FILTERS) {
+        if (matches(id, message)) {
+          result[id] += 1;
+        }
+      }
+    }
+    return result;
+  }, [view.messages]);
+  const unread = view.messages.filter((message) => !message.read).length;
+
+  // Open decisions first, soonest deadline on top; then newest first.
+  const list = useMemo(() => {
+    const shown = view.messages.filter((message) => matches(filter, message));
+    const open = shown.filter(isOpen).sort((a, b) => (a.decision?.due_month ?? 0) - (b.decision?.due_month ?? 0) || b.id - a.id);
+    const rest = shown.filter((message) => !isOpen(message)).sort((a, b) => b.id - a.id);
+    return [...open, ...rest];
+  }, [view.messages, filter]);
+
+  const current = list.find((message) => message.id === picked) ?? list[0] ?? null;
+  const currentId = current?.id ?? null;
+  const currentUnread = current !== null && !current.read;
+  const { act } = game;
+
+  // What is on screen in the reading pane counts as read.
+  useEffect(() => {
+    if (currentId !== null && currentUnread) {
+      act({ type: "mark_read", message: currentId });
+    }
+  }, [currentId, currentUnread, act]);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+      return;
+    }
+    event.preventDefault();
+    const at = list.findIndex((message) => message.id === currentId);
+    const next = list[Math.min(Math.max(at + (event.key === "ArrowDown" ? 1 : -1), 0), list.length - 1)];
+    if (!next) {
+      return;
+    }
+    setPicked(next.id);
+    const button = listRef.current?.querySelector<HTMLButtonElement>(`[data-message="${next.id}"]`);
+    button?.focus();
+    button?.scrollIntoView({ block: "nearest" });
+  };
+
+  return (
+    <div className="inbox">
+      <header className="page-head">
+        <div>
+          <h1>{t("inbox.title")}</h1>
+          <p>{f.date(view.date)}</p>
+        </div>
+        <div className="inbox-strip">
+          <div className="inbox-strip-item">
+            <span className="stat-label">{t("inbox.strip.attention")}</span>
+            <div className="row">
+              <span className="inbox-pips" aria-hidden>
+                {Array.from({ length: view.attention.max }, (_, index) => (
+                  <i key={index} data-on={index < view.attention.left ? "true" : undefined} />
+                ))}
+              </span>
+              <b>{`${view.attention.left}/${view.attention.max}`}</b>
+            </div>
+          </div>
+          <div className="inbox-strip-item" data-tone={counts.decision > 0 ? "bad" : undefined}>
+            <span className="stat-label">{t("inbox.strip.decisions")}</span>
+            <div className="row">
+              <Icon name="alert" size={16} />
+              <b>{f.integer(counts.decision)}</b>
+            </div>
+          </div>
+          <div className="inbox-strip-item" data-tone={unread > 0 ? "accent" : undefined}>
+            <span className="stat-label">{t("inbox.strip.unread")}</span>
+            <div className="row">
+              <Icon name="inbox" size={16} />
+              <b>{f.integer(unread)}</b>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="inbox-bar">
+        <div className="tabs" role="tablist" aria-label={t("inbox.filter.label")}>
+          {FILTERS.map((id) => (
+            <button key={id} type="button" role="tab" aria-selected={filter === id} onClick={() => setFilter(id)}>
+              {t(`inbox.filter.${id}`)}
+              <small className="inbox-count" data-urgent={id === "decision" && counts[id] > 0 ? "true" : undefined}>
+                {f.integer(counts[id])}
+              </small>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="btn small" disabled={unread === 0} onClick={() => act({ type: "mark_all_read" })}>
+          <Icon name="check" size={14} />
+          {t("inbox.markAllRead")}
+        </button>
+      </div>
+
+      {list.length === 0 ? (
+        <div className="card empty">
+          <Icon name="inbox" size={28} />
+          <p>{t(filter === "all" ? "inbox.empty.all" : "inbox.empty.filter")}</p>
+        </div>
+      ) : (
+        <div className="inbox-panes">
+          <ul className="inbox-list card" ref={listRef} onKeyDown={onKeyDown} aria-label={t("inbox.list.label")}>
+            {list.map((message) => {
+              const text = describeMessage(t, f, view, message);
+              const open = isOpen(message);
+              const left = message.decision ? message.decision.due_month - view.month : 0;
+              const tone = open ? deadlineTone(left) : text.tone;
+              return (
+                <li key={message.id}>
+                  <button
+                    type="button"
+                    className="inbox-item"
+                    data-message={message.id}
+                    data-unread={message.read ? undefined : "true"}
+                    data-quiet={message.news ? "true" : undefined}
+                    data-pinned={open ? deadlineTone(left) : undefined}
+                    aria-current={message.id === currentId ? "true" : undefined}
+                    onClick={() => setPicked(message.id)}
+                  >
+                    <span className="inbox-icon" data-tone={tone}>
+                      <Icon name={text.icon} size={16} />
+                    </span>
+                    <span className="inbox-item-text">
+                      <span className="inbox-item-title">{text.title}</span>
+                      <span className="inbox-item-sub">
+                        {f.shortDate(message.date)}
+                        {open ? <Tag tone={deadlineTone(left)}>{t("inbox.needsDecision")}</Tag> : null}
+                        {message.decision?.chosen ? <Tag tone="muted">{t(`choice.${message.decision.chosen}`)}</Tag> : null}
+                      </span>
+                    </span>
+                    {open ? (
+                      <Ring fraction={timeLeft(message, view)} size={26} tone={deadlineTone(left)}>
+                        {String(Math.max(left, 0))}
+                      </Ring>
+                    ) : message.read ? null : (
+                      <i className="inbox-dot" aria-label={t("inbox.unread")} />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {current ? <Reading message={current} /> : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Reading({ message }: { message: Message }) {
+  const game = useGame();
+  const { view } = game;
+  const t = useT();
+  const f = useFormat();
+  const text = describeMessage(t, f, view, message);
+  const row = message.company === null ? undefined : game.rows.get(message.company);
+  const category = categoryOf(message);
+  const decision = message.decision;
+  const open = isOpen(message);
+  const left = decision ? decision.due_month - view.month : 0;
+
+  return (
+    <article className="inbox-reading card" data-quiet={message.news ? "true" : undefined}>
+      <header className="inbox-reading-head">
+        <span className="inbox-icon large" data-tone={open ? deadlineTone(left) : text.tone}>
+          <Icon name={text.icon} size={22} />
+        </span>
+        <div>
+          <h2>{text.title}</h2>
+          <div className="row">
+            <span className="muted">{f.date(message.date)}</span>
+            <Tag tone={category === "news" ? "muted" : undefined}>{t(`inbox.category.${category}`)}</Tag>
+            {open ? <Tag tone={deadlineTone(left)}>{t("inbox.needsDecision")}</Tag> : null}
+          </div>
+        </div>
+      </header>
+
+      <p className="inbox-body">{text.body}</p>
+
+      <Facts message={message} />
+
+      {row ? (
+        <button type="button" className="inbox-company" onClick={() => game.select(row.i)} aria-pressed={game.selected === row.i}>
+          <span className="inbox-icon">
+            <Icon name={row.sector} size={16} />
+          </span>
+          <span className="inbox-item-text">
+            <b>{row.name}</b>
+            <span className="inbox-item-sub">{`${t(`sector.${row.sector}`)} · ${t(`admin1.${row.admin1}`)}`}</span>
+          </span>
+          {row.held ? <Tag tone="accent">{t("owner.player")}</Tag> : null}
+          {row.in_deal ? <Tag tone="accent">{t("inbox.company.inDeal")}</Tag> : null}
+          {row.sale ? <Tag>{t(`stage.${row.sale.stage}`)}</Tag> : null}
+          <span className="inbox-open">
+            {t("action.open")}
+            <Icon name="exit" size={14} />
+          </span>
+        </button>
+      ) : null}
+
+      {decision ? (
+        <section className="inbox-decision" data-tone={open ? deadlineTone(left) : undefined}>
+          <div className="row between">
+            <h3>{t(open ? "inbox.decision.title" : "inbox.decision.done")}</h3>
+            {open ? (
+              <div className="row">
+                <Ring fraction={timeLeft(message, view)} size={30} tone={deadlineTone(left)}>
+                  {String(Math.max(left, 0))}
+                </Ring>
+                <span>
+                  <b>{t("inbox.decision.left", { months: Math.max(left, 0) })}</b>
+                  <small className="inbox-default">
+                    {t("inbox.decision.default", { choice: t(`choice.${decision.options[decision.options.length - 1]}`) })}
+                  </small>
+                </span>
+              </div>
+            ) : null}
+          </div>
+          <div className="inbox-choices">
+            {decision.options.map((option, index) => {
+              const known = CONSEQUENCES[message.type]?.includes(option);
+              const values = message.type === "covenant_breach" ? { cure: f.money(message.cure) } : undefined;
+              const chosen = decision.chosen === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  className="inbox-choice"
+                  data-tone={CHOICE_TONE[option]}
+                  data-primary={index === 0 ? "true" : undefined}
+                  data-chosen={chosen ? "true" : undefined}
+                  disabled={!open}
+                  onClick={() => game.act({ type: "decide", message: message.id, choice: option })}
+                >
+                  <strong>
+                    {chosen ? <Icon name="check" size={16} /> : null}
+                    {t(`choice.${option}`)}
+                  </strong>
+                  {known ? <span>{t(`inbox.consequence.${message.type}.${option}`, values)}</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+    </article>
+  );
+}
+
+/** The numbers of a message as tiles, where it carries any. */
+function Facts({ message }: { message: Message }) {
+  const t = useT();
+  const f = useFormat();
+  let tiles: ReactNode = null;
+  switch (message.type) {
+    case "covenant_breach":
+      tiles = (
+        <>
+          <Meter
+            value={message.leverage_millis}
+            max={Math.max(message.leverage_millis, message.max_leverage_millis) * 1.15}
+            marker={message.max_leverage_millis}
+            tone={message.leverage_millis > message.max_leverage_millis ? "bad" : "good"}
+            label={t("term.leverage")}
+            text={`${f.multiple(message.leverage_millis)} / ${f.multiple(message.max_leverage_millis)}`}
+          />
+          <Stat label={t("term.cover")} value={f.multiple(message.cover_millis)} />
+          <Stat label={t("inbox.fact.cure")} value={f.money(message.cure)} tone="warn" />
+        </>
+      );
+      break;
+    case "exit_offer":
+      tiles = (
+        <>
+          <Stat label={t("inbox.fact.dealValue")} value={f.money(message.ev)} />
+          <Stat label={t("inbox.fact.proceeds")} value={f.money(message.proceeds)} tone="good" />
+        </>
+      );
+      break;
+    case "exit_closed":
+      tiles = (
+        <>
+          <Stat label={t("inbox.fact.proceeds")} value={f.money(message.proceeds)} />
+          <Stat label={t("term.moic")} value={f.multiple(message.moic_millis, 2)} tone={message.moic_millis >= 1000 ? "good" : "bad"} />
+          {message.irr_bps === null ? null : (
+            <Stat label={t("term.irr")} value={f.pct(message.irr_bps)} tone={message.irr_bps >= 0 ? "good" : "bad"} />
+          )}
+        </>
+      );
+      break;
+    case "deal_closed":
+      tiles = (
+        <>
+          <Stat label={t("inbox.fact.dealValue")} value={f.money(message.ev)} />
+          <Stat label={t("term.equity")} value={f.money(message.equity)} />
+          <Stat label={t("term.debt")} value={f.money(message.debt)} />
+        </>
+      );
+      break;
+    case "rival_deal":
+    case "auction_lost":
+      tiles = <Stat label={t("inbox.fact.dealValue")} value={f.money(message.ev)} />;
+      break;
+    case "quarter_report":
+      tiles = (
+        <>
+          <Stat label={t("term.nav")} value={f.money(message.nav)} />
+          <Stat label={t("term.tvpi")} value={f.multiple(message.tvpi_millis, 2)} tone={message.tvpi_millis >= 1000 ? "good" : "bad"} />
+        </>
+      );
+      break;
+    case "rate_changed":
+      tiles = (
+        <Stat
+          label={t("inbox.fact.rate")}
+          value={f.pct(message.to_bps, 2)}
+          delta={`${f.signedPct(message.to_bps - message.from_bps, 2)}p`}
+          tone={message.to_bps > message.from_bps ? "bad" : "good"}
+        />
+      );
+      break;
+    default:
+      return null;
+  }
+  return <div className="inbox-facts">{tiles}</div>;
 }

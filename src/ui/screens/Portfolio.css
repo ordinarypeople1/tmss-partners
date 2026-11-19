@@ -1,0 +1,197 @@
+/* Portfolio: every holding at a glance. */
+
+.pf-toggle {
+  border-bottom: 0;
+}
+.pf-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+}
+
+.pf-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 18px;
+}
+
+.pf-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 44px 16px;
+}
+.pf-empty strong {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.pf-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--gap);
+  align-items: start;
+}
+.pf-card {
+  display: grid;
+  gap: 12px;
+  cursor: pointer;
+}
+.pf-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.pf-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.pf-card[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.pf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pf-sector {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--line-soft);
+  color: var(--ink-soft);
+}
+.pf-card-name {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.pf-card-name strong {
+  font-size: 1.02rem;
+}
+.pf-card-name span {
+  font-size: 0.8rem;
+}
+
+.pf-money {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+.pf-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+.pf-flow strong {
+  font-size: 1.3rem;
+}
+.pf-flow .icon {
+  align-self: center;
+  color: var(--muted);
+}
+.pf-meta,
+.pf-tags {
+  gap: 6px;
+}
+
+.pf-bridge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--panel);
+}
+.pf-bridge li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.pf-bridge span {
+  font-size: 0.74rem;
+}
+.pf-bridge b {
+  font-size: 0.86rem;
+}
+.pf-bar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+.pf-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--muted);
+}
+.pf-bridge li[data-tone="good"] .pf-bar i {
+  background: var(--good);
+}
+.pf-bridge li[data-tone="bad"] .pf-bar i {
+  background: var(--bad);
+}
+
+.pf-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.portfolio [data-tone="good"]:not(.tag, .meter, .stat) {
+  color: var(--good);
+}
+.portfolio [data-tone="bad"]:not(.tag, .meter, .stat) {
+  color: var(--bad);
+}
+.portfolio [data-tone="warn"]:not(.tag, .meter, .stat) {
+  color: var(--warn);
+}
+
+.pf-table-card,
+.pf-scroll {
+  overflow-x: auto;
+}
+.pf-table-card {
+  padding: 4px 6px;
+}
+.pf-table th,
+.pf-static th {
+  background: var(--raised);
+}
+.pf-table th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 28px;
+}
+.pf-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.pf-cell-sector {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pf-cell-alerts {
+  gap: 4px;
+}
+.pf-static tbody tr {
+  cursor: default;
+}
+.pf-static tbody tr:hover {
+  background: none;
+}

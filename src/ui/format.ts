@@ -10,6 +10,9 @@ export interface Format {
   signedMoney(value: number): string;
   /** A fogged figure: one amount when known, a range when not. */
   figure(value: Figure): string;
+  /** The same without the currency word, for table cells under a header that names it. */
+  shortFigure(value: Figure): string;
+  shortMoney(value: number): string;
   /** Basis points as a percentage: 1250 → "12.5%". */
   pct(bps: number, digits?: number): string;
   signedPct(bps: number, digits?: number): string;
@@ -33,6 +36,14 @@ export function makeFormat(intl: IntlShape): Format {
         : intl.formatMessage(
             { id: "format.range" },
             { low: formatUsdThousand(intl, low), high: formatUsdThousand(intl, high) },
+          ),
+    shortMoney: (value) => formatUsdThousand(intl, value, "short"),
+    shortFigure: ([low, high]) =>
+      low === high
+        ? formatUsdThousand(intl, low, "short")
+        : intl.formatMessage(
+            { id: "format.rangeShort" },
+            { low: formatUsdThousand(intl, low, "short"), high: formatUsdThousand(intl, high, "short") },
           ),
     pct: (bps, digits = 1) => `${number(bps / 100, digits)}%`,
     signedPct: (bps, digits = 1) => sign(bps, `${number(bps / 100, digits)}%`),

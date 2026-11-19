@@ -81,6 +81,17 @@ pub enum ExitRoute {
     Ipo,
 }
 
+impl ExitRoute {
+    /// Months from launch to an offer.
+    pub fn months(self) -> u32 {
+        match self {
+            ExitRoute::Strategic => 5,
+            ExitRoute::Secondary => 4,
+            ExitRoute::Ipo => 6,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExitProcess {
     pub route: ExitRoute,
@@ -751,11 +762,7 @@ impl World {
             }
         }
         self.spend_attention(2)?;
-        let months_left = match route {
-            ExitRoute::Strategic => 5,
-            ExitRoute::Secondary => 4,
-            ExitRoute::Ipo => 6,
-        };
+        let months_left = route.months();
         self.holding_mut(company).exit = Some(ExitProcess {
             route,
             months_left,

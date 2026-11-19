@@ -294,10 +294,11 @@ export interface HoldingView {
   waiver_quarters: number;
   strike: boolean;
   plan: InitiativeKind[];
-  initiatives: { kind: InitiativeKind; months_left: number }[];
+  /** `months` is the full length; `months_left` counts down. */
+  initiatives: { kind: InitiativeKind; months_left: number; months: number }[];
   done: InitiativeKind[];
   available: { kind: InitiativeKind; months: number; cost: number; planned: boolean }[];
-  exit: { route: ExitRoute; months_left: number; offer_ev: number | null } | null;
+  exit: { route: ExitRoute; months_left: number; months: number; offer_ev: number | null } | null;
   marks: Mark[];
   add_ons: number;
   /** Company indices that can be bolted on today. */

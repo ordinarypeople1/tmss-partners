@@ -1,0 +1,176 @@
+.fundscreen .fund-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
+}
+
+.fundscreen .fund-clock {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+}
+.fundscreen .clock-track {
+  position: relative;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+}
+.fundscreen .clock-invest {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 8px 0 0 8px;
+  background: var(--good-soft);
+}
+.fundscreen .clock-elapsed {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.fundscreen .clock-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgb(36 48 44 / 14%);
+}
+.fundscreen .clock-now {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 3px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.fundscreen .clock-today {
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+.fundscreen .clock-labels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+.fundscreen .clock-labels span {
+  display: grid;
+}
+.fundscreen .clock-labels span:nth-child(2) {
+  text-align: center;
+}
+.fundscreen .clock-labels span:last-child {
+  text-align: right;
+}
+.fundscreen .clock-labels small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.fundscreen .clock-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.fundscreen .clock-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.fundscreen .clock-legend i {
+  width: 12px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--good-soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.fundscreen .clock-legend i[data-kind="harvest"] {
+  background: var(--warn-soft);
+}
+
+.fundscreen .flow-bars {
+  gap: 8px;
+}
+
+.fundscreen .waterfall {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+.fundscreen .waterfall li {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.fundscreen .waterfall li:nth-child(1) {
+  min-height: 150px;
+}
+.fundscreen .waterfall li:nth-child(2) {
+  min-height: 128px;
+}
+.fundscreen .waterfall li:nth-child(3) {
+  min-height: 106px;
+}
+.fundscreen .waterfall li[data-done="true"] {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.fundscreen .waterfall b {
+  font-size: 1.1rem;
+}
+.fundscreen .waterfall small {
+  color: var(--muted);
+}
+.fundscreen .step-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--line);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.fundscreen .waterfall li[data-done="true"] .step-mark {
+  background: var(--good);
+  color: #fff;
+}
+.fundscreen .carry-mine {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.fundscreen .fund-bottom {
+  grid-template-columns: minmax(0, 2.2fr) minmax(240px, 1fr);
+  align-items: start;
+}
+.fundscreen .realized-table tbody tr {
+  cursor: default;
+}
+.fundscreen .table .meter {
+  min-width: 110px;
+}
+.fundscreen .row-link {
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .fundscreen .fund-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

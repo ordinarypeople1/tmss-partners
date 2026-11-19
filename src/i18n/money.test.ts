@@ -25,6 +25,8 @@ describe("money", () => {
     expect(f.figure([120_000, 120_000])).toBe("1.2억 달러");
     expect(f.figure([100_000, 150_000])).toBe("1억 달러 ~ 1.5억 달러");
     expect(f.signedMoney(2_500)).toBe("+250만 달러");
+    expect(f.shortFigure([100_000, 150_000])).toBe("1억–1.5억");
+    expect(f.shortMoney(49_000)).toBe("4,900만");
     expect(f.date({ year: 2024, month: 3 })).toBe("2024년 3월");
     expect(f.shortDate({ year: 2024, month: 3 })).toBe("24.03");
   });
