@@ -1,7 +1,7 @@
 # Deal Atlas
 
-TMSS Partners의 딜을 지도 위에서 고르는, 한 사람의 커리어 시뮬레이션입니다.
-가제는 **Deal Atlas**, 플레이어의 하우스는 **TMSS Partners**입니다.
+Poiesis Investment의 딜을 지도 위에서 고르는, 한 사람의 커리어 시뮬레이션입니다.
+가제는 **Deal Atlas**, 플레이어의 하우스는 **Poiesis Investment**입니다.
 
 현실의 사모펀드(Private Equity, PE)와 벤처투자(Venture Capital, VC)가 실제로 움직이는 방식에 가깝게 만드는 것이 이 게임의 가치입니다. 주가는 없습니다. 회사의 가치는 펀더멘털이고, 가격은 거래가 성사되는 순간에만 생깁니다.
 
@@ -46,7 +46,7 @@ TMSS Partners의 딜을 지도 위에서 고르는, 한 사람의 커리어 시�
 | 경로 | 내용 |
 | --- | --- |
 | `docs/gdd/` | 게임 디자인 |
-| `docs/personas/` | 플레이어, TMSS Partners, 파트너 |
+| `docs/personas/` | 플레이어, Poiesis Investment, 파트너 |
 | `docs/scenarios/` | 이벤트 카탈로그 |
 | `docs/finance/` | 3제표, 밸류에이션, LBO, 변제 순위 |
 | `docs/legal/` | 데이터 사용 메모. 법률 자문이 아니다 |
