@@ -34,21 +34,61 @@ pub struct HouseStyle {
 
 pub const HOUSE_STYLES: [HouseStyle; RIVAL_HOUSES] = [
     // Halberd: large, disciplined, industrial.
-    HouseStyle { aggression_bps: -150, focus: Some("industrial_components"), min_ebitda: 12_000, max_ebitda: i64::MAX },
+    HouseStyle {
+        aggression_bps: -150,
+        focus: Some("industrial_components"),
+        min_ebitda: 12_000,
+        max_ebitda: i64::MAX,
+    },
     // Northmere: pays up for healthcare.
-    HouseStyle { aggression_bps: 150, focus: Some("healthcare_services"), min_ebitda: 6_000, max_ebitda: i64::MAX },
+    HouseStyle {
+        aggression_bps: 150,
+        focus: Some("healthcare_services"),
+        min_ebitda: 6_000,
+        max_ebitda: i64::MAX,
+    },
     // Calder Wharf: logistics specialist, fair prices.
-    HouseStyle { aggression_bps: 0, focus: Some("cold_chain_logistics"), min_ebitda: 3_000, max_ebitda: 40_000 },
+    HouseStyle {
+        aggression_bps: 0,
+        focus: Some("cold_chain_logistics"),
+        min_ebitda: 3_000,
+        max_ebitda: 40_000,
+    },
     // Ninth Meridian: generalist that overpays in auctions.
-    HouseStyle { aggression_bps: 350, focus: None, min_ebitda: 8_000, max_ebitda: i64::MAX },
+    HouseStyle {
+        aggression_bps: 350,
+        focus: None,
+        min_ebitda: 8_000,
+        max_ebitda: i64::MAX,
+    },
     // Wabash Row: small-cap value buyer.
-    HouseStyle { aggression_bps: -300, focus: Some("building_products"), min_ebitda: 0, max_ebitda: 15_000 },
+    HouseStyle {
+        aggression_bps: -300,
+        focus: Some("building_products"),
+        min_ebitda: 0,
+        max_ebitda: 15_000,
+    },
     // Larkmoor: services roll-ups.
-    HouseStyle { aggression_bps: 200, focus: Some("business_services"), min_ebitda: 3_000, max_ebitda: 30_000 },
+    HouseStyle {
+        aggression_bps: 200,
+        focus: Some("business_services"),
+        min_ebitda: 3_000,
+        max_ebitda: 30_000,
+    },
     // Cinderfield: food, patient.
-    HouseStyle { aggression_bps: -50, focus: Some("food_manufacturing"), min_ebitda: 4_000, max_ebitda: 50_000 },
+    HouseStyle {
+        aggression_bps: -50,
+        focus: Some("food_manufacturing"),
+        min_ebitda: 4_000,
+        max_ebitda: 50_000,
+    },
     // Harrow & Pike: small generalist.
-    HouseStyle { aggression_bps: 50, focus: None, min_ebitda: 0, max_ebitda: 12_000 },
+    HouseStyle {
+        aggression_bps: 50,
+        focus: None,
+        min_ebitda: 0,
+        max_ebitda: 12_000,
+    },
 ];
 
 /// What a rival house has done since the game opened.
@@ -168,7 +208,11 @@ impl World {
             }
             Owner::Sponsor { months_held, .. } => {
                 let held = i64::from(months_held);
-                let chance = if held < 36 { 10 } else { (80 + (held - 36) * 5).min(350) };
+                let chance = if held < 36 {
+                    10
+                } else {
+                    (80 + (held - 36) * 5).min(350)
+                };
                 (chance, SaleReason::FundExit)
             }
             Owner::Corporate => {
@@ -191,7 +235,9 @@ impl World {
             };
             (base * market / 100, reason)
         };
-        self.rng.chance_bps(chance.clamp(0, 10_000) as u32).then_some(reason)
+        self.rng
+            .chance_bps(chance.clamp(0, 10_000) as u32)
+            .then_some(reason)
     }
 
     pub(crate) fn market_step(&mut self) {
@@ -224,7 +270,10 @@ impl World {
 
     fn advance_process(&mut self, index: usize) {
         let (stage, months_left, reason) = {
-            let process = self.companies[index].process.as_mut().expect("process exists");
+            let process = self.companies[index]
+                .process
+                .as_mut()
+                .expect("process exists");
             process.months_left = process.months_left.saturating_sub(1);
             (process.stage, process.months_left, process.reason)
         };
@@ -250,7 +299,10 @@ impl World {
             Stage::Preparing | Stage::Exclusive => {
                 let rivals = self.draw_interest(index);
                 let months = self.rng.range(2, 3) as u32;
-                let process = self.companies[index].process.as_mut().expect("process exists");
+                let process = self.companies[index]
+                    .process
+                    .as_mut()
+                    .expect("process exists");
                 process.stage = Stage::Marketing;
                 process.months_left = months;
                 process.rivals = rivals;
@@ -262,28 +314,52 @@ impl World {
                 let model_ev = self.model_ev(index);
                 let spread = self.economy.credit_spread_bps;
                 let phase = self.economy.phase;
-                let mut rivals = self.companies[index].process.as_ref().expect("process exists").rivals.clone();
+                let mut rivals = self.companies[index]
+                    .process
+                    .as_ref()
+                    .expect("process exists")
+                    .rivals
+                    .clone();
                 rivals.retain(|_| !self.rng.chance_bps(2_000));
-                let sector_id = self.industries[self.companies[index].sector].sector_id.clone();
+                let sector_id = self.industries[self.companies[index].sector]
+                    .sector_id
+                    .clone();
                 let difficulty = self.options.difficulty.rival_bias_bps();
                 for rival in &mut rivals {
                     let factor = match rival.bidder {
                         Bidder::Strategic => {
-                            10_550 + self.rng.noise(550) + if phase == Phase::Expansion { 250 } else { -350 }
+                            10_550
+                                + self.rng.noise(550)
+                                + if phase == Phase::Expansion { 250 } else { -350 }
                         }
                         Bidder::House { house } => {
                             let style = &HOUSE_STYLES[house as usize % RIVAL_HOUSES];
-                            let focus = if style.focus == Some(sector_id.as_str()) { 350 } else { 0 };
-                            10_050 + style.aggression_bps + focus + self.rng.noise(450) - (spread - 400) * 2
+                            let focus = if style.focus == Some(sector_id.as_str()) {
+                                350
+                            } else {
+                                0
+                            };
+                            10_050 + style.aggression_bps + focus + self.rng.noise(450)
+                                - (spread - 400) * 2
                         }
                         Bidder::Player => 0,
                     };
                     // Control of a listed company costs a premium to everyone.
-                    let premium = if reason == SaleReason::StrategicReview { 1_500 } else { 0 };
-                    rival.ev = mul_bps(model_ev, (factor + difficulty + premium).clamp(6_500, 13_800));
+                    let premium = if reason == SaleReason::StrategicReview {
+                        1_500
+                    } else {
+                        0
+                    };
+                    rival.ev = mul_bps(
+                        model_ev,
+                        (factor + difficulty + premium).clamp(6_500, 13_800),
+                    );
                 }
                 let months = self.rng.range(2, 3) as u32;
-                let process = self.companies[index].process.as_mut().expect("process exists");
+                let process = self.companies[index]
+                    .process
+                    .as_mut()
+                    .expect("process exists");
                 process.stage = Stage::Bidding;
                 process.months_left = months;
                 process.rivals = rivals;
@@ -339,7 +415,10 @@ impl World {
     }
 
     pub(crate) fn auction_outcome(&self, index: usize) -> Outcome {
-        let process = self.companies[index].process.as_ref().expect("process exists");
+        let process = self.companies[index]
+            .process
+            .as_ref()
+            .expect("process exists");
         let reserve = self.reserve_ev(index);
         let best = process.rivals.iter().max_by_key(|rival| rival.ev);
         if let Some(bid) = &process.player_bid {
@@ -361,7 +440,10 @@ impl World {
         match self.auction_outcome(index) {
             Outcome::Player { ev } => self.close_deal(index, ev),
             Outcome::Rival { bidder, ev } => {
-                let had_bid = self.companies[index].process.as_ref().is_some_and(|p| p.player_bid.is_some());
+                let had_bid = self.companies[index]
+                    .process
+                    .as_ref()
+                    .is_some_and(|p| p.player_bid.is_some());
                 self.transfer_to_rival(index, bidder, ev);
                 if had_bid {
                     self.post(MessageKind::AuctionLost { winner: bidder, ev }, Some(index));
@@ -408,25 +490,44 @@ impl World {
 
     /// The last month: rivals see the field and some raise. The player hears where they stand.
     fn open_final_round(&mut self, index: usize) {
-        let already = self.companies[index].process.as_ref().is_some_and(|process| process.final_round);
+        let already = self.companies[index]
+            .process
+            .as_ref()
+            .is_some_and(|process| process.final_round);
         if already {
             return;
         }
-        let mut rivals = self.companies[index].process.as_ref().expect("process exists").rivals.clone();
+        let mut rivals = self.companies[index]
+            .process
+            .as_ref()
+            .expect("process exists")
+            .rivals
+            .clone();
         for rival in &mut rivals {
             let eager = match rival.bidder {
-                Bidder::House { house } => 4_000 + HOUSE_STYLES[house as usize % RIVAL_HOUSES].aggression_bps * 6,
+                Bidder::House { house } => {
+                    4_000 + HOUSE_STYLES[house as usize % RIVAL_HOUSES].aggression_bps * 6
+                }
                 _ => 4_500,
             };
             if self.rng.chance_bps(eager.clamp(1_000, 8_000) as u32) {
                 rival.ev = mul_bps(rival.ev, 10_000 + self.rng.range(50, 300));
             }
         }
-        let process = self.companies[index].process.as_mut().expect("process exists");
+        let process = self.companies[index]
+            .process
+            .as_mut()
+            .expect("process exists");
         process.rivals = rivals;
         process.final_round = true;
         if let Some(standing) = self.standing(index) {
-            self.post(MessageKind::FinalRound { rank: standing.rank, bidders: standing.bidders }, Some(index));
+            self.post(
+                MessageKind::FinalRound {
+                    rank: standing.rank,
+                    bidders: standing.bidders,
+                },
+                Some(index),
+            );
         }
     }
 
@@ -435,11 +536,20 @@ impl World {
         let process = self.companies[index].process.as_ref()?;
         let bid = process.player_bid.as_ref()?;
         let weighed = mul_bps(bid.ev, 10_000 + bid.certainty_bps);
-        let ahead = process.rivals.iter().filter(|rival| rival.ev > weighed).count();
+        let ahead = process
+            .rivals
+            .iter()
+            .filter(|rival| rival.ev > weighed)
+            .count();
         Some(Standing {
             rank: ahead + 1,
             bidders: process.rivals.len() + 1,
-            lead_ev: process.rivals.iter().map(|rival| rival.ev).max().unwrap_or(0),
+            lead_ev: process
+                .rivals
+                .iter()
+                .map(|rival| rival.ev)
+                .max()
+                .unwrap_or(0),
         })
     }
 
@@ -455,7 +565,10 @@ impl World {
                 let company = &mut self.companies[index];
                 company.acquire(&industry, ev, debt);
                 company.debt_spread_bps = spread;
-                company.owner = Owner::Sponsor { house, months_held: 0 };
+                company.owner = Owner::Sponsor {
+                    house,
+                    months_held: 0,
+                };
                 self.record_house_entry(index, house, ev - debt);
             }
             _ => {
@@ -475,7 +588,9 @@ impl World {
     /// Whether the player would hear about this company's sale.
     pub(crate) fn is_followed(&self, index: usize) -> bool {
         let company = &self.companies[index];
-        company.watched || company.relationship >= 25 || self.deals.iter().any(|deal| deal.company == index)
+        company.watched
+            || company.relationship >= 25
+            || self.deals.iter().any(|deal| deal.company == index)
     }
 
     /// Whether a process is visible to the player at all.
@@ -492,6 +607,9 @@ impl World {
     }
 
     pub(crate) fn live_processes(&self) -> usize {
-        self.companies.iter().filter(|company| company.is_active() && company.process.is_some()).count()
+        self.companies
+            .iter()
+            .filter(|company| company.is_active() && company.process.is_some())
+            .count()
     }
 }

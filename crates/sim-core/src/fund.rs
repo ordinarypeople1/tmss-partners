@@ -306,7 +306,8 @@ impl Career {
             Rank::Principal
                 if self.reputation >= 68
                     && self.months_at_rank >= 24
-                    && (self.best_moic_millis >= 1_800 || (self.deals_closed >= 3 && tvpi_millis >= 1_350)) =>
+                    && (self.best_moic_millis >= 1_800
+                        || (self.deals_closed >= 3 && tvpi_millis >= 1_350)) =>
             {
                 Some(Rank::Partner)
             }

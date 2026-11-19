@@ -141,7 +141,11 @@ pub struct Records {
 
 impl World {
     pub(crate) fn unlock(&mut self, achievement: Achievement) {
-        if self.achievements.iter().any(|item| item.achievement == achievement) {
+        if self
+            .achievements
+            .iter()
+            .any(|item| item.achievement == achievement)
+        {
             return;
         }
         self.achievements.push(Unlocked {
@@ -183,7 +187,10 @@ impl World {
         self.messages.iter().any(|message| {
             message.company == Some(company)
                 && matches!(message.kind, MessageKind::Event { .. })
-                && message.decision.as_ref().is_some_and(|decision| decision.chosen.is_none())
+                && message
+                    .decision
+                    .as_ref()
+                    .is_some_and(|decision| decision.chosen.is_none())
         })
     }
 
@@ -210,14 +217,28 @@ impl World {
         let asset_heavy = self.industries[target.sector].capex_ratio_bps >= 150;
         let mut pool: Vec<(EventKind, i64, i64)> = vec![
             (EventKind::TeamPoaching, 2, 0),
-            (EventKind::CostShock, if target.has(Trait::RegulatedCustomers) { 4 } else { 2 }, 0),
+            (
+                EventKind::CostShock,
+                if target.has(Trait::RegulatedCustomers) {
+                    4
+                } else {
+                    2
+                },
+                0,
+            ),
             (EventKind::CyberIncident, 1, mul_bps(revenue, 40)),
         ];
         if holding.earnout_open && (6..30).contains(&held) {
             pool.push((EventKind::EarnoutDispute, 3, mul_bps(holding.entry_ev, 300)));
         }
         if asset_heavy {
-            let weight = if target.has(Trait::SinglePlant) { 3 } else if target.has(Trait::AgingEquipment) { 2 } else { 1 };
+            let weight = if target.has(Trait::SinglePlant) {
+                3
+            } else if target.has(Trait::AgingEquipment) {
+                2
+            } else {
+                1
+            };
             pool.push((EventKind::PlantOutage, weight, mul_bps(revenue, 200)));
         }
         if target.customer_concentration_bps > 3_000 {
@@ -240,16 +261,30 @@ impl World {
             mark -= item.1;
         }
         let (event, _, amount) = picked;
-        let holding = self.companies[company].holding.as_mut().expect("holding exists");
+        let holding = self.companies[company]
+            .holding
+            .as_mut()
+            .expect("holding exists");
         match event {
             EventKind::EarnoutDispute => holding.earnout_open = false,
             EventKind::IncentivePlan => holding.incentive_asked = true,
             _ => {}
         }
-        self.post_decision(MessageKind::Event { event, amount }, Some(company), vec![Choice::First, Choice::Second], 2);
+        self.post_decision(
+            MessageKind::Event { event, amount },
+            Some(company),
+            vec![Choice::First, Choice::Second],
+            2,
+        );
     }
 
-    pub(crate) fn decide_event(&mut self, company: usize, event: EventKind, amount: i64, choice: Choice) {
+    pub(crate) fn decide_event(
+        &mut self,
+        company: usize,
+        event: EventKind,
+        amount: i64,
+        choice: Choice,
+    ) {
         let first = choice == Choice::First;
         if event == EventKind::CoInvestRequest {
             if let Some(deal) = self.deal_index(company) {
@@ -301,7 +336,9 @@ impl World {
                 push(self, 1, 500, 3);
                 self.companies[company].gross_margin_bps -= 30;
             }
-            (EventKind::CustomerRenegotiation, true) => self.companies[company].gross_margin_bps -= 80,
+            (EventKind::CustomerRenegotiation, true) => {
+                self.companies[company].gross_margin_bps -= 80
+            }
             (EventKind::CustomerRenegotiation, false) => {
                 if self.rng.chance_bps(3_500) {
                     let target = &mut self.companies[company];
@@ -309,7 +346,11 @@ impl World {
                 }
             }
             (EventKind::CostShock, true) => {
-                let drag = if self.companies[company].has(Trait::BrandStrength) { -20 } else { -40 };
+                let drag = if self.companies[company].has(Trait::BrandStrength) {
+                    -20
+                } else {
+                    -40
+                };
                 push(self, 6, drag, 0);
             }
             (EventKind::CostShock, false) => self.companies[company].gross_margin_bps -= 120,
@@ -343,7 +384,14 @@ impl World {
 
     // ----- hooks -----
 
-    pub(crate) fn after_close(&mut self, company: usize, ev: i64, equity: i64, rivals: usize, exclusive: bool) {
+    pub(crate) fn after_close(
+        &mut self,
+        company: usize,
+        ev: i64,
+        equity: i64,
+        rivals: usize,
+        exclusive: bool,
+    ) {
         self.year.closes += 1;
         self.year.deployed += equity;
         self.records.largest_deal_ev = self.records.largest_deal_ev.max(ev);
@@ -375,7 +423,9 @@ impl World {
         records.best_moic_millis = records.best_moic_millis.max(moic_millis);
         records.largest_exit_proceeds = records.largest_exit_proceeds.max(proceeds);
         records.total_proceeds += proceeds;
-        if moic_millis >= 1_000 && (records.fastest_exit_months == 0 || months < records.fastest_exit_months) {
+        if moic_millis >= 1_000
+            && (records.fastest_exit_months == 0 || months < records.fastest_exit_months)
+        {
             records.fastest_exit_months = months;
         }
         // The partners remember how they voted.
@@ -443,11 +493,20 @@ impl World {
 
     pub(crate) fn set_objectives(&mut self) {
         self.year = YearStats::default();
-        let holdings = self.companies.iter().filter(|company| company.is_player_owned()).count();
+        let holdings = self
+            .companies
+            .iter()
+            .filter(|company| company.is_player_owned())
+            .count();
         let ripe = self
             .companies
             .iter()
-            .filter_map(|company| company.holding.as_ref().filter(|_| company.is_player_owned()))
+            .filter_map(|company| {
+                company
+                    .holding
+                    .as_ref()
+                    .filter(|_| company.is_player_owned())
+            })
             .any(|holding| self.months_elapsed.saturating_sub(holding.acquired_month) >= 36);
         let investing = self.fund.investing(self.date);
         let mut objectives = Vec::new();
@@ -498,9 +557,11 @@ impl World {
         match objective.kind {
             ObjectiveKind::CloseDeals => self.year.closes,
             ObjectiveKind::DeployCapital => self.year.deployed,
-            ObjectiveKind::BuildRelationships => {
-                self.companies.iter().filter(|company| company.is_active() && company.relationship >= 60).count() as i64
-            }
+            ObjectiveKind::BuildRelationships => self
+                .companies
+                .iter()
+                .filter(|company| company.is_active() && company.relationship >= 60)
+                .count() as i64,
             ObjectiveKind::FinishInitiatives => self.year.initiatives,
             ObjectiveKind::CleanCovenants => self.year.breaches,
             ObjectiveKind::ExitCount => self.year.exits,
@@ -523,8 +584,14 @@ impl World {
             return;
         }
         let total = self.objectives.len();
-        let met = self.objectives.clone().iter().filter(|objective| self.objective_met(objective)).count();
-        self.career.adjust_reputation(met as i64 * 2 - (total - met) as i64);
+        let met = self
+            .objectives
+            .clone()
+            .iter()
+            .filter(|objective| self.objective_met(objective))
+            .count();
+        self.career
+            .adjust_reputation(met as i64 * 2 - (total - met) as i64);
         self.trust(CHAIR, met as i64 * 3 - (total - met) as i64 * 2);
         let bonus = self.career.rank.salary() * met as i64 / 20;
         self.career.wealth += bonus;
@@ -544,7 +611,11 @@ impl World {
         let rank = self.league_rank();
         for lp in &mut self.lps {
             // Early marks say little; nobody judges a fund in its first two years.
-            let returns = if elapsed >= 24 { (tvpi - 1_000) / 25 } else { 0 };
+            let returns = if elapsed >= 24 {
+                (tvpi - 1_000) / 25
+            } else {
+                0
+            };
             let cash = if elapsed >= 60 { (dpi - 500) / 40 } else { 0 };
             let target = 52
                 + match lp.kind {
@@ -552,7 +623,8 @@ impl World {
                     LpKind::Endowment | LpKind::FamilyOffice => returns + cash / 2 - behind / 2,
                     LpKind::FundOfFunds => returns / 2 + (5 - rank as i64) * 4 - behind / 2,
                 };
-            lp.satisfaction = (lp.satisfaction + (target.clamp(0, 100) - lp.satisfaction) / 6).clamp(0, 100);
+            lp.satisfaction =
+                (lp.satisfaction + (target.clamp(0, 100) - lp.satisfaction) / 6).clamp(0, 100);
         }
     }
 
@@ -578,7 +650,11 @@ impl World {
 
     /// The player's place among the nine houses by gross multiple. 1 is best.
     pub fn league_rank(&self) -> usize {
-        self.league_rows().iter().position(|row| row.house.is_none()).map(|at| at + 1).unwrap_or(9)
+        self.league_rows()
+            .iter()
+            .position(|row| row.house.is_none())
+            .map(|at| at + 1)
+            .unwrap_or(9)
     }
 
     /// Checked every month.
@@ -589,7 +665,11 @@ impl World {
             Rank::Founder => self.unlock(Achievement::OwnName),
             Rank::VicePresident => {}
         }
-        let friends = self.companies.iter().filter(|company| company.is_active() && company.relationship >= 60).count();
+        let friends = self
+            .companies
+            .iter()
+            .filter(|company| company.is_active() && company.relationship >= 60)
+            .count();
         if friends >= 8 {
             self.unlock(Achievement::Networker);
         }

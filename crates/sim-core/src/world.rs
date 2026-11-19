@@ -16,7 +16,9 @@ use crate::fund::{Career, Fund, Perk, Rank, ASSOCIATE_COST, MAX_ASSOCIATES};
 use crate::market::{Bidder, HouseRecord, SaleReason, RIVAL_HOUSES};
 use crate::portfolio::{ExitRoute, InitiativeKind};
 use crate::rng::Rng;
-use crate::story::{opening_lps, Achievement, EventKind, Lp, Objective, Records, Unlocked, YearStats};
+use crate::story::{
+    opening_lps, Achievement, EventKind, Lp, Objective, Records, Unlocked, YearStats,
+};
 
 pub const SAVE_SCHEMA_VERSION: u32 = 4;
 const FUND_COMMITTED: i64 = 750_000;
@@ -94,40 +96,120 @@ pub enum Choice {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum MessageKind {
     Welcome,
-    RateChanged { from_bps: i64, to_bps: i64 },
-    PhaseChanged { from: Phase, to: Phase },
-    SaleEarlyNotice { reason: SaleReason },
-    SaleStarted { reason: SaleReason },
+    RateChanged {
+        from_bps: i64,
+        to_bps: i64,
+    },
+    PhaseChanged {
+        from: Phase,
+        to: Phase,
+    },
+    SaleEarlyNotice {
+        reason: SaleReason,
+    },
+    SaleStarted {
+        reason: SaleReason,
+    },
     SaleWithdrawn,
     SaleFailed,
-    RivalDeal { buyer: Bidder, ev: i64 },
-    AuctionLost { winner: Bidder, ev: i64 },
-    FinalRound { rank: usize, bidders: usize },
-    DiligenceReport { stream: DdStream, found: Vec<IssueKind> },
-    CommitteeDecision { outcome: IcOutcome },
-    DealClosed { ev: i64, equity: i64, debt: i64 },
+    RivalDeal {
+        buyer: Bidder,
+        ev: i64,
+    },
+    AuctionLost {
+        winner: Bidder,
+        ev: i64,
+    },
+    FinalRound {
+        rank: usize,
+        bidders: usize,
+    },
+    DiligenceReport {
+        stream: DdStream,
+        found: Vec<IssueKind>,
+    },
+    CommitteeDecision {
+        outcome: IcOutcome,
+    },
+    DealClosed {
+        ev: i64,
+        equity: i64,
+        debt: i64,
+    },
     DealBroken,
     RegulatorBlocked,
-    InitiativeDone { kind: InitiativeKind },
-    IssueSurfaced { issue: IssueKind },
+    InitiativeDone {
+        kind: InitiativeKind,
+    },
+    IssueSurfaced {
+        issue: IssueKind,
+    },
     Strike,
-    CovenantBreach { leverage_millis: i64, max_leverage_millis: i64, cover_millis: i64, cure: i64 },
+    CovenantBreach {
+        leverage_millis: i64,
+        max_leverage_millis: i64,
+        cover_millis: i64,
+        cure: i64,
+    },
     LendersTookKeys,
-    Refinanced { spread_bps: i64 },
-    RecapPaid { amount: i64 },
-    AddOnClosed { target: String, price: i64, from_fund: i64 },
-    ExitOffer { route: ExitRoute, ev: i64, proceeds: i64 },
-    ExitPulled { route: ExitRoute },
-    ExitClosed { route: ExitRoute, buyer: Bidder, ev: i64, proceeds: i64, moic_millis: i64, irr_bps: Option<i64> },
-    ProceedsReceived { amount: i64 },
-    QuarterReport { nav: i64, tvpi_millis: i64 },
+    Refinanced {
+        spread_bps: i64,
+    },
+    RecapPaid {
+        amount: i64,
+    },
+    AddOnClosed {
+        target: String,
+        price: i64,
+        from_fund: i64,
+    },
+    ExitOffer {
+        route: ExitRoute,
+        ev: i64,
+        proceeds: i64,
+    },
+    ExitPulled {
+        route: ExitRoute,
+    },
+    ExitClosed {
+        route: ExitRoute,
+        buyer: Bidder,
+        ev: i64,
+        proceeds: i64,
+        moic_millis: i64,
+        irr_bps: Option<i64>,
+    },
+    ProceedsReceived {
+        amount: i64,
+    },
+    QuarterReport {
+        nav: i64,
+        tvpi_millis: i64,
+    },
     InvestmentPeriodEnded,
-    FundTermEnded { tvpi_millis: i64, carry: i64 },
-    NextFund { committed: i64, own_house: bool },
-    Promotion { rank: Rank },
-    Event { event: EventKind, amount: i64 },
-    AchievementUnlocked { achievement: Achievement },
-    ObjectivesReview { met: usize, total: usize, bonus: i64 },
+    FundTermEnded {
+        tvpi_millis: i64,
+        carry: i64,
+    },
+    NextFund {
+        committed: i64,
+        own_house: bool,
+    },
+    Promotion {
+        rank: Rank,
+    },
+    Event {
+        event: EventKind,
+        amount: i64,
+    },
+    AchievementUnlocked {
+        achievement: Achievement,
+    },
+    ObjectivesReview {
+        met: usize,
+        total: usize,
+        bonus: i64,
+    },
     Fired,
 }
 
@@ -156,29 +238,82 @@ pub struct Message {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Command {
     AdvanceMonth,
-    Watch { company: usize, on: bool },
-    MeetOwner { company: usize },
-    SignNda { company: usize },
-    RunDiligence { company: usize, stream: DdStream },
-    SetOffer { company: usize, offer: Offer },
-    SubmitIc { company: usize },
-    SubmitBid { company: usize },
-    RaiseBid { company: usize, ev: i64 },
-    ResearchSector { sector: usize },
+    Watch {
+        company: usize,
+        on: bool,
+    },
+    MeetOwner {
+        company: usize,
+    },
+    SignNda {
+        company: usize,
+    },
+    RunDiligence {
+        company: usize,
+        stream: DdStream,
+    },
+    SetOffer {
+        company: usize,
+        offer: Offer,
+    },
+    SubmitIc {
+        company: usize,
+    },
+    SubmitBid {
+        company: usize,
+    },
+    RaiseBid {
+        company: usize,
+        ev: i64,
+    },
+    ResearchSector {
+        sector: usize,
+    },
     HireAssociate,
     ReleaseAssociate,
-    CommitPersonal { amount: i64 },
-    BuyPerk { perk: Perk },
-    ProposeExclusive { company: usize },
-    DropDeal { company: usize },
-    SetBudget { company: usize, budget: Budget },
-    StartInitiative { company: usize, kind: InitiativeKind },
-    AddOn { platform: usize, target: usize },
-    DividendRecap { company: usize, amount: i64 },
-    EquityCure { company: usize, amount: i64 },
-    StartExit { company: usize, route: ExitRoute },
-    Decide { message: u64, choice: Choice },
-    MarkRead { message: u64 },
+    CommitPersonal {
+        amount: i64,
+    },
+    BuyPerk {
+        perk: Perk,
+    },
+    ProposeExclusive {
+        company: usize,
+    },
+    DropDeal {
+        company: usize,
+    },
+    SetBudget {
+        company: usize,
+        budget: Budget,
+    },
+    StartInitiative {
+        company: usize,
+        kind: InitiativeKind,
+    },
+    AddOn {
+        platform: usize,
+        target: usize,
+    },
+    DividendRecap {
+        company: usize,
+        amount: i64,
+    },
+    EquityCure {
+        company: usize,
+        amount: i64,
+    },
+    StartExit {
+        company: usize,
+        route: ExitRoute,
+    },
+    Decide {
+        message: u64,
+        choice: Choice,
+    },
+    MarkRead {
+        message: u64,
+    },
     MarkAllRead,
 }
 
@@ -296,8 +431,15 @@ impl World {
                 .industries
                 .iter()
                 .position(|industry| industry.sector_id == item.sector_id)
-                .ok_or_else(|| SaveError::Malformed(format!("unknown sector {}", item.sector_id)))?;
-            companies.push(Company::from_seed(item, sector, &universe.industries[sector], &mut rng));
+                .ok_or_else(|| {
+                    SaveError::Malformed(format!("unknown sector {}", item.sector_id))
+                })?;
+            companies.push(Company::from_seed(
+                item,
+                sector,
+                &universe.industries[sector],
+                &mut rng,
+            ));
         }
         let career = Career::new();
         let sectors = universe.industries.len();
@@ -334,7 +476,9 @@ impl World {
         for index in 0..world.companies.len() {
             if let crate::company::Owner::Sponsor { house, .. } = world.companies[index].owner {
                 let target = &world.companies[index];
-                let equity = target.model_equity(&world.industries[target.sector], &world.economy).max(1);
+                let equity = target
+                    .model_equity(&world.industries[target.sector], &world.economy)
+                    .max(1);
                 world.companies[index].sponsor_cost = equity;
                 world.houses[house as usize % RIVAL_HOUSES].invested += equity;
             }
@@ -367,7 +511,10 @@ impl World {
                 Ok(())
             }
             Command::Watch { company, on } => {
-                let target = self.companies.get_mut(company).ok_or(CommandError::UnknownCompany)?;
+                let target = self
+                    .companies
+                    .get_mut(company)
+                    .ok_or(CommandError::UnknownCompany)?;
                 target.watched = on;
                 Ok(())
             }
@@ -416,7 +563,9 @@ impl World {
 
     /// How many attention points a month the player has.
     pub fn attention_max(&self) -> i64 {
-        self.career.rank.attention() + self.options.difficulty.attention_bonus() + self.career.associates
+        self.career.rank.attention()
+            + self.options.difficulty.attention_bonus()
+            + self.career.associates
     }
 
     /// A founder hires or lets go an associate.
@@ -488,7 +637,13 @@ impl World {
         target.model_ev(&self.industries[target.sector], &self.economy)
     }
 
-    fn push_message(&mut self, kind: MessageKind, company: Option<usize>, news: bool, decision: Option<Decision>) {
+    fn push_message(
+        &mut self,
+        kind: MessageKind,
+        company: Option<usize>,
+        news: bool,
+        decision: Option<Decision>,
+    ) {
         let id = self.next_message_id;
         self.next_message_id += 1;
         self.messages.push(Message {
@@ -501,7 +656,12 @@ impl World {
             decision,
         });
         if self.messages.len() > MAX_MESSAGES {
-            let open = |message: &Message| message.decision.as_ref().is_some_and(|d| d.chosen.is_none());
+            let open = |message: &Message| {
+                message
+                    .decision
+                    .as_ref()
+                    .is_some_and(|d| d.chosen.is_none())
+            };
             if let Some(oldest) = self.messages.iter().position(|message| !open(message)) {
                 self.messages.remove(oldest);
             }
@@ -516,7 +676,13 @@ impl World {
         self.push_message(kind, company, true, None);
     }
 
-    pub(crate) fn post_decision(&mut self, kind: MessageKind, company: Option<usize>, options: Vec<Choice>, months: u32) {
+    pub(crate) fn post_decision(
+        &mut self,
+        kind: MessageKind,
+        company: Option<usize>,
+        options: Vec<Choice>,
+        months: u32,
+    ) {
         let decision = Decision {
             options,
             due_month: self.months_elapsed + months,
@@ -526,8 +692,15 @@ impl World {
     }
 
     fn decide(&mut self, id: u64, choice: Choice) -> Result<(), CommandError> {
-        let message = self.messages.iter_mut().find(|item| item.id == id).ok_or(CommandError::UnknownMessage)?;
-        let decision = message.decision.as_mut().ok_or(CommandError::InvalidChoice)?;
+        let message = self
+            .messages
+            .iter_mut()
+            .find(|item| item.id == id)
+            .ok_or(CommandError::UnknownMessage)?;
+        let decision = message
+            .decision
+            .as_mut()
+            .ok_or(CommandError::InvalidChoice)?;
         if decision.chosen.is_some() {
             return Err(CommandError::AlreadyDone);
         }
@@ -550,7 +723,9 @@ impl World {
             MessageKind::IssueSurfaced { .. } => self.decide_report(choice),
             MessageKind::CovenantBreach { cure, .. } => self.decide_breach(company, choice, cure),
             MessageKind::ExitOffer { .. } => self.decide_exit(company, choice),
-            MessageKind::Event { event, amount } => self.decide_event(company, event, amount, choice),
+            MessageKind::Event { event, amount } => {
+                self.decide_event(company, event, amount, choice)
+            }
             _ => {}
         }
     }
@@ -562,8 +737,14 @@ impl World {
             .iter()
             .filter_map(|message| {
                 let decision = message.decision.as_ref()?;
-                (decision.chosen.is_none() && decision.due_month <= self.months_elapsed)
-                    .then(|| (message.id, *decision.options.last().expect("a decision has options")))
+                (decision.chosen.is_none() && decision.due_month <= self.months_elapsed).then(
+                    || {
+                        (
+                            message.id,
+                            *decision.options.last().expect("a decision has options"),
+                        )
+                    },
+                )
             })
             .collect();
         for (id, choice) in due {
@@ -575,12 +756,17 @@ impl World {
         let closing = self.date;
         let closes_quarter = closing.closes_a_quarter();
 
-        for news in self.economy.step(&mut self.rng, &self.industries, closes_quarter) {
+        for news in self
+            .economy
+            .step(&mut self.rng, &self.industries, closes_quarter)
+        {
             match news {
                 EconomyNews::RateChanged { from_bps, to_bps } => {
                     self.post_news(MessageKind::RateChanged { from_bps, to_bps }, None)
                 }
-                EconomyNews::PhaseChanged { from, to } => self.post_news(MessageKind::PhaseChanged { from, to }, None),
+                EconomyNews::PhaseChanged { from, to } => {
+                    self.post_news(MessageKind::PhaseChanged { from, to }, None)
+                }
             }
         }
 
@@ -641,11 +827,14 @@ impl World {
             let due = self.companies[index]
                 .holding
                 .as_ref()
-                .is_some_and(|holding| self.companies[index].is_player_owned() && holding.maturity <= self.date);
+                .is_some_and(|holding| {
+                    self.companies[index].is_player_owned() && holding.maturity <= self.date
+                });
             if !due {
                 continue;
             }
-            let stretched = self.companies[index].leverage_millis() > self.economy.max_senior_millis();
+            let stretched =
+                self.companies[index].leverage_millis() > self.economy.max_senior_millis();
             let spread_bps = self.economy.credit_spread_bps + if stretched { 250 } else { 0 };
             let date = self.date;
             let target = &mut self.companies[index];
@@ -659,7 +848,13 @@ impl World {
 
     fn receive_pending(&mut self) {
         let month = self.months_elapsed;
-        let due: Vec<i64> = self.fund.pending.iter().filter(|item| item.due_month <= month).map(|item| item.amount).collect();
+        let due: Vec<i64> = self
+            .fund
+            .pending
+            .iter()
+            .filter(|item| item.due_month <= month)
+            .map(|item| item.amount)
+            .collect();
         self.fund.pending.retain(|item| item.due_month > month);
         for amount in due {
             self.fund.distribute(amount, month);
@@ -678,7 +873,9 @@ impl World {
             return;
         }
         // A deal professional with no deals is noticed.
-        let idle = self.career.deals_closed == 0 && self.deals.is_empty() && self.fund.investing(self.date);
+        let idle = self.career.deals_closed == 0
+            && self.deals.is_empty()
+            && self.fund.investing(self.date);
         if idle && self.months_elapsed >= 24 && self.months_elapsed % 3 == 0 {
             self.career.adjust_reputation(-1);
         }
@@ -733,7 +930,8 @@ impl World {
             return;
         }
         // A partner with a record leaves to raise under their own name.
-        let own_house = self.own_house || (self.career.rank >= Rank::Partner && self.career.reputation >= 70);
+        let own_house =
+            self.own_house || (self.career.rank >= Rank::Partner && self.career.reputation >= 70);
         let committed = self.next_fund_size(own_house && !self.own_house);
         if own_house && !self.own_house {
             self.own_house = true;
@@ -748,7 +946,13 @@ impl World {
         for lp in &mut self.lps {
             lp.satisfaction = (lp.satisfaction + 55) / 2;
         }
-        self.post(MessageKind::NextFund { committed: self.fund.committed, own_house }, None);
+        self.post(
+            MessageKind::NextFund {
+                committed: self.fund.committed,
+                own_house,
+            },
+            None,
+        );
     }
 }
 
@@ -773,7 +977,10 @@ pub mod tests {
     use crate::market::Stage;
 
     pub fn universe() -> String {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../public/content/universe.json");
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../public/content/universe.json"
+        );
         std::fs::read_to_string(path).expect("run tools/datagen/generate.py first")
     }
 
@@ -795,11 +1002,19 @@ pub mod tests {
                 break;
             }
             let ebitda = world.companies[index].ttm_ebitda();
-            if world.process_visible(index) && world.deal_index(index).is_none() && (4_000..40_000).contains(&ebitda) {
+            if world.process_visible(index)
+                && world.deal_index(index).is_none()
+                && (4_000..40_000).contains(&ebitda)
+            {
                 let _ = world.apply(Command::SignNda { company: index });
             }
         }
-        for company in world.deals.iter().map(|deal| deal.company).collect::<Vec<_>>() {
+        for company in world
+            .deals
+            .iter()
+            .map(|deal| deal.company)
+            .collect::<Vec<_>>()
+        {
             for stream in DD_STREAMS {
                 let _ = world.apply(Command::RunDiligence { company, stream });
             }
@@ -816,7 +1031,10 @@ pub mod tests {
                 let _ = world.apply(Command::SetOffer { company, offer });
                 let _ = world.apply(Command::SubmitIc { company });
             }
-            let bidding = world.companies[company].process.as_ref().is_some_and(|p| p.stage == Stage::Bidding);
+            let bidding = world.companies[company]
+                .process
+                .as_ref()
+                .is_some_and(|p| p.stage == Stage::Bidding);
             if bidding {
                 let _ = world.apply(Command::SubmitBid { company });
             }
@@ -825,12 +1043,24 @@ pub mod tests {
             if !world.companies[company].is_player_owned() {
                 continue;
             }
-            for kind in [InitiativeKind::Procurement, InitiativeKind::LeanProgram, InitiativeKind::PricingReview] {
+            for kind in [
+                InitiativeKind::Procurement,
+                InitiativeKind::LeanProgram,
+                InitiativeKind::PricingReview,
+            ] {
                 let _ = world.apply(Command::StartInitiative { company, kind });
             }
-            let held = world.months_elapsed - world.companies[company].holding.as_ref().unwrap().acquired_month;
+            let held = world.months_elapsed
+                - world.companies[company]
+                    .holding
+                    .as_ref()
+                    .unwrap()
+                    .acquired_month;
             if held >= 54 {
-                let _ = world.apply(Command::StartExit { company, route: ExitRoute::Secondary });
+                let _ = world.apply(Command::StartExit {
+                    company,
+                    route: ExitRoute::Secondary,
+                });
             }
         }
         let open: Vec<(u64, Choice)> = world
@@ -838,7 +1068,10 @@ pub mod tests {
             .iter()
             .filter_map(|message| {
                 let decision = message.decision.as_ref()?;
-                decision.chosen.is_none().then(|| (message.id, decision.options[0]))
+                decision
+                    .chosen
+                    .is_none()
+                    .then(|| (message.id, decision.options[0]))
             })
             .collect();
         for (message, choice) in open {
@@ -855,9 +1088,22 @@ pub mod tests {
         assert_eq!(world.fund.called, 0);
         assert_eq!(world.fund.uncalled(), 750_000);
         assert_eq!(world.companies.len(), 500);
-        assert_eq!(world.companies.iter().filter(|company| company.is_abroad()).count(), 250);
-        assert!(world.companies.iter().all(|company| !company.is_player_owned()));
-        assert!(world.companies.iter().all(|company| company.books.balances()));
+        assert_eq!(
+            world
+                .companies
+                .iter()
+                .filter(|company| company.is_abroad())
+                .count(),
+            250
+        );
+        assert!(world
+            .companies
+            .iter()
+            .all(|company| !company.is_player_owned()));
+        assert!(world
+            .companies
+            .iter()
+            .all(|company| company.books.balances()));
         assert_eq!(world.career.rank, Rank::VicePresident);
     }
 
@@ -901,9 +1147,17 @@ pub mod tests {
 
     #[test]
     fn rejects_a_save_from_another_schema() {
-        let save = world(1).to_save().replacen("\"schema_version\":4", "\"schema_version\":99", 1);
-        assert!(matches!(World::from_save(&save), Err(SaveError::UnsupportedVersion(99))));
-        assert!(matches!(World::from_save("not json"), Err(SaveError::Malformed(_))));
+        let save = world(1)
+            .to_save()
+            .replacen("\"schema_version\":4", "\"schema_version\":99", 1);
+        assert!(matches!(
+            World::from_save(&save),
+            Err(SaveError::UnsupportedVersion(99))
+        ));
+        assert!(matches!(
+            World::from_save("not json"),
+            Err(SaveError::Malformed(_))
+        ));
     }
 
     #[test]
@@ -916,9 +1170,21 @@ pub mod tests {
                 }
                 play_month(&mut world);
                 for company in world.companies.iter().filter(|company| company.is_active()) {
-                    assert!(company.books.balances(), "seed {seed} month {month} {}", company.id);
-                    assert!(company.books.cash >= 0, "seed {seed} month {month} {}", company.id);
-                    assert!(company.books.debt >= 0, "seed {seed} month {month} {}", company.id);
+                    assert!(
+                        company.books.balances(),
+                        "seed {seed} month {month} {}",
+                        company.id
+                    );
+                    assert!(
+                        company.books.cash >= 0,
+                        "seed {seed} month {month} {}",
+                        company.id
+                    );
+                    assert!(
+                        company.books.debt >= 0,
+                        "seed {seed} month {month} {}",
+                        company.id
+                    );
                 }
                 assert!(world.fund.called <= world.fund.committed);
                 assert!(world.attention_left >= 0);
@@ -938,7 +1204,11 @@ pub mod tests {
                 if world.career.fired {
                     break;
                 }
-                let active = world.companies.iter().filter(|company| company.is_active()).count();
+                let active = world
+                    .companies
+                    .iter()
+                    .filter(|company| company.is_active())
+                    .count();
                 shares.push(world.live_processes() * 10_000 / active);
             }
         }
@@ -969,7 +1239,9 @@ pub mod tests {
     fn figures_are_ranges_until_an_nda() {
         let mut world = world(5);
         run(&mut world, 12);
-        let index = (0..world.companies.len()).find(|index| world.process_visible(*index)).expect("something is for sale");
+        let index = (0..world.companies.len())
+            .find(|index| world.process_visible(*index))
+            .expect("something is for sale");
         let before = world.company_view(index);
         assert!(before["revenue"][0].as_i64() < before["revenue"][1].as_i64());
         assert!(before.get("financials").is_none());
@@ -977,7 +1249,10 @@ pub mod tests {
         let after = world.company_view(index);
         assert_eq!(after["revenue"][0], after["revenue"][1]);
         assert!(after.get("financials").is_some());
-        assert_eq!(after["revenue"][0].as_i64().unwrap(), world.companies[index].ttm_revenue());
+        assert_eq!(
+            after["revenue"][0].as_i64().unwrap(),
+            world.companies[index].ttm_revenue()
+        );
     }
 
     #[test]
@@ -986,7 +1261,10 @@ pub mod tests {
         for company in 0..world.attention_max() as usize {
             world.apply(Command::MeetOwner { company }).unwrap();
         }
-        assert_eq!(world.apply(Command::MeetOwner { company: 9 }), Err(CommandError::NoAttention));
+        assert_eq!(
+            world.apply(Command::MeetOwner { company: 9 }),
+            Err(CommandError::NoAttention)
+        );
         world.apply(Command::AdvanceMonth).unwrap();
         assert!(world.apply(Command::MeetOwner { company: 9 }).is_ok());
     }
@@ -995,9 +1273,14 @@ pub mod tests {
     fn a_bid_needs_the_committee() {
         let mut world = world(7);
         run(&mut world, 12);
-        let index = (0..world.companies.len()).find(|index| world.process_visible(*index)).unwrap();
+        let index = (0..world.companies.len())
+            .find(|index| world.process_visible(*index))
+            .unwrap();
         world.apply(Command::SignNda { company: index }).unwrap();
-        assert_eq!(world.apply(Command::SubmitBid { company: index }), Err(CommandError::NoOffer));
+        assert_eq!(
+            world.apply(Command::SubmitBid { company: index }),
+            Err(CommandError::NoOffer)
+        );
         let offer = Offer {
             ev: world.model_ev(index),
             senior_millis: 3_000,
@@ -1005,8 +1288,16 @@ pub mod tests {
             rollover_bps: 0,
             plan: Vec::new(),
         };
-        world.apply(Command::SetOffer { company: index, offer }).unwrap();
-        assert_eq!(world.apply(Command::SubmitBid { company: index }), Err(CommandError::NeedsCommittee));
+        world
+            .apply(Command::SetOffer {
+                company: index,
+                offer,
+            })
+            .unwrap();
+        assert_eq!(
+            world.apply(Command::SubmitBid { company: index }),
+            Err(CommandError::NeedsCommittee)
+        );
         world.apply(Command::SubmitIc { company: index }).unwrap();
         // No diligence and no plan: the committee does not approve.
         let deal = &world.deals[world.deal_index(index).unwrap()];
@@ -1015,12 +1306,23 @@ pub mod tests {
 
     #[test]
     fn commands_and_messages_cross_as_tagged_json() {
-        let command: Command = serde_json::from_str(r#"{"type":"run_diligence","company":3,"stream":"legal"}"#).unwrap();
-        assert_eq!(command, Command::RunDiligence { company: 3, stream: DdStream::Legal });
+        let command: Command =
+            serde_json::from_str(r#"{"type":"run_diligence","company":3,"stream":"legal"}"#)
+                .unwrap();
+        assert_eq!(
+            command,
+            Command::RunDiligence {
+                company: 3,
+                stream: DdStream::Legal
+            }
+        );
         let world = world(1);
         let text = serde_json::to_string(&world.messages[0]).unwrap();
         assert!(text.contains(r#""type":"welcome""#), "{text}");
-        assert_eq!(serde_json::to_string(&CommandError::NoAttention).unwrap(), r#""no_attention""#);
+        assert_eq!(
+            serde_json::to_string(&CommandError::NoAttention).unwrap(),
+            r#""no_attention""#
+        );
     }
 
     /// Prints how the careful player fares. `cargo test -p sim-core report -- --ignored --nocapture`
@@ -1054,7 +1356,15 @@ pub mod tests {
                 world.economy.policy_rate_bps,
             );
             for realized in &world.fund.realized {
-                println!("   {} cost {} proceeds {} moic {} irr {:?} {:?}", realized.company, realized.cost, realized.proceeds, realized.moic_millis, realized.irr_bps, realized.route);
+                println!(
+                    "   {} cost {} proceeds {} moic {} irr {:?} {:?}",
+                    realized.company,
+                    realized.cost,
+                    realized.proceeds,
+                    realized.moic_millis,
+                    realized.irr_bps,
+                    realized.route
+                );
             }
         }
     }
@@ -1078,11 +1388,19 @@ pub mod tests {
         let abroad = (0..world.companies.len())
             .find(|index| world.companies[*index].is_abroad() && world.process_visible(*index))
             .expect("something abroad is for sale");
-        assert_eq!(world.apply(Command::SignNda { company: abroad }), Err(CommandError::CrossBorderLocked));
+        assert_eq!(
+            world.apply(Command::SignNda { company: abroad }),
+            Err(CommandError::CrossBorderLocked)
+        );
         world.career.rank = Rank::Principal;
         assert!(world.apply(Command::SignNda { company: abroad }).is_ok());
-        let home = (0..world.companies.len()).find(|index| !world.companies[*index].is_abroad()).unwrap();
-        assert!(world.diligence_cost(abroad) * 100 / world.model_ev(abroad).max(1) >= world.diligence_cost(home) * 100 / world.model_ev(home).max(1));
+        let home = (0..world.companies.len())
+            .find(|index| !world.companies[*index].is_abroad())
+            .unwrap();
+        assert!(
+            world.diligence_cost(abroad) * 100 / world.model_ev(abroad).max(1)
+                >= world.diligence_cost(home) * 100 / world.model_ev(home).max(1)
+        );
     }
 
     #[test]
@@ -1094,27 +1412,57 @@ pub mod tests {
         world.apply(Command::ResearchSector { sector }).unwrap();
         assert_eq!(world.attention_left, world.attention_max() - 1);
         let after = world.company_view(index);
-        let width = |view: &serde_json::Value| view["ev"][1].as_i64().unwrap() - view["ev"][0].as_i64().unwrap();
+        let width = |view: &serde_json::Value| {
+            view["ev"][1].as_i64().unwrap() - view["ev"][0].as_i64().unwrap()
+        };
         assert!(width(&after) < width(&before));
         run(&mut world, 12);
         assert_eq!(world.insight[sector], 0);
-        assert_eq!(world.apply(Command::ResearchSector { sector: 99 }), Err(CommandError::UnknownSector));
+        assert_eq!(
+            world.apply(Command::ResearchSector { sector: 99 }),
+            Err(CommandError::UnknownSector)
+        );
     }
 
     #[test]
     fn a_bid_can_rise_only_within_the_approval() {
         let mut world = world(4);
-        assert_eq!(world.apply(Command::RaiseBid { company: 0, ev: 1 }), Err(CommandError::NoDeal));
+        assert_eq!(
+            world.apply(Command::RaiseBid { company: 0, ev: 1 }),
+            Err(CommandError::NoDeal)
+        );
         for _ in 0..90 {
             play_month(&mut world);
-            let bid = world.deals.iter().find(|deal| deal.bid_submitted).map(|deal| (deal.company, deal.approved_ev));
+            let bid = world
+                .deals
+                .iter()
+                .find(|deal| deal.bid_submitted)
+                .map(|deal| (deal.company, deal.approved_ev));
             if let Some((company, approved)) = bid {
                 assert_eq!(
-                    world.apply(Command::RaiseBid { company, ev: approved * 2 }),
+                    world.apply(Command::RaiseBid {
+                        company,
+                        ev: approved * 2
+                    }),
                     Err(CommandError::AboveApproval)
                 );
-                assert!(world.apply(Command::RaiseBid { company, ev: approved * 103 / 100 }).is_ok());
-                assert_eq!(world.companies[company].process.as_ref().unwrap().player_bid.as_ref().unwrap().ev, approved * 103 / 100);
+                assert!(world
+                    .apply(Command::RaiseBid {
+                        company,
+                        ev: approved * 103 / 100
+                    })
+                    .is_ok());
+                assert_eq!(
+                    world.companies[company]
+                        .process
+                        .as_ref()
+                        .unwrap()
+                        .player_bid
+                        .as_ref()
+                        .unwrap()
+                        .ev,
+                    approved * 103 / 100
+                );
                 assert!(world.deals[world.deal_index(company).unwrap()].ic.is_some());
                 return;
             }
@@ -1124,12 +1472,24 @@ pub mod tests {
 
     #[test]
     fn harder_games_face_higher_rival_bids_and_eras_open_differently() {
-        let hard = World::new(1, &universe(), Options { difficulty: Difficulty::Hard, era: Era::CheapMoney }).unwrap();
+        let hard = World::new(
+            1,
+            &universe(),
+            Options {
+                difficulty: Difficulty::Hard,
+                era: Era::CheapMoney,
+            },
+        )
+        .unwrap();
         assert!(hard.options.difficulty.rival_bias_bps() > Difficulty::Relaxed.rival_bias_bps());
         assert!(hard.economy.policy_rate_bps < world(1).economy.policy_rate_bps);
-        let options: Options = serde_json::from_str(r#"{"difficulty":"relaxed","era":"late_cycle"}"#).unwrap();
+        let options: Options =
+            serde_json::from_str(r#"{"difficulty":"relaxed","era":"late_cycle"}"#).unwrap();
         assert_eq!(options.difficulty, Difficulty::Relaxed);
         assert_eq!(options.era, Era::LateCycle);
-        assert_eq!(serde_json::from_str::<Options>("{}").unwrap(), Options::default());
+        assert_eq!(
+            serde_json::from_str::<Options>("{}").unwrap(),
+            Options::default()
+        );
     }
 }

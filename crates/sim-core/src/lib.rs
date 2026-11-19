@@ -110,7 +110,12 @@ mod wasm_api {
             let parsed: Result<Command, _> = serde_json::from_str(command);
             let result = match parsed {
                 Ok(command) => self.world.apply(command),
-                Err(err) => return format!("{{\"ok\":false,\"error\":\"malformed\",\"detail\":{:?}}}", err.to_string()),
+                Err(err) => {
+                    return format!(
+                        "{{\"ok\":false,\"error\":\"malformed\",\"detail\":{:?}}}",
+                        err.to_string()
+                    )
+                }
             };
             match result {
                 Ok(()) => "{\"ok\":true}".to_string(),

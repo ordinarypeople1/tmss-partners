@@ -63,7 +63,11 @@ pub fn irr_bps(flows: &[(u32, i64)]) -> Option<i64> {
     };
     // Net present value falls as the rate rises, so the sign at zero says
     // which side the root is on.
-    let (mut low, mut high) = if npv(0.0) >= 0.0 { (0.0_f64, 1.0_f64) } else { (-0.08_f64, 0.0_f64) };
+    let (mut low, mut high) = if npv(0.0) >= 0.0 {
+        (0.0_f64, 1.0_f64)
+    } else {
+        (-0.08_f64, 0.0_f64)
+    };
     if npv(low) < 0.0 {
         return Some(-9_999);
     }

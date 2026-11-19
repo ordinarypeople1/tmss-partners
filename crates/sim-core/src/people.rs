@@ -3,24 +3,84 @@
 
 use crate::rng::Rng;
 
-const FIRST: [&str; 48] = [
-    "Alan", "Beth", "Carl", "Dana", "Evan", "Faye", "Glen", "Hope", "Ivan", "Jill", "Kent", "Lena", "Marc", "Nina",
-    "Owen", "Paige", "Reid", "Sara", "Theo", "Uma", "Vince", "Wendy", "Abel", "Bree", "Cole", "Dora", "Eli", "Fern",
-    "Gus", "Hana", "Ian", "Joan", "Kirk", "Lois", "Miles", "Nell", "Otis", "Priya", "Ray", "Sonia", "Tariq", "Vera",
-    "Wade", "Ximena", "Yusuf", "Zoe", "Andre", "Mei",
+const MASCULINE: [&str; 24] = [
+    "Alan", "Carl", "Evan", "Glen", "Ivan", "Kent", "Marc", "Owen", "Reid", "Theo", "Vince",
+    "Abel", "Cole", "Eli", "Gus", "Ian", "Kirk", "Miles", "Otis", "Ray", "Tariq", "Wade", "Yusuf",
+    "Andre",
+];
+const FEMININE: [&str; 24] = [
+    "Beth", "Dana", "Faye", "Hope", "Jill", "Lena", "Nina", "Paige", "Sara", "Uma", "Wendy",
+    "Bree", "Dora", "Fern", "Hana", "Joan", "Lois", "Nell", "Priya", "Sonia", "Vera", "Ximena",
+    "Zoe", "Mei",
 ];
 const LAST: [&str; 60] = [
-    "Albrecht", "Barlow", "Castellan", "Dunmere", "Eastlake", "Fairbanks", "Greeley", "Hartnell", "Ingram", "Jessup",
-    "Kowalczyk", "Lindqvist", "Marlowe", "Nakagawa", "Okonkwo", "Pemberton", "Quintero", "Rasmussen", "Sandoval",
-    "Thackeray", "Underwood", "Vasquez", "Whitcombe", "Yamada", "Zielinski", "Ashworth", "Bianchi", "Calloway",
-    "Delacroix", "Eriksen", "Fontaine", "Gallagher", "Hendricks", "Ishikawa", "Jankowski", "Kaplan", "Lombardi",
-    "Mwangi", "Novak", "Olsen", "Patel", "Rahman", "Schreiber", "Takahashi", "Urquhart", "Vandermeer", "Winslow",
-    "Abernethy", "Brannigan", "Corbett", "Devereux", "Ellsworth", "Farrow", "Goldberg", "Halloran", "Iverson",
-    "Kimura", "Lachance", "Mercado", "Nguyen",
+    "Albrecht",
+    "Barlow",
+    "Castellan",
+    "Dunmere",
+    "Eastlake",
+    "Fairbanks",
+    "Greeley",
+    "Hartnell",
+    "Ingram",
+    "Jessup",
+    "Kowalczyk",
+    "Lindqvist",
+    "Marlowe",
+    "Nakagawa",
+    "Okonkwo",
+    "Pemberton",
+    "Quintero",
+    "Rasmussen",
+    "Sandoval",
+    "Thackeray",
+    "Underwood",
+    "Vasquez",
+    "Whitcombe",
+    "Yamada",
+    "Zielinski",
+    "Ashworth",
+    "Bianchi",
+    "Calloway",
+    "Delacroix",
+    "Eriksen",
+    "Fontaine",
+    "Gallagher",
+    "Hendricks",
+    "Ishikawa",
+    "Jankowski",
+    "Kaplan",
+    "Lombardi",
+    "Mwangi",
+    "Novak",
+    "Olsen",
+    "Patel",
+    "Rahman",
+    "Schreiber",
+    "Takahashi",
+    "Urquhart",
+    "Vandermeer",
+    "Winslow",
+    "Abernethy",
+    "Brannigan",
+    "Corbett",
+    "Devereux",
+    "Ellsworth",
+    "Farrow",
+    "Goldberg",
+    "Halloran",
+    "Iverson",
+    "Kimura",
+    "Lachance",
+    "Mercado",
+    "Nguyen",
 ];
 
-pub fn name(rng: &mut Rng) -> String {
-    let first = FIRST[rng.below(FIRST.len() as u64) as usize];
+/// A name, and whether it is a feminine one, so a portrait can match it.
+pub fn name(rng: &mut Rng) -> (String, bool) {
+    let feminine = rng.chance_bps(4_200);
+    let list = if feminine { &FEMININE } else { &MASCULINE };
+    let first = list[rng.below(list.len() as u64) as usize];
     let last = LAST[rng.below(LAST.len() as u64) as usize];
-    format!("{first} {last}")
+    (format!("{first} {last}"), feminine)
 }

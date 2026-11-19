@@ -19,8 +19,13 @@ const LENDER_STOP_MILLIS: i64 = 7_500;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Owner {
-    Founder { age: u8 },
-    Sponsor { house: u8, months_held: u32 },
+    Founder {
+        age: u8,
+    },
+    Sponsor {
+        house: u8,
+        months_held: u32,
+    },
     Corporate,
     /// Listed. It has no quoted price here; a price appears only if someone takes it private.
     Public,
@@ -111,6 +116,8 @@ pub enum CeoStyle {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ceo {
     pub name: String,
+    #[serde(default)]
+    pub feminine: bool,
     pub age: u8,
     /// Years in the job.
     pub tenure: u8,
@@ -290,18 +297,30 @@ pub struct Company {
     pub sponsor_cost: i64,
 }
 
-fn monthly_ebitda(revenue: i64, gross_margin_bps: i64, sga_fixed: i64, sga_variable_bps: i64) -> i64 {
+fn monthly_ebitda(
+    revenue: i64,
+    gross_margin_bps: i64,
+    sga_fixed: i64,
+    sga_variable_bps: i64,
+) -> i64 {
     mul_bps(revenue, gross_margin_bps) - sga_fixed - mul_bps(revenue, sga_variable_bps)
 }
 
 impl Ceo {
     /// A professional manager brought in from outside.
     pub fn hired(rng: &mut Rng) -> Ceo {
+        let (name, feminine) = crate::people::name(rng);
         Ceo {
-            name: crate::people::name(rng),
+            name,
+            feminine,
             age: rng.range(42, 62) as u8,
             tenure: rng.range(0, 9) as u8,
-            style: [CeoStyle::Operator, CeoStyle::Seller, CeoStyle::Engineer, CeoStyle::Financier][rng.below(4) as usize],
+            style: [
+                CeoStyle::Operator,
+                CeoStyle::Seller,
+                CeoStyle::Engineer,
+                CeoStyle::Financier,
+            ][rng.below(4) as usize],
             founder: false,
         }
     }
@@ -318,7 +337,12 @@ impl Company {
         self.ceo.tenure = 0;
     }
 
-    pub fn from_seed(seed: &CompanySeed, sector: usize, industry: &Industry, rng: &mut Rng) -> Company {
+    pub fn from_seed(
+        seed: &CompanySeed,
+        sector: usize,
+        industry: &Industry,
+        rng: &mut Rng,
+    ) -> Company {
         let sga_total = mul_bps(seed.monthly_revenue, seed.sga_ratio_bps);
         let sga_fixed = sga_total * 45 / 100;
         let sga_variable_bps = seed.sga_ratio_bps * 55 / 100;
@@ -360,7 +384,12 @@ impl Company {
             share_capital: seed.share_capital,
             retained_earnings: seed.retained_earnings,
         };
-        let ebitda = monthly_ebitda(seed.monthly_revenue, seed.gross_margin_bps, sga_fixed, sga_variable_bps);
+        let ebitda = monthly_ebitda(
+            seed.monthly_revenue,
+            seed.gross_margin_bps,
+            sga_fixed,
+            sga_variable_bps,
+        );
         let mut debt_spread_bps = industry.interest_spread_bps;
         if let Owner::Sponsor { .. } = owner {
             // A sponsor bought it with debt. Push the same amount out of equity.
@@ -395,7 +424,9 @@ impl Company {
                 });
             }
         }
-        let has_concentration = issues.iter().any(|issue| issue.kind == IssueKind::CustomerConcentration);
+        let has_concentration = issues
+            .iter()
+            .any(|issue| issue.kind == IssueKind::CustomerConcentration);
         // Plants and machines only where there are plants and machines.
         let asset_heavy = industry.capex_ratio_bps >= 150;
         let mut pool = vec![
@@ -408,7 +439,11 @@ impl Company {
             Trait::ProprietaryProcess,
         ];
         if asset_heavy {
-            pool.extend([Trait::SinglePlant, Trait::AgingEquipment, Trait::ExportHeavy]);
+            pool.extend([
+                Trait::SinglePlant,
+                Trait::AgingEquipment,
+                Trait::ExportHeavy,
+            ]);
         } else {
             pool.extend([Trait::RecurringRevenue, Trait::RegulatedCustomers]);
         }
@@ -418,17 +453,22 @@ impl Company {
             traits.push(pick);
         }
         let ceo = match owner {
-            Owner::Founder { age } => Ceo {
-                name: crate::people::name(rng),
-                age,
-                tenure: (age.saturating_sub(32)).min(40),
-                style: if rng.chance_bps(4_000) {
-                    CeoStyle::Patriarch
-                } else {
-                    [CeoStyle::Operator, CeoStyle::Seller, CeoStyle::Engineer][rng.below(3) as usize]
-                },
-                founder: true,
-            },
+            Owner::Founder { age } => {
+                let (name, feminine) = crate::people::name(rng);
+                Ceo {
+                    name,
+                    feminine,
+                    age,
+                    tenure: (age.saturating_sub(32)).min(40),
+                    style: if rng.chance_bps(4_000) {
+                        CeoStyle::Patriarch
+                    } else {
+                        [CeoStyle::Operator, CeoStyle::Seller, CeoStyle::Engineer]
+                            [rng.below(3) as usize]
+                    },
+                    founder: true,
+                }
+            }
             _ => Ceo::hired(rng),
         };
         let stance = match (owner, rng.below(100)) {
@@ -456,7 +496,8 @@ impl Company {
             gross_margin_bps: seed.gross_margin_bps,
             sga_fixed,
             sga_variable_bps,
-            growth_bps: industry.monthly_growth_bps + rng.noise(industry.monthly_growth_std_bps / 3),
+            growth_bps: industry.monthly_growth_bps
+                + rng.noise(industry.monthly_growth_std_bps / 3),
             debt_spread_bps,
             dso_adjust_days: 0,
             dio_adjust_days: 0,
@@ -573,11 +614,17 @@ impl Company {
     /// base × rate × cycle × phase × quality, clamped. Thousandths of a turn.
     pub fn multiple_millis(&self, industry: &Industry, economy: &Economy) -> i64 {
         let mut multiple = self.base_multiple_millis;
-        multiple = mul_millis(multiple, economy.rate_factor_millis(industry.rate_beta_millis));
+        multiple = mul_millis(
+            multiple,
+            economy.rate_factor_millis(industry.rate_beta_millis),
+        );
         multiple = mul_bps(multiple, 10_000 + economy.sector_cycle_bps[self.sector]);
         multiple = mul_bps(multiple, economy.phase_multiple_bps());
         multiple = mul_bps(multiple, self.quality_bps(industry));
-        multiple.clamp(industry.multiple_floor_millis * 85 / 100, industry.multiple_cap_millis * 115 / 100)
+        multiple.clamp(
+            industry.multiple_floor_millis * 85 / 100,
+            industry.multiple_cap_millis * 115 / 100,
+        )
     }
 
     /// Trailing EBITDA times the model multiple. A thin business is floored at a quarter of revenue.
@@ -604,17 +651,32 @@ impl Company {
     /// Runs one month. Returns the dividends paid to the owners.
     pub fn step(&mut self, industry: &Industry, economy: &Economy, rng: &mut Rng) -> i64 {
         let player = self.is_player_owned();
-        let budget = if player { self.budget } else { Budget::default() };
+        let budget = if player {
+            self.budget
+        } else {
+            Budget::default()
+        };
 
         // Revenue.
         let steady = self.has(Trait::RecurringRevenue) || self.has(Trait::LongTermContracts);
-        let noise_pct = if self.has(Trait::SeasonalDemand) { 160 } else if steady { 55 } else { 100 };
-        let cycle_pct = if self.has(Trait::ExportHeavy) { 150 } else { 100 };
+        let noise_pct = if self.has(Trait::SeasonalDemand) {
+            160
+        } else if steady {
+            55
+        } else {
+            100
+        };
+        let cycle_pct = if self.has(Trait::ExportHeavy) {
+            150
+        } else {
+            100
+        };
         let mut growth = self.growth_bps
             + economy.growth_bps(self.sector, industry) * cycle_pct / 100
             + rng.noise(industry.monthly_growth_std_bps * noise_pct / 100)
             + (self.management - 10) * 2;
-        growth += budget.growth_bps.min(200) * 12 / 100 + (budget.growth_bps - 200).max(0) * 6 / 100;
+        growth +=
+            budget.growth_bps.min(200) * 12 / 100 + (budget.growth_bps - 200).max(0) * 6 / 100;
         for effect in &mut self.effects {
             if effect.starts_in > 0 {
                 effect.starts_in -= 1;
@@ -639,21 +701,32 @@ impl Company {
         let cogs = revenue - mul_bps(revenue, self.gross_margin_bps);
         let sga = self.sga_fixed + mul_bps(revenue, self.sga_variable_bps);
         let ebitda = revenue - cogs - sga;
-        let da = mul_bps(self.books.net_ppe(), industry.monthly_da_rate_bps).min(self.books.net_ppe());
+        let da =
+            mul_bps(self.books.net_ppe(), industry.monthly_da_rate_bps).min(self.books.net_ppe());
         let interest = div_round(self.books.debt * self.interest_rate_bps(economy), 120_000);
         let ebt = ebitda - da - interest;
         let tax = mul_bps(ebt.max(0), industry.tax_rate_bps);
         let net_income = ebt - tax;
 
         // Working capital.
-        let receivable = div_round(revenue * (industry.dso_days + self.dso_adjust_days).max(5), 30);
+        let receivable = div_round(
+            revenue * (industry.dso_days + self.dso_adjust_days).max(5),
+            30,
+        );
         let inventory = div_round(cogs * (industry.dio_days + self.dio_adjust_days).max(0), 30);
         let payable = div_round(cogs * industry.dpo_days, 30);
         let change_in_nwc = (receivable + inventory - payable) - self.books.net_working_capital();
 
         // Investing.
-        let upkeep = if self.has(Trait::AgingEquipment) { 50 } else { 0 };
-        let capex = mul_bps(revenue, industry.capex_ratio_bps + upkeep + budget.growth_bps + budget.efficiency_bps);
+        let upkeep = if self.has(Trait::AgingEquipment) {
+            50
+        } else {
+            0
+        };
+        let capex = mul_bps(
+            revenue,
+            industry.capex_ratio_bps + upkeep + budget.growth_bps + budget.efficiency_bps,
+        );
 
         // Financing.
         let opening_cash = self.books.cash;
@@ -665,7 +738,8 @@ impl Company {
         self.shortfall = false;
         if before_financing < floor {
             let needed = floor - before_financing;
-            let annual = (Self::trailing(&self.ebitda_history) - self.ebitda_history.last().copied().unwrap_or(0)
+            let annual = (Self::trailing(&self.ebitda_history)
+                - self.ebitda_history.last().copied().unwrap_or(0)
                 + ebitda)
                 .max(0);
             let lender_room = (mul_millis(annual, LENDER_STOP_MILLIS) - self.books.debt).max(0);
@@ -685,7 +759,8 @@ impl Company {
                 let annual = Self::trailing(&self.ebitda_history).max(1);
                 let leverage = ratio_millis(self.books.debt - repayment, annual);
                 if net_income > 0 && leverage <= industry.dividend_leverage_cap_millis {
-                    dividends = mul_bps(net_income, industry.dividend_payout_bps).min(excess - repayment);
+                    dividends =
+                        mul_bps(net_income, industry.dividend_payout_bps).min(excess - repayment);
                 }
             }
         }
@@ -775,13 +850,21 @@ impl Company {
     /// Folds another company into this one. `synergy_bps` comes off the target's fixed cost.
     pub fn absorb(&mut self, target: &Company, synergy_bps: i64) {
         let combined = self.revenue + target.revenue;
-        self.gross_margin_bps =
-            div_round(self.gross_margin_bps * self.revenue + target.gross_margin_bps * target.revenue, combined);
-        self.sga_variable_bps =
-            div_round(self.sga_variable_bps * self.revenue + target.sga_variable_bps * target.revenue, combined);
-        self.growth_bps = div_round(self.growth_bps * self.revenue + target.growth_bps * target.revenue, combined);
+        self.gross_margin_bps = div_round(
+            self.gross_margin_bps * self.revenue + target.gross_margin_bps * target.revenue,
+            combined,
+        );
+        self.sga_variable_bps = div_round(
+            self.sga_variable_bps * self.revenue + target.sga_variable_bps * target.revenue,
+            combined,
+        );
+        self.growth_bps = div_round(
+            self.growth_bps * self.revenue + target.growth_bps * target.revenue,
+            combined,
+        );
         self.customer_concentration_bps = div_round(
-            self.customer_concentration_bps * self.revenue + target.customer_concentration_bps * target.revenue,
+            self.customer_concentration_bps * self.revenue
+                + target.customer_concentration_bps * target.revenue,
             combined,
         ) * 85
             / 100;
@@ -837,7 +920,8 @@ pub mod tests {
 
     pub fn seed() -> CompanySeed {
         // 10 000 a month of revenue at a 27% gross margin and 12% SG&A.
-        let (ar, inv, ppe, accum, ap, debt, cash) = (19_333, 17_033, 100_000, 34_000, 11_680, 30_000, 2_100);
+        let (ar, inv, ppe, accum, ap, debt, cash) =
+            (19_333, 17_033, 100_000, 34_000, 11_680, 30_000, 2_100);
         let equity = cash + ar + inv + ppe - accum - ap - debt;
         CompanySeed {
             id: "co-test".into(),
@@ -905,7 +989,10 @@ pub mod tests {
                     company.books.total_equity(),
                     equity_before + last.net_income - last.dividends
                 );
-                assert_eq!(company.books.debt, debt_before + last.debt_draw - last.debt_repayment);
+                assert_eq!(
+                    company.books.debt,
+                    debt_before + last.debt_draw - last.debt_repayment
+                );
                 assert!(company.books.cash >= 0, "seed {rng_seed} month {month}");
                 assert!(company.books.debt >= 0);
                 assert!(last.dividends >= 0);
@@ -919,7 +1006,10 @@ pub mod tests {
         let economy = Economy::new(1, &mut Rng::new(0), crate::economy::Era::HighRates);
         let company = company(1);
         let multiple = company.multiple_millis(&industry, &economy);
-        assert_eq!(company.model_ev(&industry, &economy), mul_millis(company.ttm_ebitda(), multiple));
+        assert_eq!(
+            company.model_ev(&industry, &economy),
+            mul_millis(company.ttm_ebitda(), multiple)
+        );
         assert_eq!(
             company.model_equity(&industry, &economy),
             company.model_ev(&industry, &economy) - company.net_debt()
@@ -943,7 +1033,10 @@ pub mod tests {
         company.acquire(&industry, 120_000, 60_000);
         assert!(company.books.balances());
         assert_eq!(company.books.debt, 60_000);
-        assert_eq!(company.books.total_equity(), company.books.cash + 120_000 - 60_000);
+        assert_eq!(
+            company.books.total_equity(),
+            company.books.cash + 120_000 - 60_000
+        );
         company.inject_equity(5_000);
         company.recapitalize(10_000);
         assert_eq!(company.repay_from_cash(1_000), 1_000);

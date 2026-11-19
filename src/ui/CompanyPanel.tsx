@@ -374,7 +374,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
         <h3>{t("company.people")}</h3>
         <div className="cp-ceo">
           <span className="cp-portrait" aria-hidden>
-            <Portrait seed={company.ceo.name} size={56} />
+            <Portrait seed={company.ceo.name} feminine={company.ceo.feminine} size={56} />
           </span>
           <div className="cp-ceo-main">
             <div className="cp-ceo-name">

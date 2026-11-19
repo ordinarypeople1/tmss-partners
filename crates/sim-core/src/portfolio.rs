@@ -206,7 +206,10 @@ impl World {
     }
 
     fn holding_mut(&mut self, company: usize) -> &mut Holding {
-        self.companies[company].holding.as_mut().expect("held company has a holding")
+        self.companies[company]
+            .holding
+            .as_mut()
+            .expect("held company has a holding")
     }
 
     /// The fund's share of today's model equity. A mark, not a price.
@@ -215,7 +218,9 @@ impl World {
         let Some(holding) = &target.holding else {
             return 0;
         };
-        let equity = target.model_equity(&self.industries[target.sector], &self.economy).max(0);
+        let equity = target
+            .model_equity(&self.industries[target.sector], &self.economy)
+            .max(0);
         mul_bps(equity, holding.ownership_bps)
     }
 
@@ -235,7 +240,11 @@ impl World {
             .sum()
     }
 
-    pub(crate) fn set_budget(&mut self, company: usize, budget: Budget) -> Result<(), CommandError> {
+    pub(crate) fn set_budget(
+        &mut self,
+        company: usize,
+        budget: Budget,
+    ) -> Result<(), CommandError> {
         self.held(company)?;
         let valid = (0..=500).contains(&budget.growth_bps)
             && (0..=300).contains(&budget.efficiency_bps)
@@ -251,9 +260,14 @@ impl World {
         Ok(())
     }
 
-    pub(crate) fn start_initiative(&mut self, company: usize, kind: InitiativeKind) -> Result<(), CommandError> {
+    pub(crate) fn start_initiative(
+        &mut self,
+        company: usize,
+        kind: InitiativeKind,
+    ) -> Result<(), CommandError> {
         let holding = self.held(company)?;
-        if holding.done.contains(&kind) || holding.initiatives.iter().any(|item| item.kind == kind) {
+        if holding.done.contains(&kind) || holding.initiatives.iter().any(|item| item.kind == kind)
+        {
             return Err(CommandError::AlreadyDone);
         }
         if holding.initiatives.len() >= self.career.rank.max_initiatives() {
@@ -284,10 +298,15 @@ impl World {
         let skill = 70 + management * 3;
         let mut strike = false;
         let mut lost_customer = false;
-        let roll = |world: &mut World, low: i64, high: i64| world.rng.range(low, high) * skill / 100;
+        let roll =
+            |world: &mut World, low: i64, high: i64| world.rng.range(low, high) * skill / 100;
         match kind {
             InitiativeKind::PricingReview => {
-                let brand = if self.companies[company].has(Trait::BrandStrength) { 140 } else { 100 };
+                let brand = if self.companies[company].has(Trait::BrandStrength) {
+                    140
+                } else {
+                    100
+                };
                 let gain = roll(self, 80, 180) * brand / 100;
                 let risky = self.companies[company].customer_concentration_bps > 4_000;
                 lost_customer = risky && self.rng.chance_bps(2_500);
@@ -295,7 +314,8 @@ impl World {
                 target.gross_margin_bps += gain;
                 target.effects.push(GrowthEffect {
                     months_left: 6,
-                    growth_bps: -12, starts_in: 0,
+                    growth_bps: -12,
+                    starts_in: 0,
                 });
                 if lost_customer {
                     target.revenue = mul_bps(target.revenue, 9_200);
@@ -311,7 +331,11 @@ impl World {
                 target.sga_fixed = mul_bps(target.sga_fixed, 10_000 - cut);
             }
             InitiativeKind::SalesExpansion => {
-                let untapped = if self.companies[company].has(Trait::UnderinvestedSales) { 150 } else { 100 };
+                let untapped = if self.companies[company].has(Trait::UnderinvestedSales) {
+                    150
+                } else {
+                    100
+                };
                 let gain = roll(self, 8, 20) * untapped / 100;
                 let target = &mut self.companies[company];
                 target.growth_bps += gain;
@@ -321,7 +345,9 @@ impl World {
                 let cut = self.rng.range(700, 1_200);
                 let union = self.companies[company].union_strength_bps;
                 let loyal = self.companies[company].has(Trait::FamilyWorkforce);
-                strike = self.rng.chance_bps((union * 6 / 10 + if loyal { 2_000 } else { 0 }).min(9_500) as u32);
+                strike = self
+                    .rng
+                    .chance_bps((union * 6 / 10 + if loyal { 2_000 } else { 0 }).min(9_500) as u32);
                 if loyal {
                     self.career.adjust_reputation(-1);
                 }
@@ -337,7 +363,8 @@ impl World {
                 target.management = (target.management + change).clamp(1, 20);
                 target.effects.push(GrowthEffect {
                     months_left: 3,
-                    growth_bps: -15, starts_in: 0,
+                    growth_bps: -15,
+                    starts_in: 0,
                 });
                 for issue in &mut target.issues {
                     if issue.kind == IssueKind::KeyPerson {
@@ -391,10 +418,16 @@ impl World {
         self.holding_mut(company).strike = true;
         self.companies[company].effects.push(GrowthEffect {
             months_left: 1,
-            growth_bps: -2_000, starts_in: 0,
+            growth_bps: -2_000,
+            starts_in: 0,
         });
         self.career.adjust_reputation(-3);
-        self.post_decision(MessageKind::Strike, Some(company), vec![Choice::Settle, Choice::HoldOut], 2);
+        self.post_decision(
+            MessageKind::Strike,
+            Some(company),
+            vec![Choice::Settle, Choice::HoldOut],
+            2,
+        );
     }
 
     pub(crate) fn decide_strike(&mut self, company: usize, choice: Choice) {
@@ -407,17 +440,20 @@ impl World {
             target.sga_fixed = mul_bps(target.sga_fixed, 10_400);
             target.effects.push(GrowthEffect {
                 months_left: 1,
-                growth_bps: 2_300, starts_in: 0,
+                growth_bps: 2_300,
+                starts_in: 0,
             });
         } else {
             // The line holds. Output comes back slowly, without the raise.
             target.effects.push(GrowthEffect {
                 months_left: 2,
-                growth_bps: -900, starts_in: 0,
+                growth_bps: -900,
+                starts_in: 0,
             });
             target.effects.push(GrowthEffect {
                 months_left: 6,
-                growth_bps: 620, starts_in: 2,
+                growth_bps: 620,
+                starts_in: 2,
             });
             self.career.adjust_reputation(-2);
         }
@@ -465,7 +501,8 @@ impl World {
 
     /// What diligence did not find goes off after the close.
     fn surface_issues(&mut self, company: usize) {
-        let held_months = self.months_elapsed - self.held(company).map(|h| h.acquired_month).unwrap_or(0);
+        let held_months =
+            self.months_elapsed - self.held(company).map(|h| h.acquired_month).unwrap_or(0);
         if held_months < 3 {
             return;
         }
@@ -502,7 +539,8 @@ impl World {
                     target.management = (target.management - 3).max(1);
                     target.effects.push(GrowthEffect {
                         months_left: 6,
-                        growth_bps: -20, starts_in: 0,
+                        growth_bps: -20,
+                        starts_in: 0,
                     });
                 }
                 IssueKind::LaborDispute => {
@@ -538,7 +576,9 @@ impl World {
         };
         let leverage = target.leverage_millis();
         let cover = target.interest_cover_millis(&self.economy);
-        let failed = leverage > holding.max_leverage_millis || cover < holding.min_cover_millis || target.shortfall;
+        let failed = leverage > holding.max_leverage_millis
+            || cover < holding.min_cover_millis
+            || target.shortfall;
         let max_leverage = holding.max_leverage_millis;
         let waived = holding.waiver_quarters > 0;
         if waived {
@@ -564,7 +604,8 @@ impl World {
         // Enough equity to sit a quarter turn inside the covenant.
         let ebitda = target.ttm_ebitda().max(0);
         let allowed = mul_millis(ebitda, max_leverage - 250).max(0);
-        let cure = (target.net_debt() - allowed).max(target.min_cash(&self.industries[target.sector]));
+        let cure =
+            (target.net_debt() - allowed).max(target.min_cash(&self.industries[target.sector]));
         self.career.adjust_reputation(-3);
         self.after_breach();
         self.post_decision(
@@ -682,7 +723,11 @@ impl World {
         self.fund.distribute(share, month);
     }
 
-    pub(crate) fn dividend_recap(&mut self, company: usize, amount: i64) -> Result<(), CommandError> {
+    pub(crate) fn dividend_recap(
+        &mut self,
+        company: usize,
+        amount: i64,
+    ) -> Result<(), CommandError> {
         let holding = self.held(company)?;
         if amount <= 0 {
             return Err(CommandError::InvalidAmount);
@@ -717,7 +762,10 @@ impl World {
         if holding.breaches > 0 {
             return Err(CommandError::CovenantBlocks);
         }
-        let candidate = self.companies.get(target).ok_or(CommandError::UnknownCompany)?;
+        let candidate = self
+            .companies
+            .get(target)
+            .ok_or(CommandError::UnknownCompany)?;
         if !candidate.is_active() || candidate.is_player_owned() || target == platform {
             return Err(CommandError::UnknownCompany);
         }
@@ -736,9 +784,12 @@ impl World {
         let fees = mul_bps(price, crate::deal::FEE_BPS);
         let need = price + fees;
         let industry = self.industries[self.companies[platform].sector].clone();
-        let combined_ebitda = (self.companies[platform].ttm_ebitda() + candidate.ttm_ebitda()).max(0);
+        let combined_ebitda =
+            (self.companies[platform].ttm_ebitda() + candidate.ttm_ebitda()).max(0);
         let buyer = &self.companies[platform];
-        let from_cash = (buyer.books.cash - buyer.min_cash(&industry)).max(0).min(need);
+        let from_cash = (buyer.books.cash - buyer.min_cash(&industry))
+            .max(0)
+            .min(need);
         let debt_room = (mul_millis(combined_ebitda, max_leverage - 750) - buyer.books.debt).max(0);
         let from_debt = (need - from_cash).min(debt_room);
         let from_fund = need - from_cash - from_debt;
@@ -747,7 +798,11 @@ impl World {
         }
         self.spend_attention(2)?;
         self.fund.call(from_fund, self.months_elapsed);
-        let fragmented = if self.companies[platform].has(Trait::FragmentedMarket) { 400 } else { 0 };
+        let fragmented = if self.companies[platform].has(Trait::FragmentedMarket) {
+            400
+        } else {
+            0
+        };
         let synergy_bps = self.rng.range(800, 1_500) + fragmented;
         let month = self.months_elapsed;
         let absorbed = self.companies[target].clone();
@@ -762,7 +817,8 @@ impl World {
         buyer.books.retained_earnings -= fees;
         buyer.effects.push(GrowthEffect {
             months_left: 6,
-            growth_bps: -15, starts_in: 0,
+            growth_bps: -15,
+            starts_in: 0,
         });
         let holding = self.holding_mut(platform);
         holding.add_ons += 1;
@@ -786,7 +842,11 @@ impl World {
         Ok(())
     }
 
-    pub(crate) fn start_exit(&mut self, company: usize, route: ExitRoute) -> Result<(), CommandError> {
+    pub(crate) fn start_exit(
+        &mut self,
+        company: usize,
+        route: ExitRoute,
+    ) -> Result<(), CommandError> {
         let holding = self.held(company)?;
         if holding.exit.is_some() {
             return Err(CommandError::AlreadyDone);
@@ -840,14 +900,26 @@ impl World {
                         _ => -200,
                     }
             }
-            ExitRoute::Secondary => 10_000 + self.rng.noise(400) - (self.economy.credit_spread_bps - 400) * 3,
-            ExitRoute::Ipo => 11_200 + self.rng.noise(700) + (self.economy.valuation_index() - 100) * 40,
+            ExitRoute::Secondary => {
+                10_000 + self.rng.noise(400) - (self.economy.credit_spread_bps - 400) * 3
+            }
+            ExitRoute::Ipo => {
+                11_200 + self.rng.noise(700) + (self.economy.valuation_index() - 100) * 40
+            }
         };
         let ev = mul_bps(self.model_ev(company), factor.clamp(6_000, 14_000));
         let proceeds = self.exit_proceeds(company, ev);
-        self.holding_mut(company).exit.as_mut().expect("exit exists").offer_ev = Some(ev);
+        self.holding_mut(company)
+            .exit
+            .as_mut()
+            .expect("exit exists")
+            .offer_ev = Some(ev);
         self.post_decision(
-            MessageKind::ExitOffer { route, ev, proceeds },
+            MessageKind::ExitOffer {
+                route,
+                ev,
+                proceeds,
+            },
             Some(company),
             vec![Choice::Accept, Choice::Decline],
             1,
@@ -860,7 +932,11 @@ impl World {
             return;
         };
         let held = self.months_elapsed - holding.acquired_month;
-        if holding.exit.is_some() || held < 18 || self.economy.phase != Phase::Expansion || !self.rng.chance_bps(60) {
+        if holding.exit.is_some()
+            || held < 18
+            || self.economy.phase != Phase::Expansion
+            || !self.rng.chance_bps(60)
+        {
             return;
         }
         let ev = mul_bps(self.model_ev(company), self.rng.range(10_800, 12_200));
@@ -871,7 +947,11 @@ impl World {
             offer_ev: Some(ev),
         });
         self.post_decision(
-            MessageKind::ExitOffer { route: ExitRoute::Strategic, ev, proceeds },
+            MessageKind::ExitOffer {
+                route: ExitRoute::Strategic,
+                ev,
+                proceeds,
+            },
             Some(company),
             vec![Choice::Accept, Choice::Decline],
             1,
@@ -881,7 +961,11 @@ impl World {
     /// What the fund receives if the company sells at `ev`.
     pub fn exit_proceeds(&self, company: usize, ev: i64) -> i64 {
         let target = &self.companies[company];
-        let ownership = target.holding.as_ref().map(|holding| holding.ownership_bps).unwrap_or(0);
+        let ownership = target
+            .holding
+            .as_ref()
+            .map(|holding| holding.ownership_bps)
+            .unwrap_or(0);
         let equity = ev - mul_bps(ev, EXIT_FEE_BPS) - target.net_debt();
         mul_bps(equity.max(0), ownership)
     }
@@ -921,12 +1005,19 @@ impl World {
             ExitRoute::Secondary => {
                 let debt = (ebitda * senior / 1_000).min(ev * 6 / 10);
                 target.acquire(&industry, ev, debt);
-                target.owner = Owner::Sponsor { house, months_held: 0 };
+                target.owner = Owner::Sponsor {
+                    house,
+                    months_held: 0,
+                };
                 secondary_equity = Some(ev - debt);
             }
             _ => {
                 target.acquire(&industry, ev, (ev / 5).min(ebitda * 2));
-                target.owner = if exit.route == ExitRoute::Ipo { Owner::Public } else { Owner::Corporate };
+                target.owner = if exit.route == ExitRoute::Ipo {
+                    Owner::Public
+                } else {
+                    Owner::Corporate
+                };
             }
         }
         target.debt_spread_bps = industry.interest_spread_bps;
@@ -962,7 +1053,8 @@ impl World {
         self.career.exits += 1;
         self.after_exit(&holding, total, moic_millis);
         self.career.best_moic_millis = self.career.best_moic_millis.max(moic_millis);
-        self.career.adjust_reputation(((moic_millis - 1_500) * 6 / 1_000).clamp(-12, 10));
+        self.career
+            .adjust_reputation(((moic_millis - 1_500) * 6 / 1_000).clamp(-12, 10));
         let buyer = match exit.route {
             ExitRoute::Secondary => Bidder::House { house },
             _ => Bidder::Strategic,

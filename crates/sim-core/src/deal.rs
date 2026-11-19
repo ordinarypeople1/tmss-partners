@@ -185,11 +185,19 @@ impl World {
 
     pub(crate) fn diligence_cost(&self, company: usize) -> i64 {
         // Local advisers and travel cost half as much again.
-        let abroad = if self.companies[company].is_abroad() { 150 } else { 100 };
+        let abroad = if self.companies[company].is_abroad() {
+            150
+        } else {
+            100
+        };
         mul_bps(self.model_ev(company), 15).max(150) * abroad / 100
     }
 
-    pub(crate) fn run_diligence(&mut self, company: usize, stream: DdStream) -> Result<(), CommandError> {
+    pub(crate) fn run_diligence(
+        &mut self,
+        company: usize,
+        stream: DdStream,
+    ) -> Result<(), CommandError> {
         let deal = self.deal_index(company).ok_or(CommandError::NoDeal)?;
         if self.deals[deal].has(stream) || self.deals[deal].streams_running.contains(&stream) {
             return Err(CommandError::AlreadyDone);
@@ -220,7 +228,10 @@ impl World {
                     }
                 }
                 self.deals[deal].streams_done.push(stream);
-                self.post(MessageKind::DiligenceReport { stream, found }, Some(company));
+                self.post(
+                    MessageKind::DiligenceReport { stream, found },
+                    Some(company),
+                );
             }
         }
     }
@@ -242,12 +253,14 @@ impl World {
         if offer.ev <= 0 || offer.senior_millis < 0 || offer.mezz_millis < 0 {
             return Err(CommandError::InvalidOffer);
         }
-        if offer.senior_millis > self.economy.max_senior_millis() || offer.mezz_millis > self.economy.max_mezz_millis()
+        if offer.senior_millis > self.economy.max_senior_millis()
+            || offer.mezz_millis > self.economy.max_mezz_millis()
         {
             return Err(CommandError::LendersRefuse);
         }
         let founder = matches!(self.companies[company].owner, Owner::Founder { .. });
-        if offer.rollover_bps < 0 || offer.rollover_bps > if founder { MAX_ROLLOVER_BPS } else { 0 } {
+        if offer.rollover_bps < 0 || offer.rollover_bps > if founder { MAX_ROLLOVER_BPS } else { 0 }
+        {
             return Err(CommandError::InvalidOffer);
         }
         let mut plan = offer.plan.clone();
@@ -333,7 +346,8 @@ impl World {
         for _ in 0..PROJECTION_MONTHS {
             revenue = mul_bps(revenue, 10_000 + growth_bps);
             fixed = mul_bps(fixed, 10_020);
-            let ebitda = mul_bps(revenue, margin_bps) - fixed - mul_bps(revenue, target.sga_variable_bps);
+            let ebitda =
+                mul_bps(revenue, margin_bps) - fixed - mul_bps(revenue, target.sga_variable_bps);
             let interest = div_round(debt * rate_bps, 120_000);
             let capex = mul_bps(revenue, industry.capex_ratio_bps);
             let tax = mul_bps((ebitda - capex - interest).max(0), industry.tax_rate_bps);
@@ -349,8 +363,14 @@ impl World {
         let equity = financing.equity.max(1);
         let entry_ebitda = financing.ebitda.max(1);
         let paid_multiple = financing.multiple_millis;
-        let from_ebitda = mul_bps(mul_millis(exit_ebitda - entry_ebitda, paid_multiple), financing.ownership_bps);
-        let from_multiple = mul_bps(mul_millis(exit_ebitda, model_multiple - paid_multiple), financing.ownership_bps);
+        let from_ebitda = mul_bps(
+            mul_millis(exit_ebitda - entry_ebitda, paid_multiple),
+            financing.ownership_bps,
+        );
+        let from_multiple = mul_bps(
+            mul_millis(exit_ebitda, model_multiple - paid_multiple),
+            financing.ownership_bps,
+        );
         let from_debt = proceeds - equity - from_ebitda - from_multiple;
         Returns {
             exit_ebitda,
@@ -358,7 +378,8 @@ impl World {
             exit_net_debt: debt,
             proceeds,
             moic_millis: ratio_millis(proceeds, equity),
-            irr_bps: irr_bps(&[(0, -equity), (PROJECTION_MONTHS as u32, proceeds)]).unwrap_or(-9_999),
+            irr_bps: irr_bps(&[(0, -equity), (PROJECTION_MONTHS as u32, proceeds)])
+                .unwrap_or(-9_999),
             from_ebitda,
             from_multiple,
             from_debt,
@@ -371,8 +392,14 @@ impl World {
         let industry = &self.industries[target.sector];
         let financing = self.financing(company, offer);
         let returns = self.project_returns(company, offer);
-        let layoffs = offer.plan.contains(&InitiativeKind::HeadcountReduction) && target.union_strength_bps >= 5_000;
-        let found = |kind: IssueKind| target.issues.iter().any(|issue| issue.kind == kind && issue.found);
+        let layoffs = offer.plan.contains(&InitiativeKind::HeadcountReduction)
+            && target.union_strength_bps >= 5_000;
+        let found = |kind: IssueKind| {
+            target
+                .issues
+                .iter()
+                .any(|issue| issue.kind == kind && issue.found)
+        };
         let mut votes: Vec<Vote> = (0..PARTNERS)
             .map(|partner| Vote {
                 partner,
@@ -412,7 +439,8 @@ impl World {
         if returns.irr_bps < 1_500 {
             raise(2, Stance::Against, Concern::ThinReturns);
         }
-        if financing.price_to_model_bps > 10_800 && target.growth_bps <= industry.monthly_growth_bps {
+        if financing.price_to_model_bps > 10_800 && target.growth_bps <= industry.monthly_growth_bps
+        {
             raise(2, Stance::Against, Concern::MultipleReliance);
         }
         if !deal.has(DdStream::Commercial) {
@@ -440,10 +468,18 @@ impl World {
         }
         // Investor relations: what the investors and the press will say.
         if financing.equity > self.fund.concentration_limit() {
-            raise(INVESTOR_RELATIONS, Stance::Against, Concern::FundConcentration);
+            raise(
+                INVESTOR_RELATIONS,
+                Stance::Against,
+                Concern::FundConcentration,
+            );
         }
         if layoffs {
-            raise(INVESTOR_RELATIONS, Stance::Against, Concern::LayoffsInUnionShop);
+            raise(
+                INVESTOR_RELATIONS,
+                Stance::Against,
+                Concern::LayoffsInUnionShop,
+            );
         }
         if found(IssueKind::LaborDispute) || found(IssueKind::EnvironmentalLiability) {
             raise(INVESTOR_RELATIONS, Stance::Hold, Concern::OpenIssue);
@@ -456,7 +492,11 @@ impl World {
             return IcOutcome::Approved;
         }
         let own_vote = usize::from(self.career.rank == Rank::Partner);
-        let in_favor = votes.iter().filter(|vote| vote.stance == Stance::For).count() + own_vote;
+        let in_favor = votes
+            .iter()
+            .filter(|vote| vote.stance == Stance::For)
+            .count()
+            + own_vote;
         let against = |partner: usize| votes[partner].stance == Stance::Against;
         if against(CHAIR) {
             return IcOutcome::Held;
@@ -473,7 +513,10 @@ impl World {
 
     pub(crate) fn submit_ic(&mut self, company: usize) -> Result<(), CommandError> {
         let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
-        let offer = self.deals[index].offer.clone().ok_or(CommandError::NoOffer)?;
+        let offer = self.deals[index]
+            .offer
+            .clone()
+            .ok_or(CommandError::NoOffer)?;
         if self.deals[index].ic.is_some() {
             return Err(CommandError::AlreadyDone);
         }
@@ -502,10 +545,16 @@ impl World {
         self.post(MessageKind::CommitteeDecision { outcome }, Some(company));
         // A large check: an investor asks to come in alongside.
         let equity = self.financing(company, &offer).equity;
-        if outcome == IcOutcome::Approved && !self.deals[index].coinvest_asked && equity > self.fund.committed / 10 {
+        if outcome == IcOutcome::Approved
+            && !self.deals[index].coinvest_asked
+            && equity > self.fund.committed / 10
+        {
             self.deals[index].coinvest_asked = true;
             self.post_decision(
-                MessageKind::Event { event: crate::story::EventKind::CoInvestRequest, amount: equity / 5 },
+                MessageKind::Event {
+                    event: crate::story::EventKind::CoInvestRequest,
+                    amount: equity / 5,
+                },
                 Some(company),
                 vec![Choice::First, Choice::Second],
                 2,
@@ -519,7 +568,10 @@ impl World {
         let Some(index) = self.deal_index(company) else {
             return 0;
         };
-        let streams = DD_STREAMS.iter().filter(|stream| self.deals[index].has(**stream)).count() as i64;
+        let streams = DD_STREAMS
+            .iter()
+            .filter(|stream| self.deals[index].has(**stream))
+            .count() as i64;
         // An owner who cares who buys favors a buyer they know with no layoffs planned.
         let target = &self.companies[company];
         let layoffs = self.deals[index]
@@ -536,8 +588,14 @@ impl World {
 
     pub(crate) fn submit_bid(&mut self, company: usize) -> Result<(), CommandError> {
         let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
-        let offer = self.deals[index].offer.clone().ok_or(CommandError::NoOffer)?;
-        let approved = self.deals[index].ic.as_ref().is_some_and(|ic| ic.outcome == IcOutcome::Approved);
+        let offer = self.deals[index]
+            .offer
+            .clone()
+            .ok_or(CommandError::NoOffer)?;
+        let approved = self.deals[index]
+            .ic
+            .as_ref()
+            .is_some_and(|ic| ic.outcome == IcOutcome::Approved);
         if !approved {
             return Err(CommandError::NeedsCommittee);
         }
@@ -548,11 +606,17 @@ impl World {
         if financing.equity > self.fund.uncalled() {
             return Err(CommandError::FundExhausted);
         }
-        let stage = self.companies[company].process.as_ref().map(|process| process.stage);
+        let stage = self.companies[company]
+            .process
+            .as_ref()
+            .map(|process| process.stage);
         match stage {
             Some(Stage::Bidding) => {
                 let certainty_bps = self.certainty_bps(company);
-                let process = self.companies[company].process.as_mut().expect("process exists");
+                let process = self.companies[company]
+                    .process
+                    .as_mut()
+                    .expect("process exists");
                 process.player_bid = Some(PlayerBid {
                     ev: offer.ev,
                     certainty_bps,
@@ -575,7 +639,9 @@ impl World {
 
     /// The most the player may bid without returning to the committee.
     pub fn bid_ceiling(&self, company: usize) -> i64 {
-        self.deal_index(company).map(|index| mul_bps(self.deals[index].approved_ev, 10_500)).unwrap_or(0)
+        self.deal_index(company)
+            .map(|index| mul_bps(self.deals[index].approved_ev, 10_500))
+            .unwrap_or(0)
     }
 
     /// Raises a bid already in, within the committee's approval.
@@ -593,13 +659,19 @@ impl World {
         if ev > self.bid_ceiling(company) {
             return Err(CommandError::AboveApproval);
         }
-        let mut offer = self.deals[index].offer.clone().ok_or(CommandError::NoOffer)?;
+        let mut offer = self.deals[index]
+            .offer
+            .clone()
+            .ok_or(CommandError::NoOffer)?;
         offer.ev = ev;
         if self.financing(company, &offer).equity > self.fund.uncalled() {
             return Err(CommandError::FundExhausted);
         }
         self.deals[index].offer = Some(offer);
-        let process = self.companies[company].process.as_mut().expect("a bid has a process");
+        let process = self.companies[company]
+            .process
+            .as_mut()
+            .expect("a bid has a process");
         process.player_bid.as_mut().expect("bid exists").ev = ev;
         Ok(())
     }
@@ -607,7 +679,10 @@ impl World {
     pub(crate) fn propose_exclusive(&mut self, company: usize) -> Result<(), CommandError> {
         self.check_target(company)?;
         let target = &self.companies[company];
-        let preparing = target.process.as_ref().is_some_and(|process| process.stage == Stage::Preparing);
+        let preparing = target
+            .process
+            .as_ref()
+            .is_some_and(|process| process.stage == Stage::Preparing);
         if !preparing {
             return Err(CommandError::NotForSale);
         }
@@ -615,7 +690,10 @@ impl World {
             return Err(CommandError::NeedsRelationship);
         }
         self.spend_attention(1)?;
-        let process = self.companies[company].process.as_mut().expect("process exists");
+        let process = self.companies[company]
+            .process
+            .as_mut()
+            .expect("process exists");
         process.stage = Stage::Exclusive;
         process.months_left = 4;
         if self.deal_index(company).is_none() {
@@ -627,8 +705,16 @@ impl World {
     pub(crate) fn meet_owner(&mut self, company: usize) -> Result<(), CommandError> {
         self.check_target(company)?;
         // A trip abroad takes two points.
-        self.spend_attention(if self.companies[company].is_abroad() { 2 } else { 1 })?;
-        let club = if self.career.perks.contains(&crate::fund::Perk::IndustryClub) { 5 } else { 0 };
+        self.spend_attention(if self.companies[company].is_abroad() {
+            2
+        } else {
+            1
+        })?;
+        let club = if self.career.perks.contains(&crate::fund::Perk::IndustryClub) {
+            5
+        } else {
+            0
+        };
         let gain = 12 + club + self.career.reputation / 10 + self.rng.range(0, 6);
         let target = &mut self.companies[company];
         target.relationship = (target.relationship + gain).min(100);
@@ -637,7 +723,10 @@ impl World {
     }
 
     fn check_target(&self, company: usize) -> Result<(), CommandError> {
-        let target = self.companies.get(company).ok_or(CommandError::UnknownCompany)?;
+        let target = self
+            .companies
+            .get(company)
+            .ok_or(CommandError::UnknownCompany)?;
         if !target.is_active() || target.is_player_owned() {
             return Err(CommandError::UnknownCompany);
         }
@@ -646,7 +735,10 @@ impl World {
 
     pub(crate) fn drop_deal(&mut self, company: usize) -> Result<(), CommandError> {
         let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
-        let was_approved = self.deals[index].ic.as_ref().is_some_and(|ic| ic.outcome == IcOutcome::Approved);
+        let was_approved = self.deals[index]
+            .ic
+            .as_ref()
+            .is_some_and(|ic| ic.outcome == IcOutcome::Approved);
         if was_approved {
             self.career.adjust_reputation(-2);
         }
@@ -702,7 +794,10 @@ impl World {
         let industry = self.industries[self.companies[company].sector].clone();
         let multiple = self.companies[company].multiple_millis(&industry, &self.economy);
         let retiring = self.companies[company].ceo.founder
-            && self.companies[company].process.as_ref().is_some_and(|process| process.reason == crate::market::SaleReason::Retirement);
+            && self.companies[company]
+                .process
+                .as_ref()
+                .is_some_and(|process| process.reason == crate::market::SaleReason::Retirement);
         if retiring {
             // The founder leaves with the money. Whoever follows knows less.
             let target = &mut self.companies[company];
@@ -737,19 +832,36 @@ impl World {
             offer.plan.clone(),
         ));
         {
-            let founder_seller = matches!(process.as_ref().map(|p| p.reason), Some(crate::market::SaleReason::Retirement | crate::market::SaleReason::Succession));
-            let holding = self.companies[company].holding.as_mut().expect("just created");
-            holding.votes = deal.ic.as_ref().map(|ic| ic.votes.iter().map(|vote| vote.stance).collect()).unwrap_or_default();
+            let founder_seller = matches!(
+                process.as_ref().map(|p| p.reason),
+                Some(crate::market::SaleReason::Retirement | crate::market::SaleReason::Succession)
+            );
+            let holding = self.companies[company]
+                .holding
+                .as_mut()
+                .expect("just created");
+            holding.votes = deal
+                .ic
+                .as_ref()
+                .map(|ic| ic.votes.iter().map(|vote| vote.stance).collect())
+                .unwrap_or_default();
             holding.earnout_open = founder_seller;
             holding.full_diligence = DD_STREAMS.iter().all(|stream| deal.has(*stream));
-            holding.distressed_entry = process.as_ref().is_some_and(|p| p.reason == crate::market::SaleReason::Distress);
+            holding.distressed_entry = process
+                .as_ref()
+                .is_some_and(|p| p.reason == crate::market::SaleReason::Distress);
         }
         self.deals.remove(index);
         self.career.deals_closed += 1;
         let rivals = process.as_ref().map(|p| p.rivals.len()).unwrap_or(0);
-        let exclusive = process.as_ref().is_some_and(|p| p.stage == Stage::Exclusive);
+        let exclusive = process
+            .as_ref()
+            .is_some_and(|p| p.stage == Stage::Exclusive);
         self.after_close(company, ev, financing.equity, rivals, exclusive);
-        if process.as_ref().is_some_and(|p| p.reason == crate::market::SaleReason::StrategicReview) {
+        if process
+            .as_ref()
+            .is_some_and(|p| p.reason == crate::market::SaleReason::StrategicReview)
+        {
             self.unlock(crate::story::Achievement::TakePrivate);
         }
         self.career.adjust_reputation(2);

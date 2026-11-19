@@ -53,7 +53,11 @@ fn two_figures(value: i64) -> i64 {
 fn fog(value: i64, id: &str, salt: u64, sharp: bool) -> Value {
     let shift = (hash(id, salt) % 11) as i64;
     // Sector research halves the band.
-    let (down, up) = if sharp { (94 - shift / 2, 109 - shift / 2) } else { (88 - shift, 118 - shift) };
+    let (down, up) = if sharp {
+        (94 - shift / 2, 109 - shift / 2)
+    } else {
+        (88 - shift, 118 - shift)
+    };
     let low = two_figures(value * down / 100);
     let high = two_figures(value * up / 100);
     json!([low.min(high), low.max(high)])
@@ -71,14 +75,19 @@ impl World {
 
     fn knows(&self, index: usize, stream: DdStream) -> bool {
         self.companies[index].is_player_owned()
-            || self.deal_index(index).is_some_and(|deal| self.deals[deal].has(stream))
+            || self
+                .deal_index(index)
+                .is_some_and(|deal| self.deals[deal].has(stream))
     }
 
     fn sale_view(&self, index: usize) -> Value {
         if !self.process_visible(index) {
             return Value::Null;
         }
-        let process = self.companies[index].process.as_ref().expect("visible process exists");
+        let process = self.companies[index]
+            .process
+            .as_ref()
+            .expect("visible process exists");
         let company_id = self.companies[index].id.clone();
         let open = process.stage != Stage::Preparing && process.stage != Stage::Exclusive;
         json!({
@@ -106,8 +115,17 @@ impl World {
         let company = &self.companies[index];
         let revealed = self.revealed(index);
         let sharp = self.insight.get(company.sector).copied().unwrap_or(0) > 0;
-        let figure = |value: i64, salt: u64| if revealed { exact(value) } else { fog(value, &company.id, salt, sharp) };
-        let alert = company.holding.as_ref().is_some_and(|holding| holding.breaches > 0 || holding.strike)
+        let figure = |value: i64, salt: u64| {
+            if revealed {
+                exact(value)
+            } else {
+                fog(value, &company.id, salt, sharp)
+            }
+        };
+        let alert = company
+            .holding
+            .as_ref()
+            .is_some_and(|holding| holding.breaches > 0 || holding.strike)
             || (company.is_player_owned() && company.shortfall);
         json!({
             "i": index,
@@ -139,17 +157,24 @@ impl World {
     pub fn view(&self) -> Value {
         let nav = self.nav();
         let month = self.months_elapsed;
-        let active: Vec<usize> = (0..self.companies.len()).filter(|index| self.companies[*index].is_active()).collect();
+        let active: Vec<usize> = (0..self.companies.len())
+            .filter(|index| self.companies[*index].is_active())
+            .collect();
         let live = self.live_processes();
         let sectors: Vec<Value> = self
             .industries
             .iter()
             .enumerate()
             .map(|(sector, industry)| {
-                let members: Vec<&Company> =
-                    active.iter().map(|index| &self.companies[*index]).filter(|c| c.sector == sector).collect();
-                let mut multiples: Vec<i64> =
-                    members.iter().map(|company| company.multiple_millis(industry, &self.economy)).collect();
+                let members: Vec<&Company> = active
+                    .iter()
+                    .map(|index| &self.companies[*index])
+                    .filter(|c| c.sector == sector)
+                    .collect();
+                let mut multiples: Vec<i64> = members
+                    .iter()
+                    .map(|company| company.multiple_millis(industry, &self.economy))
+                    .collect();
                 multiples.sort_unstable();
                 json!({
                     "id": industry.sector_id,
@@ -322,15 +347,29 @@ impl World {
         let detail = view.as_object_mut().expect("row is an object");
         detail.insert("site_name".into(), json!(company.site_name));
         detail.insert("country".into(), json!(company.country));
-        detail.insert("sector_multiple_millis".into(), json!(industry.base_multiple_millis));
-        detail.insert("union_strength_bps".into(), json!(company.union_strength_bps));
+        detail.insert(
+            "sector_multiple_millis".into(),
+            json!(industry.base_multiple_millis),
+        );
+        detail.insert(
+            "union_strength_bps".into(),
+            json!(company.union_strength_bps),
+        );
         detail.insert(
             "management".into(),
-            if self.knows(index, DdStream::Operational) { json!(company.management) } else { Value::Null },
+            if self.knows(index, DdStream::Operational) {
+                json!(company.management)
+            } else {
+                Value::Null
+            },
         );
         detail.insert(
             "customer_concentration_bps".into(),
-            if self.knows(index, DdStream::Commercial) { json!(company.customer_concentration_bps) } else { Value::Null },
+            if self.knows(index, DdStream::Commercial) {
+                json!(company.customer_concentration_bps)
+            } else {
+                Value::Null
+            },
         );
         let issues: Vec<Value> = company
             .issues
@@ -341,7 +380,10 @@ impl World {
         detail.insert("issues".into(), json!(issues));
         // One trait is common knowledge; the rest come with the data room.
         let known = if revealed { company.traits.len() } else { 1 };
-        detail.insert("traits".into(), json!(company.traits.iter().take(known).collect::<Vec<_>>()));
+        detail.insert(
+            "traits".into(),
+            json!(company.traits.iter().take(known).collect::<Vec<_>>()),
+        );
         detail.insert("traits_hidden".into(), json!(company.traits.len() - known));
         detail.insert("product".into(), json!(company.product));
         let met = company.relationship > 0 || revealed;
@@ -352,12 +394,17 @@ impl World {
                 "age": company.ceo.age,
                 "tenure": company.ceo.tenure,
                 "founder": company.ceo.founder,
+                "feminine": company.ceo.feminine,
                 "style": if met { json!(company.ceo.style) } else { Value::Null },
             }),
         );
         detail.insert(
             "stance".into(),
-            if company.relationship >= 40 || self.deal_index(index).is_some() { json!(company.stance) } else { Value::Null },
+            if company.relationship >= 40 || self.deal_index(index).is_some() {
+                json!(company.stance)
+            } else {
+                Value::Null
+            },
         );
         if revealed {
             detail.insert(
@@ -391,7 +438,10 @@ impl World {
         }
         if let Some(deal_index) = self.deal_index(index) {
             let deal = &self.deals[deal_index];
-            let preview = deal.offer.as_ref().map(|offer| self.offer_view(index, offer));
+            let preview = deal
+                .offer
+                .as_ref()
+                .map(|offer| self.offer_view(index, offer));
             detail.insert(
                 "deal".into(),
                 json!({
@@ -417,14 +467,23 @@ impl World {
             let multiple = company.multiple_millis(industry, &self.economy);
             let own = holding.ownership_bps;
             let entry_equity = mul_bps(holding.entry_ev - holding.entry_net_debt, own);
-            let from_ebitda = mul_bps(mul_millis(ebitda - holding.entry_ebitda, holding.entry_multiple_millis), own);
-            let from_multiple = mul_bps(mul_millis(ebitda, multiple - holding.entry_multiple_millis), own);
+            let from_ebitda = mul_bps(
+                mul_millis(ebitda - holding.entry_ebitda, holding.entry_multiple_millis),
+                own,
+            );
+            let from_multiple = mul_bps(
+                mul_millis(ebitda, multiple - holding.entry_multiple_millis),
+                own,
+            );
             let from_debt = value - entry_equity - from_ebitda - from_multiple;
             let mut flows = holding.flows.clone();
             flows.push((self.months_elapsed, value));
             let available: Vec<Value> = INITIATIVES
                 .iter()
-                .filter(|kind| !holding.done.contains(kind) && !holding.initiatives.iter().any(|item| item.kind == **kind))
+                .filter(|kind| {
+                    !holding.done.contains(kind)
+                        && !holding.initiatives.iter().any(|item| item.kind == **kind)
+                })
                 .map(|kind| {
                     json!({
                         "kind": kind,
@@ -443,7 +502,8 @@ impl World {
                         && candidate.sector == company.sector
                         && candidate.ttm_ebitda() <= ebitda
                         && (self.process_visible(*other)
-                            || (matches!(candidate.owner, Owner::Founder { .. }) && candidate.relationship >= 50))
+                            || (matches!(candidate.owner, Owner::Founder { .. })
+                                && candidate.relationship >= 50))
                 })
                 .collect();
             detail.insert(

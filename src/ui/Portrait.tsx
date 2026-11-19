@@ -263,9 +263,11 @@ function hairWeights(presentation: number, textured: boolean): number[] {
 }
 
 /** The face for a name. Pure: the same seed always gives the same spec. */
-export function portraitSpec(seed: string): Spec {
+/** `feminine`, when the game knows it, fixes the presentation; the rest still follows the seed. */
+export function portraitSpec(seed: string, feminine?: boolean): Spec {
   const random = generator(hash(seed));
-  const presentation = random() < 0.5 ? 0 : 1;
+  const drawn = random() < 0.5 ? 0 : 1;
+  const presentation = feminine === undefined ? drawn : feminine ? 1 : 0;
   const skin = weighted(random, [19, 18, 17, 15, 16, 15]);
   const age = weighted(random, [34, 42, 24]);
   const head = weighted(random, presentation === 0 ? [20, 14, 20, 16, 8, 22] : [26, 18, 8, 16, 22, 10]);
@@ -1283,11 +1285,11 @@ function Silhouette() {
   );
 }
 
-function resolve(seed: string | undefined, partner: number | undefined): Spec | null {
+function resolve(seed: string | undefined, partner: number | undefined, feminine?: boolean): Spec | null {
   if (partner !== undefined && PARTNERS[partner]) {
     return PARTNERS[partner];
   }
-  return seed !== undefined && seed !== "" ? portraitSpec(seed) : null;
+  return seed !== undefined && seed !== "" ? portraitSpec(seed, feminine) : null;
 }
 
 /**
@@ -1296,9 +1298,15 @@ function resolve(seed: string | undefined, partner: number | undefined): Spec | 
  * looks the same. With neither it is a plain silhouette. Decorative: callers
  * show the name beside it.
  */
-export function Portrait(props: { seed?: string; partner?: number; mood?: Mood; size?: number }): ReactNode {
-  const { seed, partner, mood = "neutral", size = 48 } = props;
-  const spec = resolve(seed, partner);
+export function Portrait(props: {
+  seed?: string;
+  partner?: number;
+  mood?: Mood;
+  size?: number;
+  feminine?: boolean;
+}): ReactNode {
+  const { seed, partner, mood = "neutral", size = 48, feminine } = props;
+  const spec = resolve(seed, partner, feminine);
   return (
     <span className="portrait" data-mood={mood} aria-hidden="true" style={{ width: size, height: size * 1.2 }}>
       <svg viewBox={VIEW_BOX} strokeLinecap="round" strokeLinejoin="round" focusable="false">

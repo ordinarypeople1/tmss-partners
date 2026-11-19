@@ -54,7 +54,10 @@ mod tests {
         assert_eq!(start.plus_months(0), start);
         assert_eq!(start.plus_months(11), GameDate::new(2024, 12));
         assert_eq!(start.plus_months(60), GameDate::new(2029, 1));
-        assert_eq!(GameDate::new(2024, 11).plus_months(3), GameDate::new(2025, 2));
+        assert_eq!(
+            GameDate::new(2024, 11).plus_months(3),
+            GameDate::new(2025, 2)
+        );
     }
 
     #[test]

@@ -83,7 +83,12 @@ impl Economy {
         economy
     }
 
-    pub fn step(&mut self, rng: &mut Rng, industries: &[Industry], closes_quarter: bool) -> Vec<EconomyNews> {
+    pub fn step(
+        &mut self,
+        rng: &mut Rng,
+        industries: &[Industry],
+        closes_quarter: bool,
+    ) -> Vec<EconomyNews> {
         let mut news = Vec::new();
         self.phase_months += 1;
         if let Some(next) = self.next_phase(rng) {
@@ -128,9 +133,9 @@ impl Economy {
     fn next_phase(&self, rng: &mut Rng) -> Option<Phase> {
         let tight = self.policy_rate_bps >= self.neutral_rate_bps + 200;
         match self.phase {
-            Phase::Expansion if self.phase_months >= 24 => {
-                rng.chance_bps(if tight { 450 } else { 220 }).then_some(Phase::Slowdown)
-            }
+            Phase::Expansion if self.phase_months >= 24 => rng
+                .chance_bps(if tight { 450 } else { 220 })
+                .then_some(Phase::Slowdown),
             Phase::Slowdown if self.phase_months >= 3 => {
                 if rng.chance_bps(if tight { 1_400 } else { 900 }) {
                     Some(Phase::Recession)
@@ -140,8 +145,12 @@ impl Economy {
                     None
                 }
             }
-            Phase::Recession if self.phase_months >= 6 => rng.chance_bps(1_500).then_some(Phase::Recovery),
-            Phase::Recovery if self.phase_months >= 4 => rng.chance_bps(1_500).then_some(Phase::Expansion),
+            Phase::Recession if self.phase_months >= 6 => {
+                rng.chance_bps(1_500).then_some(Phase::Recovery)
+            }
+            Phase::Recovery if self.phase_months >= 4 => {
+                rng.chance_bps(1_500).then_some(Phase::Expansion)
+            }
             _ => None,
         }
     }

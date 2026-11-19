@@ -434,7 +434,7 @@ export interface CompanyView extends CompanyRow {
   /** Index 0–5 into the sector's product lines: catalog key `product.<sector>.<n>`. */
   product: number;
   /** `style` is null until the player has met the owner or signed an NDA. */
-  ceo: { name: string; age: number; tenure: number; founder: boolean; style: CeoStyle | null };
+  ceo: { name: string; age: number; tenure: number; founder: boolean; feminine: boolean; style: CeoStyle | null };
   /** Null until relationship 40 or an NDA. */
   stance: SellerStance | null;
   financials?: Financials;
