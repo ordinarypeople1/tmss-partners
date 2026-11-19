@@ -9,7 +9,7 @@ import { mid, useFormat } from "./format";
 import { useGame } from "./game";
 import { Guide } from "./Guide";
 import { Icon } from "./icons";
-import { joinBase } from "./publicPath";
+import { publicUrl } from "./publicPath";
 import "./MapHub.css";
 
 type Layer = "deals" | "portfolio" | "sectors" | "owners" | "economy";
@@ -161,8 +161,8 @@ export function MapHub() {
       style: {
         version: 8,
         sources: {
-          world: { type: "geojson", data: joinBase(base, "geo/world.json") },
-          states: { type: "geojson", data: joinBase(base, "geo/us-states.json") },
+          world: { type: "geojson", data: publicUrl(base, "geo/world.json") },
+          states: { type: "geojson", data: publicUrl(base, "geo/us-states.json") },
           companies: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           links: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
@@ -218,7 +218,7 @@ export function MapHub() {
     map.touchZoomRotate.disableRotation();
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
     map.on("load", () => {
-      fetch(joinBase(base, "geo/us-states.json"))
+      fetch(publicUrl(base, "geo/us-states.json"))
         .then((response) => response.json() as Promise<FeatureCollection>)
         .then((collection) => {
           for (const feature of collection.features) {
