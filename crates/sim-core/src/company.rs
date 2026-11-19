@@ -22,6 +22,8 @@ pub enum Owner {
     Founder { age: u8 },
     Sponsor { house: u8, months_held: u32 },
     Corporate,
+    /// Listed. It has no quoted price here; a price appears only if someone takes it private.
+    Public,
     Player,
     Lender,
     /// Absorbed into another company. Out of the universe.
@@ -320,15 +322,31 @@ impl Company {
         let sga_total = mul_bps(seed.monthly_revenue, seed.sga_ratio_bps);
         let sga_fixed = sga_total * 45 / 100;
         let sga_variable_bps = seed.sga_ratio_bps * 55 / 100;
-        let owner = match rng.below(100) {
-            0..=54 => Owner::Founder {
+        // Who owns companies differs by country: family firms in Germany,
+        // group subsidiaries in Korea and Japan, sponsors at home.
+        let (founders, sponsors) = match seed.country.as_str() {
+            "US" => (52, 30),
+            "GB" => (45, 35),
+            "DE" => (70, 12),
+            "FR" => (55, 22),
+            "KR" => (50, 10),
+            "JP" => (55, 8),
+            _ => (65, 10),
+        };
+        let draw = rng.below(100) as i64;
+        let owner = if draw < founders {
+            Owner::Founder {
                 age: rng.range(44, 74) as u8,
-            },
-            55..=84 => Owner::Sponsor {
+            }
+        } else if draw < founders + sponsors {
+            Owner::Sponsor {
                 house: rng.below(crate::market::RIVAL_HOUSES as u64) as u8,
                 months_held: rng.range(0, 66) as u32,
-            },
-            _ => Owner::Corporate,
+            }
+        } else if seed.country == "US" && seed.monthly_revenue >= 9_000 && rng.chance_bps(4_000) {
+            Owner::Public
+        } else {
+            Owner::Corporate
         };
         let mut books = Books {
             cash: seed.cash,
@@ -475,6 +493,10 @@ impl Company {
 
     pub fn is_active(&self) -> bool {
         self.owner != Owner::Merged
+    }
+
+    pub fn is_abroad(&self) -> bool {
+        self.country != "US"
     }
 
     pub fn is_player_owned(&self) -> bool {

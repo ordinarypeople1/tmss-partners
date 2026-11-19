@@ -8,6 +8,7 @@ import { Career } from "./screens/Career";
 import { Deals } from "./screens/Deals";
 import { FundScreen } from "./screens/FundScreen";
 import { Inbox } from "./screens/Inbox";
+import { League } from "./screens/League";
 import { Market } from "./screens/Market";
 import { Portfolio } from "./screens/Portfolio";
 
@@ -24,6 +25,8 @@ function Screens() {
       return <Portfolio />;
     case "market":
       return <Market />;
+    case "league":
+      return <League />;
     case "fund":
       return <FundScreen />;
     case "career":

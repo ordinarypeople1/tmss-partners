@@ -1,4 +1,4 @@
-import type { Command, CommandResult, CompanyView, Offer, OfferPreview, View } from "./types";
+import type { Command, CommandResult, CompanyView, Offer, OfferPreview, Options, View } from "./types";
 
 interface WasmSession {
   save(): string;
@@ -12,7 +12,7 @@ interface WasmSession {
 interface SimCoreModule {
   default: (input?: unknown) => Promise<unknown>;
   Session: {
-    new (seed: bigint, universe: string): WasmSession;
+    new (seed: bigint, universe: string, options: string): WasmSession;
     load(save: string): WasmSession;
   };
 }
@@ -35,9 +35,9 @@ export class GameSession {
   private constructor(private readonly inner: WasmSession) {}
 
   /** `universe` is the text of public/content/universe.json. */
-  static async start(seed: number, universe: string): Promise<GameSession> {
+  static async start(seed: number, universe: string, options?: Options): Promise<GameSession> {
     const api = await loadSimCore();
-    return new GameSession(new api.Session(BigInt(seed), universe));
+    return new GameSession(new api.Session(BigInt(seed), universe, options ? JSON.stringify(options) : ""));
   }
 
   static async resume(save: string): Promise<GameSession> {

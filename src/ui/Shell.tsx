@@ -1,9 +1,13 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useT } from "../i18n/useT";
 import { Meter, Ring, Tag } from "./charts";
 import { monthsBetween, useFormat } from "./format";
 import { DAYS_PER_MONTH, SCREENS, useGame, type Screen, type Speed } from "./game";
 import { Icon } from "./icons";
+import { Moments } from "./Moments";
+import { NewGame } from "./NewGame";
+import { Objectives } from "./Objectives";
+import { isMuted, setMuted } from "./sound";
 
 const NAV_ICON: Record<Screen, string> = {
   map: "map",
@@ -11,13 +15,15 @@ const NAV_ICON: Record<Screen, string> = {
   deals: "deals",
   portfolio: "portfolio",
   market: "market",
+  league: "flag",
   fund: "fund",
   career: "career",
 };
 
-function Sidebar() {
+function Sidebar({ onNewGame }: { onNewGame: () => void }) {
   const game = useGame();
   const t = useT();
+  const [muted, setMutedState] = useState(isMuted);
   const { view } = game;
   const unread = view.messages.filter((message) => !message.read && !message.news).length;
   const pending = view.messages.filter((message) => message.decision && message.decision.chosen === null).length;
@@ -73,17 +79,23 @@ function Sidebar() {
             ))}
           </div>
         </div>
-        <button
-          type="button"
-          className="btn ghost small"
-          onClick={() => {
-            if (window.confirm(t("shell.newGameConfirm"))) {
-              game.newGame();
-            }
-          }}
-        >
-          {t("shell.newGame")}
-        </button>
+        <Objectives />
+        <div className="row">
+          <button type="button" className="btn ghost small" onClick={onNewGame}>
+            {t("shell.newGame")}
+          </button>
+          <button
+            type="button"
+            className="btn ghost small"
+            aria-pressed={muted}
+            onClick={() => {
+              setMuted(!muted);
+              setMutedState(!muted);
+            }}
+          >
+            {muted ? t("shell.sound.off") : t("shell.sound.on")}
+          </button>
+        </div>
       </div>
     </aside>
   );
@@ -170,9 +182,10 @@ function Toasts() {
 export function Shell({ children, panel }: { children: ReactNode; panel: ReactNode }) {
   const game = useGame();
   const t = useT();
+  const [choosing, setChoosing] = useState(false);
   return (
     <div className="shell" data-panel={game.selected === null ? "closed" : "open"}>
-      <Sidebar />
+      <Sidebar onNewGame={() => setChoosing(true)} />
       <div className="main">
         <Topbar />
         <main className="screen" data-screen={game.screen}>
@@ -181,12 +194,14 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
       </div>
       {game.selected === null ? null : <aside className="panel">{panel}</aside>}
       <Toasts />
+      <Moments />
+      {choosing ? <NewGame onClose={() => setChoosing(false)} /> : null}
       {game.view.career.fired ? (
         <div className="overlay" role="alertdialog" aria-modal="true">
           <div className="card">
             <h2>{t("shell.fired.title")}</h2>
             <p>{t("shell.fired.body")}</p>
-            <button type="button" className="btn primary" onClick={() => game.newGame()}>
+            <button type="button" className="btn primary" onClick={() => setChoosing(true)}>
               {t("shell.newGame")}
             </button>
           </div>

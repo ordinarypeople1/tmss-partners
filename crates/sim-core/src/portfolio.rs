@@ -926,7 +926,7 @@ impl World {
             }
             _ => {
                 target.acquire(&industry, ev, (ev / 5).min(ebitda * 2));
-                target.owner = Owner::Corporate;
+                target.owner = if exit.route == ExitRoute::Ipo { Owner::Public } else { Owner::Corporate };
             }
         }
         target.debt_spread_bps = industry.interest_spread_bps;

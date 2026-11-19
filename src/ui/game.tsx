@@ -1,16 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GameSession } from "../sim/wasm";
-import type { Command, CompanyRow, CompanyView, Offer, OfferPreview, View } from "../sim/types";
+import type { Command, CompanyRow, CompanyView, Offer, OfferPreview, Options, View } from "../sim/types";
 import { joinBase } from "./publicPath";
+import { playSound, soundFor } from "./sound";
 
-export type Screen = "map" | "inbox" | "deals" | "portfolio" | "market" | "fund" | "career";
-export const SCREENS: Screen[] = ["map", "inbox", "deals", "portfolio", "market", "fund", "career"];
+export type Screen = "map" | "inbox" | "deals" | "portfolio" | "market" | "league" | "fund" | "career";
+export const SCREENS: Screen[] = ["map", "inbox", "deals", "portfolio", "market", "league", "fund", "career"];
 /** 0 is paused. */
 export type Speed = 0 | 1 | 2 | 3;
 
 export const DAYS_PER_MONTH = 30;
 const DAY_MS: Record<Exclude<Speed, 0>, number> = { 1: 400, 2: 160, 3: 55 };
-const SAVE_KEY = "deal-atlas.save.v3";
+const SAVE_KEY = "deal-atlas.save.v4";
 
 export interface Toast {
   id: number;
@@ -42,7 +43,8 @@ export interface Game {
   /** 1 through 30: where the open month stands on screen. */
   day: number;
   nextMonth(): void;
-  newGame(): void;
+  /** Starts over. Without options the defaults apply (standard difficulty, high-rates era). */
+  newGame(options?: Options): void;
   toasts: Toast[];
   dismissToast(id: number): void;
 }
@@ -81,7 +83,7 @@ async function fetchUniverse(): Promise<string> {
   return response.text();
 }
 
-async function open(fresh: boolean): Promise<GameSession> {
+async function open(fresh: boolean, options?: Options): Promise<GameSession> {
   const save = fresh ? null : readSave();
   if (save) {
     try {
@@ -91,7 +93,7 @@ async function open(fresh: boolean): Promise<GameSession> {
     }
   }
   const seed = Math.floor(Date.now() % 1_000_000_000);
-  return GameSession.start(seed, await fetchUniverse());
+  return GameSession.start(seed, await fetchUniverse(), options);
 }
 
 export function GameProvider({
@@ -129,8 +131,8 @@ export function GameProvider({
   }, []);
 
   const start = useCallback(
-    (fresh: boolean) => {
-      open(fresh)
+    (fresh: boolean, options?: Options) => {
+      open(fresh, options)
         .then((opened) => {
           session.current = opened;
           selectedRef.current = null;
@@ -168,8 +170,10 @@ export function GameProvider({
       const result = current.command(command);
       if (!result.ok) {
         toast(`error.${result.error}`, "bad");
+        playSound("refuse");
         return false;
       }
+      playSound("act");
       redraw();
       return true;
     },
@@ -191,6 +195,12 @@ export function GameProvider({
     writeSave(current.save());
     // Anything addressed to the player stops the clock.
     const fresh = (next?.messages ?? []).filter((message) => message.id > lastMessage.current);
+    for (const message of fresh) {
+      const sound = soundFor(message);
+      if (sound) {
+        playSound(sound);
+      }
+    }
     lastMessage.current = Math.max(lastMessage.current, ...fresh.map((message) => message.id));
     if (fresh.some((message) => !message.news) || next?.career.fired) {
       setSpeed(0);
@@ -268,7 +278,7 @@ export function GameProvider({
       setSpeed,
       day: Math.min(day, DAYS_PER_MONTH),
       nextMonth,
-      newGame: () => start(true),
+      newGame: (options) => start(true, options),
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };

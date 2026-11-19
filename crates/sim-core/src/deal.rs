@@ -162,6 +162,10 @@ impl World {
         if self.deals.len() >= self.career.rank.max_live_deals() {
             return Err(CommandError::TooManyDeals);
         }
+        // Deals abroad are a principal's business.
+        if self.companies[company].is_abroad() && self.career.rank < Rank::Principal {
+            return Err(CommandError::CrossBorderLocked);
+        }
         self.deals.push(Deal {
             company,
             opened: self.date,
@@ -180,7 +184,9 @@ impl World {
     }
 
     pub(crate) fn diligence_cost(&self, company: usize) -> i64 {
-        mul_bps(self.model_ev(company), 15).max(150)
+        // Local advisers and travel cost half as much again.
+        let abroad = if self.companies[company].is_abroad() { 150 } else { 100 };
+        mul_bps(self.model_ev(company), 15).max(150) * abroad / 100
     }
 
     pub(crate) fn run_diligence(&mut self, company: usize, stream: DdStream) -> Result<(), CommandError> {
@@ -620,8 +626,10 @@ impl World {
 
     pub(crate) fn meet_owner(&mut self, company: usize) -> Result<(), CommandError> {
         self.check_target(company)?;
-        self.spend_attention(1)?;
-        let gain = 12 + self.career.reputation / 10 + self.rng.range(0, 6);
+        // A trip abroad takes two points.
+        self.spend_attention(if self.companies[company].is_abroad() { 2 } else { 1 })?;
+        let club = if self.career.perks.contains(&crate::fund::Perk::IndustryClub) { 5 } else { 0 };
+        let gain = 12 + club + self.career.reputation / 10 + self.rng.range(0, 6);
         let target = &mut self.companies[company];
         target.relationship = (target.relationship + gain).min(100);
         target.watched = true;
@@ -671,6 +679,18 @@ impl World {
             financing.ownership_bps = financing.ownership_bps * 8 / 10;
         }
         let process = self.companies[company].process.clone();
+        // Foreign buyers need a regulator's consent, and some regulators say no.
+        let refusal = match self.companies[company].country.as_str() {
+            "US" => 0,
+            "CN" => 2_000,
+            _ => 400,
+        };
+        if self.rng.chance_bps(refusal) {
+            self.end_process(company, 6, 12);
+            self.deals.remove(index);
+            self.post(MessageKind::RegulatorBlocked, Some(company));
+            return;
+        }
         if financing.equity <= 0 || !self.fund.call(financing.equity, self.months_elapsed) {
             self.end_process(company, 6, 12);
             self.deals.remove(index);
@@ -726,6 +746,9 @@ impl World {
         let rivals = process.as_ref().map(|p| p.rivals.len()).unwrap_or(0);
         let exclusive = process.as_ref().is_some_and(|p| p.stage == Stage::Exclusive);
         self.after_close(company, ev, financing.equity, rivals, exclusive);
+        if process.as_ref().is_some_and(|p| p.reason == crate::market::SaleReason::StrategicReview) {
+            self.unlock(crate::story::Achievement::TakePrivate);
+        }
         self.career.adjust_reputation(2);
         self.post(
             MessageKind::DealClosed {

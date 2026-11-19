@@ -725,6 +725,908 @@
       "fitted_to_public_statistics": false
     }
   ],
+  "region_profiles": [
+    {
+      "country": "GB",
+      "admin1": "GB-TLG",
+      "lat": 52.5,
+      "lon": -1.9,
+      "radius": 0.35,
+      "weight": 1.2,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 5,
+        "cold_chain_logistics": 2,
+        "business_services": 3,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 1.0,
+      "union_strength": 0.35,
+      "parks": [
+        "Blackmere Works",
+        "Canalside Trading Estate"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "GB",
+      "admin1": "GB-TLD",
+      "lat": 53.5,
+      "lon": -2.5,
+      "radius": 0.3,
+      "weight": 1.0,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 4,
+        "cold_chain_logistics": 3,
+        "business_services": 3,
+        "healthcare_services": 2,
+        "building_products": 2
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.96,
+      "union_strength": 0.4,
+      "parks": [
+        "Millrace Park",
+        "Northgate Trading Estate"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "GB",
+      "admin1": "GB-TLE",
+      "lat": 53.8,
+      "lon": -1.4,
+      "radius": 0.3,
+      "weight": 0.9,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 4,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.93,
+      "union_strength": 0.4,
+      "parks": [
+        "Ridings Business Park",
+        "Colliery Row Estate"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "GB",
+      "admin1": "GB-TLI",
+      "lat": 51.5,
+      "lon": -0.15,
+      "radius": 0.15,
+      "weight": 1.1,
+      "sector_weights": {
+        "food_manufacturing": 1,
+        "industrial_components": 1,
+        "cold_chain_logistics": 1,
+        "business_services": 7,
+        "healthcare_services": 4,
+        "building_products": 1
+      },
+      "size_factor": 1.2,
+      "wage_index": 1.35,
+      "union_strength": 0.15,
+      "parks": [
+        "Dockside Exchange",
+        "Fenwell Yard"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "GB",
+      "admin1": "GB-TLJ",
+      "lat": 51.3,
+      "lon": -0.8,
+      "radius": 0.3,
+      "weight": 1.0,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 2,
+        "cold_chain_logistics": 3,
+        "business_services": 5,
+        "healthcare_services": 4,
+        "building_products": 2
+      },
+      "size_factor": 1.05,
+      "wage_index": 1.15,
+      "union_strength": 0.15,
+      "parks": [
+        "Thamesmead Park",
+        "Downs Gate Estate"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "GB",
+      "admin1": "GB-SCT",
+      "lat": 55.9,
+      "lon": -3.8,
+      "radius": 0.3,
+      "weight": 0.6,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 3,
+        "cold_chain_logistics": 2,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.98,
+      "union_strength": 0.4,
+      "parks": [
+        "Clydeview Works",
+        "Forth Reach Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-BY",
+      "lat": 48.8,
+      "lon": 11.6,
+      "radius": 0.6,
+      "weight": 1.3,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 6,
+        "cold_chain_logistics": 2,
+        "business_services": 3,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 1.15,
+      "wage_index": 1.2,
+      "union_strength": 0.5,
+      "parks": [
+        "Gewerbepark Isarau",
+        "Technikhof Lindach"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-BW",
+      "lat": 48.7,
+      "lon": 9.1,
+      "radius": 0.5,
+      "weight": 1.3,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 7,
+        "cold_chain_logistics": 2,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 1.15,
+      "wage_index": 1.22,
+      "union_strength": 0.55,
+      "parks": [
+        "Industriepark Neckarried",
+        "Werkhof Filsbach"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-NW",
+      "lat": 51.4,
+      "lon": 7.3,
+      "radius": 0.5,
+      "weight": 1.4,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 5,
+        "cold_chain_logistics": 4,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 3
+      },
+      "size_factor": 1.1,
+      "wage_index": 1.15,
+      "union_strength": 0.65,
+      "parks": [
+        "Gewerbepark Ruhraue",
+        "Zechenhof Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-HE",
+      "lat": 50.4,
+      "lon": 8.8,
+      "radius": 0.4,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 3,
+        "cold_chain_logistics": 4,
+        "business_services": 5,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 1.1,
+      "wage_index": 1.2,
+      "union_strength": 0.45,
+      "parks": [
+        "Mainfeld Park",
+        "Taunusblick Gewerbehof"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-NI",
+      "lat": 52.6,
+      "lon": 9.6,
+      "radius": 0.5,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 5,
+        "industrial_components": 4,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 1.0,
+      "wage_index": 1.08,
+      "union_strength": 0.55,
+      "parks": [
+        "Heidepark Gewerbe",
+        "Leinetal Werkhof"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "DE",
+      "admin1": "DE-SN",
+      "lat": 51.0,
+      "lon": 13.3,
+      "radius": 0.4,
+      "weight": 0.6,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 5,
+        "cold_chain_logistics": 2,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 4
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.95,
+      "union_strength": 0.35,
+      "parks": [
+        "Elbwiesen Park",
+        "Erzhof Gewerbepark"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-IDF",
+      "lat": 48.8,
+      "lon": 2.4,
+      "radius": 0.3,
+      "weight": 1.3,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 2,
+        "cold_chain_logistics": 3,
+        "business_services": 6,
+        "healthcare_services": 4,
+        "building_products": 2
+      },
+      "size_factor": 1.15,
+      "wage_index": 1.25,
+      "union_strength": 0.45,
+      "parks": [
+        "Parc des Écluses",
+        "Cité des Ateliers"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-ARA",
+      "lat": 45.6,
+      "lon": 4.9,
+      "radius": 0.5,
+      "weight": 1.2,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 5,
+        "cold_chain_logistics": 2,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 3
+      },
+      "size_factor": 1.05,
+      "wage_index": 1.1,
+      "union_strength": 0.5,
+      "parks": [
+        "Parc du Confluent",
+        "Zone des Fonderies"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-HDF",
+      "lat": 50.2,
+      "lon": 2.8,
+      "radius": 0.4,
+      "weight": 0.9,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 4,
+        "cold_chain_logistics": 4,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 1.02,
+      "union_strength": 0.6,
+      "parks": [
+        "Parc des Beffrois",
+        "Zone du Canal"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-GES",
+      "lat": 48.6,
+      "lon": 6.5,
+      "radius": 0.5,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 5,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 1.03,
+      "union_strength": 0.55,
+      "parks": [
+        "Parc de la Moselle",
+        "Zone des Verreries"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-PDL",
+      "lat": 47.5,
+      "lon": -0.9,
+      "radius": 0.4,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 6,
+        "industrial_components": 3,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 1.0,
+      "union_strength": 0.4,
+      "parks": [
+        "Parc de la Loire",
+        "Zone des Vergers"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "FR",
+      "admin1": "FR-OCC",
+      "lat": 43.7,
+      "lon": 1.6,
+      "radius": 0.4,
+      "weight": 0.7,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 3,
+        "cold_chain_logistics": 2,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 1.0,
+      "union_strength": 0.4,
+      "parks": [
+        "Parc de la Garonne",
+        "Zone des Coteaux"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-41",
+      "lat": 37.3,
+      "lon": 127.2,
+      "radius": 0.25,
+      "weight": 1.5,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 6,
+        "cold_chain_logistics": 4,
+        "business_services": 3,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 1.0,
+      "wage_index": 0.85,
+      "union_strength": 0.35,
+      "parks": [
+        "Gaon Industrial Complex",
+        "Narae Logistics Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-44",
+      "lat": 36.6,
+      "lon": 126.9,
+      "radius": 0.25,
+      "weight": 0.9,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 6,
+        "cold_chain_logistics": 3,
+        "business_services": 1,
+        "healthcare_services": 1,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.8,
+      "union_strength": 0.4,
+      "parks": [
+        "Moram Parts Complex",
+        "Daon Industrial Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-48",
+      "lat": 35.3,
+      "lon": 128.3,
+      "radius": 0.25,
+      "weight": 1.0,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 7,
+        "cold_chain_logistics": 3,
+        "business_services": 1,
+        "healthcare_services": 1,
+        "building_products": 3
+      },
+      "size_factor": 1.0,
+      "wage_index": 0.82,
+      "union_strength": 0.6,
+      "parks": [
+        "Eden Machinery Complex",
+        "Sodam Industrial Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-47",
+      "lat": 36.2,
+      "lon": 128.7,
+      "radius": 0.25,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 6,
+        "cold_chain_logistics": 2,
+        "business_services": 1,
+        "healthcare_services": 1,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.78,
+      "union_strength": 0.5,
+      "parks": [
+        "Haram Industrial Complex",
+        "Onsae Parts Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-43",
+      "lat": 36.8,
+      "lon": 127.6,
+      "radius": 0.2,
+      "weight": 0.7,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 4,
+        "cold_chain_logistics": 3,
+        "business_services": 1,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.78,
+      "union_strength": 0.3,
+      "parks": [
+        "Aram Food Complex",
+        "Jion Industrial Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "KR",
+      "admin1": "KR-28",
+      "lat": 37.45,
+      "lon": 126.72,
+      "radius": 0.08,
+      "weight": 0.7,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 3,
+        "cold_chain_logistics": 6,
+        "business_services": 2,
+        "healthcare_services": 1,
+        "building_products": 2
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.84,
+      "union_strength": 0.4,
+      "parks": [
+        "Raon Cold Chain Complex",
+        "Bareun Logistics Complex"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-23",
+      "lat": 35.0,
+      "lon": 137.15,
+      "radius": 0.2,
+      "weight": 1.4,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 8,
+        "cold_chain_logistics": 2,
+        "business_services": 2,
+        "healthcare_services": 2,
+        "building_products": 2
+      },
+      "size_factor": 1.1,
+      "wage_index": 0.9,
+      "union_strength": 0.4,
+      "parks": [
+        "Aoba Industrial Park",
+        "Kogane Works"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-27",
+      "lat": 34.65,
+      "lon": 135.6,
+      "radius": 0.12,
+      "weight": 1.1,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 5,
+        "cold_chain_logistics": 3,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 1.0,
+      "wage_index": 0.92,
+      "union_strength": 0.35,
+      "parks": [
+        "Hinode Industrial Park",
+        "Asagiri Works"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-11",
+      "lat": 35.95,
+      "lon": 139.4,
+      "radius": 0.15,
+      "weight": 1.0,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 4,
+        "cold_chain_logistics": 4,
+        "business_services": 2,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.9,
+      "union_strength": 0.3,
+      "parks": [
+        "Wakaba Logistics Park",
+        "Minori Food Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-22",
+      "lat": 34.95,
+      "lon": 138.3,
+      "radius": 0.15,
+      "weight": 0.9,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 5,
+        "cold_chain_logistics": 2,
+        "business_services": 1,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.86,
+      "union_strength": 0.35,
+      "parks": [
+        "Yamabuki Industrial Park",
+        "Seiryu Works"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-40",
+      "lat": 33.6,
+      "lon": 130.6,
+      "radius": 0.15,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 4,
+        "industrial_components": 3,
+        "cold_chain_logistics": 4,
+        "business_services": 3,
+        "healthcare_services": 3,
+        "building_products": 2
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.8,
+      "union_strength": 0.3,
+      "parks": [
+        "Harukaze Park",
+        "Natsume Logistics Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "JP",
+      "admin1": "JP-09",
+      "lat": 36.6,
+      "lon": 139.85,
+      "radius": 0.15,
+      "weight": 0.7,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 6,
+        "cold_chain_logistics": 2,
+        "business_services": 1,
+        "healthcare_services": 2,
+        "building_products": 3
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.82,
+      "union_strength": 0.35,
+      "parks": [
+        "Shirakaba Industrial Park",
+        "Kawase Works"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-GD",
+      "lat": 23.3,
+      "lon": 113.6,
+      "radius": 0.5,
+      "weight": 1.5,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 7,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 1,
+        "building_products": 4
+      },
+      "size_factor": 1.1,
+      "wage_index": 0.45,
+      "union_strength": 0.1,
+      "parks": [
+        "Tianlu Industrial Zone",
+        "Jinluo Export Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-JS",
+      "lat": 32.3,
+      "lon": 119.5,
+      "radius": 0.5,
+      "weight": 1.4,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 7,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 1,
+        "building_products": 4
+      },
+      "size_factor": 1.1,
+      "wage_index": 0.42,
+      "union_strength": 0.1,
+      "parks": [
+        "Mingzhe Industrial Zone",
+        "Zhongyi Equipment Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-ZJ",
+      "lat": 29.6,
+      "lon": 120.3,
+      "radius": 0.5,
+      "weight": 1.2,
+      "sector_weights": {
+        "food_manufacturing": 2,
+        "industrial_components": 6,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 1,
+        "building_products": 5
+      },
+      "size_factor": 1.0,
+      "wage_index": 0.42,
+      "union_strength": 0.1,
+      "parks": [
+        "Xinhuo Industrial Zone",
+        "Baoqing Components Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-SD",
+      "lat": 36.4,
+      "lon": 118.2,
+      "radius": 0.6,
+      "weight": 1.1,
+      "sector_weights": {
+        "food_manufacturing": 5,
+        "industrial_components": 5,
+        "cold_chain_logistics": 3,
+        "business_services": 1,
+        "healthcare_services": 1,
+        "building_products": 4
+      },
+      "size_factor": 1.0,
+      "wage_index": 0.36,
+      "union_strength": 0.1,
+      "parks": [
+        "Shengwei Food Zone",
+        "Hengyao Industrial Zone"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-SC",
+      "lat": 30.6,
+      "lon": 104.2,
+      "radius": 0.6,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 5,
+        "industrial_components": 3,
+        "cold_chain_logistics": 3,
+        "business_services": 2,
+        "healthcare_services": 3,
+        "building_products": 3
+      },
+      "size_factor": 0.9,
+      "wage_index": 0.33,
+      "union_strength": 0.1,
+      "parks": [
+        "Chenlu Industrial Zone",
+        "Fengrun Food Zone"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    },
+    {
+      "country": "CN",
+      "admin1": "CN-HB",
+      "lat": 30.8,
+      "lon": 113.6,
+      "radius": 0.6,
+      "weight": 0.8,
+      "sector_weights": {
+        "food_manufacturing": 3,
+        "industrial_components": 5,
+        "cold_chain_logistics": 4,
+        "business_services": 1,
+        "healthcare_services": 2,
+        "building_products": 4
+      },
+      "size_factor": 0.95,
+      "wage_index": 0.34,
+      "union_strength": 0.1,
+      "parks": [
+        "Yongce Industrial Zone",
+        "Guanglin Logistics Park"
+      ],
+      "placeholder": true,
+      "fitted_to_public_statistics": false
+    }
+  ],
   "companies": [
     {
       "id": "co-0001",

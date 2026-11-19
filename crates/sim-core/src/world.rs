@@ -12,7 +12,7 @@ use crate::company::{Budget, Company, DdStream, IssueKind};
 use crate::content::{Industry, Universe, UNIVERSE_SCHEMA_VERSION};
 use crate::deal::{Deal, IcOutcome, Offer};
 use crate::economy::{Economy, EconomyNews, Era, Phase};
-use crate::fund::{Career, Fund, Rank};
+use crate::fund::{Career, Fund, Perk, Rank, ASSOCIATE_COST, MAX_ASSOCIATES};
 use crate::market::{Bidder, HouseRecord, SaleReason, RIVAL_HOUSES};
 use crate::portfolio::{ExitRoute, InitiativeKind};
 use crate::rng::Rng;
@@ -107,6 +107,7 @@ pub enum MessageKind {
     CommitteeDecision { outcome: IcOutcome },
     DealClosed { ev: i64, equity: i64, debt: i64 },
     DealBroken,
+    RegulatorBlocked,
     InitiativeDone { kind: InitiativeKind },
     IssueSurfaced { issue: IssueKind },
     Strike,
@@ -164,6 +165,10 @@ pub enum Command {
     SubmitBid { company: usize },
     RaiseBid { company: usize, ev: i64 },
     ResearchSector { sector: usize },
+    HireAssociate,
+    ReleaseAssociate,
+    CommitPersonal { amount: i64 },
+    BuyPerk { perk: Perk },
     ProposeExclusive { company: usize },
     DropDeal { company: usize },
     SetBudget { company: usize, budget: Budget },
@@ -212,6 +217,10 @@ pub enum CommandError {
     NoBid,
     AboveApproval,
     UnknownSector,
+    CrossBorderLocked,
+    FoundersOnly,
+    TeamFull,
+    NotEnoughWealth,
 }
 
 #[derive(Debug)]
@@ -370,6 +379,10 @@ impl World {
             Command::SubmitBid { company } => self.submit_bid(company),
             Command::RaiseBid { company, ev } => self.raise_bid(company, ev),
             Command::ResearchSector { sector } => self.research_sector(sector),
+            Command::HireAssociate => self.change_team(1),
+            Command::ReleaseAssociate => self.change_team(-1),
+            Command::CommitPersonal { amount } => self.commit_personal(amount),
+            Command::BuyPerk { perk } => self.buy_perk(perk),
             Command::ProposeExclusive { company } => self.propose_exclusive(company),
             Command::DropDeal { company } => self.drop_deal(company),
             Command::SetBudget { company, budget } => self.set_budget(company, budget),
@@ -403,12 +416,60 @@ impl World {
 
     /// How many attention points a month the player has.
     pub fn attention_max(&self) -> i64 {
-        self.career.rank.attention() + self.options.difficulty.attention_bonus()
+        self.career.rank.attention() + self.options.difficulty.attention_bonus() + self.career.associates
+    }
+
+    /// A founder hires or lets go an associate.
+    fn change_team(&mut self, change: i64) -> Result<(), CommandError> {
+        if self.career.rank != Rank::Founder {
+            return Err(CommandError::FoundersOnly);
+        }
+        let next = self.career.associates + change;
+        if !(0..=MAX_ASSOCIATES).contains(&next) {
+            return Err(CommandError::TeamFull);
+        }
+        self.career.associates = next;
+        Ok(())
+    }
+
+    /// The player's own money goes into the fund and comes back at the fund's multiple.
+    fn commit_personal(&mut self, amount: i64) -> Result<(), CommandError> {
+        if amount <= 0 || !self.fund.investing(self.date) {
+            return Err(CommandError::InvalidAmount);
+        }
+        if amount > self.career.wealth {
+            return Err(CommandError::NotEnoughWealth);
+        }
+        self.career.wealth -= amount;
+        if self.career.gp_commit == 0 {
+            // Investors like a manager with money in the fund.
+            for lp in &mut self.lps {
+                lp.satisfaction = (lp.satisfaction + 2).min(100);
+            }
+        }
+        self.career.gp_commit += amount;
+        Ok(())
+    }
+
+    fn buy_perk(&mut self, perk: Perk) -> Result<(), CommandError> {
+        if self.career.perks.contains(&perk) {
+            return Err(CommandError::AlreadyDone);
+        }
+        if perk.cost() > self.career.wealth {
+            return Err(CommandError::NotEnoughWealth);
+        }
+        self.career.wealth -= perk.cost();
+        self.career.perks.push(perk);
+        Ok(())
     }
 
     /// Relationship at which an owner tells the player about a sale before the teaser.
     pub(crate) fn early_notice_threshold(&self) -> i64 {
-        40
+        if self.career.perks.contains(&Perk::ConferenceCircuit) {
+            30
+        } else {
+            40
+        }
     }
 
     /// A month of reading and calls on one sector: sales there are heard of
@@ -609,6 +670,8 @@ impl World {
     fn career_step(&mut self) {
         self.career.months_at_rank += 1;
         self.career.wealth += self.career.rank.salary() * 4 / 10 / 12;
+        // The founder pays the team out of the house's fee income.
+        self.career.wealth -= self.career.associates * ASSOCIATE_COST / 12;
         if self.career.reputation < 15 {
             self.career.fired = true;
             self.post(MessageKind::Fired, None);
@@ -656,6 +719,9 @@ impl World {
         let tvpi_millis = self.fund.tvpi_millis(0);
         let carry = self.fund.carry(0, month);
         let share = crate::math::mul_bps(carry, self.career.rank.carry_share_bps());
+        // The player's own commitment comes back at the fund's multiple.
+        self.career.wealth += crate::math::mul_millis(self.career.gp_commit, tvpi_millis);
+        self.career.gp_commit = 0;
         self.career.wealth += share;
         self.career.carry_paid += share;
         self.post(MessageKind::FundTermEnded { tvpi_millis, carry }, None);
@@ -788,7 +854,8 @@ pub mod tests {
         assert_eq!(world.date, GameDate::new(2024, 1));
         assert_eq!(world.fund.called, 0);
         assert_eq!(world.fund.uncalled(), 750_000);
-        assert_eq!(world.companies.len(), 250);
+        assert_eq!(world.companies.len(), 500);
+        assert_eq!(world.companies.iter().filter(|company| company.is_abroad()).count(), 250);
         assert!(world.companies.iter().all(|company| !company.is_player_owned()));
         assert!(world.companies.iter().all(|company| company.books.balances()));
         assert_eq!(world.career.rank, Rank::VicePresident);
@@ -990,5 +1057,79 @@ pub mod tests {
                 println!("   {} cost {} proceeds {} moic {} irr {:?} {:?}", realized.company, realized.cost, realized.proceeds, realized.moic_millis, realized.irr_bps, realized.route);
             }
         }
+    }
+
+    #[test]
+    fn a_game_opens_with_objectives_investors_and_a_league() {
+        let world = world(1);
+        assert_eq!(world.objectives.len(), 3);
+        assert_eq!(world.lps.iter().map(|lp| lp.share_bps).sum::<i64>(), 10_000);
+        assert_eq!(world.league_rows().len(), RIVAL_HOUSES + 1);
+        assert_eq!(world.partner_trust, vec![50; 6]);
+        let view = world.view();
+        assert_eq!(view["league"].as_array().unwrap().len(), RIVAL_HOUSES + 1);
+        assert_eq!(view["objectives"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn deals_abroad_wait_for_a_principal() {
+        let mut world = world(2);
+        run(&mut world, 14);
+        let abroad = (0..world.companies.len())
+            .find(|index| world.companies[*index].is_abroad() && world.process_visible(*index))
+            .expect("something abroad is for sale");
+        assert_eq!(world.apply(Command::SignNda { company: abroad }), Err(CommandError::CrossBorderLocked));
+        world.career.rank = Rank::Principal;
+        assert!(world.apply(Command::SignNda { company: abroad }).is_ok());
+        let home = (0..world.companies.len()).find(|index| !world.companies[*index].is_abroad()).unwrap();
+        assert!(world.diligence_cost(abroad) * 100 / world.model_ev(abroad).max(1) >= world.diligence_cost(home) * 100 / world.model_ev(home).max(1));
+    }
+
+    #[test]
+    fn sector_research_sharpens_the_fog_for_a_year() {
+        let mut world = world(3);
+        let index = 0;
+        let sector = world.companies[index].sector;
+        let before = world.company_view(index);
+        world.apply(Command::ResearchSector { sector }).unwrap();
+        assert_eq!(world.attention_left, world.attention_max() - 1);
+        let after = world.company_view(index);
+        let width = |view: &serde_json::Value| view["ev"][1].as_i64().unwrap() - view["ev"][0].as_i64().unwrap();
+        assert!(width(&after) < width(&before));
+        run(&mut world, 12);
+        assert_eq!(world.insight[sector], 0);
+        assert_eq!(world.apply(Command::ResearchSector { sector: 99 }), Err(CommandError::UnknownSector));
+    }
+
+    #[test]
+    fn a_bid_can_rise_only_within_the_approval() {
+        let mut world = world(4);
+        assert_eq!(world.apply(Command::RaiseBid { company: 0, ev: 1 }), Err(CommandError::NoDeal));
+        for _ in 0..90 {
+            play_month(&mut world);
+            let bid = world.deals.iter().find(|deal| deal.bid_submitted).map(|deal| (deal.company, deal.approved_ev));
+            if let Some((company, approved)) = bid {
+                assert_eq!(
+                    world.apply(Command::RaiseBid { company, ev: approved * 2 }),
+                    Err(CommandError::AboveApproval)
+                );
+                assert!(world.apply(Command::RaiseBid { company, ev: approved * 103 / 100 }).is_ok());
+                assert_eq!(world.companies[company].process.as_ref().unwrap().player_bid.as_ref().unwrap().ev, approved * 103 / 100);
+                assert!(world.deals[world.deal_index(company).unwrap()].ic.is_some());
+                return;
+            }
+        }
+        panic!("the bot never had a bid in");
+    }
+
+    #[test]
+    fn harder_games_face_higher_rival_bids_and_eras_open_differently() {
+        let hard = World::new(1, &universe(), Options { difficulty: Difficulty::Hard, era: Era::CheapMoney }).unwrap();
+        assert!(hard.options.difficulty.rival_bias_bps() > Difficulty::Relaxed.rival_bias_bps());
+        assert!(hard.economy.policy_rate_bps < world(1).economy.policy_rate_bps);
+        let options: Options = serde_json::from_str(r#"{"difficulty":"relaxed","era":"late_cycle"}"#).unwrap();
+        assert_eq!(options.difficulty, Difficulty::Relaxed);
+        assert_eq!(options.era, Era::LateCycle);
+        assert_eq!(serde_json::from_str::<Options>("{}").unwrap(), Options::default());
     }
 }

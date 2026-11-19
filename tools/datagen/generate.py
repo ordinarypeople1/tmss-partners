@@ -28,6 +28,7 @@ import sqlite3
 from pathlib import Path
 
 from distributions import INDUSTRIES, NAME_DENYLIST, IndustryDistribution
+from countries import COUNTRY_STYLES, REGION_PROFILES
 from states import STATE_PROFILES, StateProfile
 
 UNIT = "usd_thousand"
@@ -135,10 +136,10 @@ def hits_denylist(name: str) -> bool:
     return any(token.lower() in lowered for token in NAME_DENYLIST)
 
 
-def make_name(rng: random.Random, sector_id: str, used: set[str]) -> str:
+def make_name(rng: random.Random, sector_id: str, used: set[str], stems: tuple = NAME_STEMS) -> str:
     cores = NAME_CORES[sector_id]
-    for _ in range(200):
-        name = f"{rng.choice(NAME_STEMS)} {rng.choice(cores)}"
+    for _ in range(400):
+        name = f"{rng.choice(stems)} {rng.choice(cores)}"
         if name in used or hits_denylist(name):
             continue
         used.add(name)
@@ -194,6 +195,32 @@ def ring_area(ring: list) -> float:
     return abs(
         sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1])) / 2.0
     )
+
+
+def load_countries(path: Path) -> dict[str, list]:
+    """Country code to its polygons, for the countries the game plays in."""
+    collection = json.loads(path.read_text(encoding="utf-8"))
+    countries: dict[str, list] = {}
+    for feature in collection["features"]:
+        code = feature["properties"].get("country")
+        if not code:
+            continue
+        geometry = feature["geometry"]
+        polygons = (
+            [geometry["coordinates"]] if geometry["type"] == "Polygon" else geometry["coordinates"]
+        )
+        countries.setdefault(code, []).extend(polygons)
+    return countries
+
+
+def sample_near(rng: random.Random, profile, polygons: list) -> tuple[float, float]:
+    """A two-decimal point near the region's centre and inside its country. Not an address."""
+    for _ in range(2_000):
+        lat = round(profile.lat + rng.uniform(-profile.radius, profile.radius), 2)
+        lon = round(profile.lon + rng.uniform(-profile.radius, profile.radius) * 1.3, 2)
+        if region_contains(polygons, lon, lat):
+            return lat, lon
+    raise RuntimeError(f"could not place a site in {profile.admin1}")
 
 
 def sample_site(rng: random.Random, polygons: list) -> tuple[float, float]:
@@ -426,22 +453,43 @@ def build_document(
     policy_rate: float,
     neutral_rate: float,
     regions: dict[str, list],
+    countries: dict[str, list],
+    foreign_count: int,
 ) -> dict:
     rng = random.Random(seed)
     used_names: set[str] = set()
     companies = []
-    for index in range(count):
-        profile = weighted_choice(rng, [(item, item.weight) for item in STATE_PROFILES])
+    by_country: dict[str, list] = {}
+    for item in REGION_PROFILES:
+        by_country.setdefault(item.country, []).append(item)
+    country_codes = sorted(by_country)
+    for index in range(count + foreign_count):
+        abroad = index >= count
+        if abroad:
+            # The six countries take equal shares; regions inside a country are weighted.
+            country = country_codes[(index - count) % len(country_codes)]
+            profile = weighted_choice(rng, [(item, item.weight) for item in by_country[country]])
+            style = COUNTRY_STYLES[country]
+        else:
+            country = COUNTRY
+            profile = weighted_choice(rng, [(item, item.weight) for item in STATE_PROFILES])
+            style = None
         sector_id = weighted_choice(rng, sorted(profile.sector_weights.items()))
         industry = INDUSTRY_BY_ID[sector_id]
-        name = make_name(rng, industry.sector_id, used_names)
+        name = make_name(rng, industry.sector_id, used_names, style.stems if style else NAME_STEMS)
         state = opening_state(rng, industry, profile, policy_rate)
         base_multiple = clamp(
             rng.gauss(industry.base_multiple_mean, industry.base_multiple_std),
             industry.multiple_floor,
             industry.multiple_cap,
         )
-        lat, lon = sample_site(rng, regions[profile.admin1])
+        if style:
+            base_multiple = clamp(
+                base_multiple * style.multiple_factor, industry.multiple_floor, industry.multiple_cap
+            )
+            lat, lon = sample_near(rng, profile, countries[country])
+        else:
+            lat, lon = sample_site(rng, regions[profile.admin1])
         series = []
         for quarter_index, period in enumerate(period_labels(start_year, 1, quarters)):
             quarter, state = step_quarter(
@@ -459,9 +507,9 @@ def build_document(
             {
                 "id": f"co-{index + 1:04d}",
                 "name": name,
-                "legal_name": f"{name} {rng.choice(NAME_SUFFIXES)}",
+                "legal_name": f"{name} {rng.choice(style.suffixes if style else NAME_SUFFIXES)}",
                 "sector_id": industry.sector_id,
-                "country": COUNTRY,
+                "country": country,
                 "admin1": profile.admin1,
                 "site_name": rng.choice(profile.parks),
                 "lat": lat,
@@ -496,11 +544,12 @@ def build_document(
         },
         "industries": [item.to_public_dict() for item in INDUSTRIES],
         "state_profiles": [item.to_public_dict() for item in STATE_PROFILES],
+        "region_profiles": [item.to_public_dict() for item in REGION_PROFILES],
         "companies": companies,
     }
 
 
-def validate(document: dict, regions: dict[str, list]) -> list[str]:
+def validate(document: dict, regions: dict[str, list], countries: dict[str, list]) -> list[str]:
     errors: list[str] = []
     if document.get("placeholder_parameters") is not True:
         errors.append("placeholder flag missing")
@@ -517,8 +566,16 @@ def validate(document: dict, regions: dict[str, list]) -> list[str]:
             errors.append(f"{company['id']} name hit the denylist")
         if not company["admin1"].startswith(company["country"] + "-"):
             errors.append(f"{company['id']} region is not in its country")
-        polygons = regions.get(company["admin1"])
-        if polygons is None:
+        if company["country"] != COUNTRY:
+            polygons = countries.get(company["country"])
+            if polygons is None or not region_contains(polygons, company["lon"], company["lat"]):
+                errors.append(f"{company['id']} sits outside {company['country']}")
+            polygons = []
+        else:
+            polygons = regions.get(company["admin1"])
+        if company["country"] != COUNTRY:
+            pass
+        elif polygons is None:
             errors.append(f"{company['id']} has an unknown region")
         elif not region_contains(polygons, company["lon"], company["lat"]):
             errors.append(f"{company['id']} sits outside {company['admin1']}")
@@ -816,7 +873,8 @@ def parse_args() -> argparse.Namespace:
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description="Generate fictional companies and three-statement history.")
     parser.add_argument("--seed", type=int, default=2024)
-    parser.add_argument("--count", type=int, default=250)
+    parser.add_argument("--count", type=int, default=250, help="Companies in the United States.")
+    parser.add_argument("--foreign-count", type=int, default=250, help="Companies in the other six countries.")
     parser.add_argument("--fixture-count", type=int, default=4)
     parser.add_argument("--quarters", type=int, default=8)
     parser.add_argument("--start-year", type=int, default=2022)
@@ -863,6 +921,7 @@ def main() -> int:
         print(f"error: {args.regions} is missing. Run node tools/build-geo.mjs first.")
         return 1
     regions = load_regions(args.regions)
+    countries = load_countries(args.regions.parent / "world.json")
     document = build_document(
         seed=args.seed,
         count=args.count,
@@ -871,9 +930,11 @@ def main() -> int:
         policy_rate=args.policy_rate,
         neutral_rate=args.neutral_rate,
         regions=regions,
+        countries=countries,
+        foreign_count=args.foreign_count,
     )
     sim_states = {company["id"]: company.pop("_sim") for company in document["companies"]}
-    errors = validate(document, regions)
+    errors = validate(document, regions, countries)
     if errors:
         for error in errors:
             print(f"error: {error}")

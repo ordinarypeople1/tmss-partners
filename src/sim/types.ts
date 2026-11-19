@@ -16,7 +16,7 @@ export type Figure = [number, number];
 export type Phase = "expansion" | "slowdown" | "recession" | "recovery";
 export type Rank = "vice_president" | "principal" | "partner" | "founder";
 export type Stage = "preparing" | "marketing" | "bidding" | "exclusive";
-export type SaleReason = "retirement" | "succession" | "fund_exit" | "non_core" | "distress";
+export type SaleReason = "retirement" | "succession" | "fund_exit" | "non_core" | "distress" | "strategic_review";
 export type DdStream = "financial" | "commercial" | "operational" | "legal";
 export type IssueKind =
   | "inventory_overstated"
@@ -44,7 +44,10 @@ export type Choice =
   | "settle"
   | "hold_out"
   | "report_now"
-  | "report_later";
+  | "report_later"
+  /** The two options of an `event` message; the catalog names them per event. */
+  | "first"
+  | "second";
 export type Stance = "for" | "hold" | "against";
 export type Concern =
   | "leverage"
@@ -64,6 +67,100 @@ export type Concern =
   | "open_issue";
 export type IcOutcome = "approved" | "held" | "rejected";
 
+export type Trait =
+  | "single_plant"
+  | "long_term_contracts"
+  | "aging_equipment"
+  | "brand_strength"
+  | "family_workforce"
+  | "export_heavy"
+  | "recurring_revenue"
+  | "fragmented_market"
+  | "seasonal_demand"
+  | "proprietary_process"
+  | "underinvested_sales"
+  | "regulated_customers";
+export type CeoStyle = "operator" | "seller" | "engineer" | "financier" | "patriarch";
+/** How an owner behaves across the table. */
+export type SellerStance = "sentimental" | "price_maximizer" | "hurried" | "balanced";
+export type EventKind =
+  | "earnout_dispute"
+  | "team_poaching"
+  | "plant_outage"
+  | "customer_renegotiation"
+  | "cost_shock"
+  | "cyber_incident"
+  | "incentive_plan"
+  | "repricing_window"
+  | "co_invest_request";
+export type LpKind = "public_pension" | "endowment" | "family_office" | "fund_of_funds" | "insurer";
+export type ObjectiveKind =
+  | "close_deals"
+  | "deploy_capital"
+  | "build_relationships"
+  | "finish_initiatives"
+  | "clean_covenants"
+  | "exit_count"
+  | "no_rejections";
+export type Achievement =
+  | "first_close"
+  | "first_exit"
+  | "double_up"
+  | "triple_up"
+  | "home_run"
+  | "quick_flip"
+  | "roll_up"
+  | "clean_sheet"
+  | "turnaround"
+  | "comeback_kid"
+  | "proprietary"
+  | "auction_winner"
+  | "recession_buyer"
+  | "big_game"
+  | "dealmaker"
+  | "networker"
+  | "fully_invested"
+  | "distributor"
+  | "top_of_the_table"
+  | "made_principal"
+  | "made_partner"
+  | "own_name"
+  | "cross_border"
+  | "take_private";
+export const ACHIEVEMENTS: Achievement[] = [
+  "first_close",
+  "first_exit",
+  "double_up",
+  "triple_up",
+  "home_run",
+  "quick_flip",
+  "roll_up",
+  "clean_sheet",
+  "turnaround",
+  "comeback_kid",
+  "proprietary",
+  "auction_winner",
+  "recession_buyer",
+  "big_game",
+  "dealmaker",
+  "networker",
+  "fully_invested",
+  "distributor",
+  "top_of_the_table",
+  "made_principal",
+  "made_partner",
+  "own_name",
+  "cross_border",
+  "take_private",
+];
+export type Difficulty = "relaxed" | "standard" | "hard";
+export type Era = "high_rates" | "cheap_money" | "late_cycle";
+export interface Options {
+  difficulty: Difficulty;
+  era: Era;
+}
+export type Perk = "industry_club" | "conference_circuit";
+
 export const DD_STREAMS: DdStream[] = ["financial", "commercial", "operational", "legal"];
 export const INITIATIVES: InitiativeKind[] = [
   "pricing_review",
@@ -80,6 +177,8 @@ export type Owner =
   | { kind: "founder"; age: number }
   | { kind: "sponsor"; house: number; months_held: number }
   | { kind: "corporate" }
+  /** Listed. No quoted price; a price appears only if someone takes it private. */
+  | { kind: "public" }
   | { kind: "player" }
   | { kind: "lender" }
   | { kind: "merged" };
@@ -93,6 +192,13 @@ export interface SaleView {
   /** Empty until the teaser is out. */
   rivals: Bidder[];
   bid_in: boolean;
+  /** The last month of bidding: rivals may have raised, and a bid already in may be raised. */
+  final_round: boolean;
+  /** Where the player's bid stands, once the final round opens. `lead` is the best rival bid as a range. */
+  standing: { rank: number; bidders: number; lead: Figure } | null;
+  my_bid: number | null;
+  /** The most the player may bid without going back to the committee (approved price + 5%). 0 without approval. */
+  bid_ceiling: number;
 }
 
 export interface CompanyRow {
@@ -102,6 +208,8 @@ export interface CompanyRow {
   name: string;
   sector: string;
   admin1: string;
+  /** "US" is home. Deals elsewhere need the rank of principal. */
+  country: string;
   lat: number;
   lon: number;
   owner: Owner;
@@ -249,6 +357,9 @@ export interface DealView {
   bid_submitted: boolean;
   certainty_bps: number;
   can_roll: boolean;
+  /** Investors take a fifth of the equity alongside the fund. */
+  coinvest: boolean;
+  approved_ev: number;
 }
 
 export interface Budget {
@@ -309,7 +420,6 @@ export interface HoldingView {
 
 export interface CompanyView extends CompanyRow {
   site_name: string;
-  country: string;
   sector_multiple_millis: number;
   union_strength_bps: number;
   /** 1 through 20. Null until operational diligence. */
@@ -318,6 +428,15 @@ export interface CompanyView extends CompanyRow {
   customer_concentration_bps: number | null;
   /** `stream` is the diligence that finds this kind of issue. */
   issues: { kind: IssueKind; stream: DdStream; severity_bps: number; found: boolean; triggered: boolean }[];
+  /** One trait is public; the rest come with the NDA. Each changes a rule (see docs/gdd/systems.md). */
+  traits: Trait[];
+  traits_hidden: number;
+  /** Index 0–5 into the sector's product lines: catalog key `product.<sector>.<n>`. */
+  product: number;
+  /** `style` is null until the player has met the owner or signed an NDA. */
+  ceo: { name: string; age: number; tenure: number; founder: boolean; style: CeoStyle | null };
+  /** Null until relationship 40 or an NDA. */
+  stance: SellerStance | null;
   financials?: Financials;
   deal?: DealView;
   holding?: HoldingView;
@@ -333,6 +452,11 @@ export type MessageBody =
   | { type: "sale_failed" }
   | { type: "rival_deal"; buyer: Bidder; ev: number }
   | { type: "auction_lost"; winner: Bidder; ev: number }
+  | { type: "final_round"; rank: number; bidders: number }
+  | { type: "regulator_blocked" }
+  | { type: "event"; event: EventKind; amount: number }
+  | { type: "achievement_unlocked"; achievement: Achievement }
+  | { type: "objectives_review"; met: number; total: number; bonus: number }
   | { type: "diligence_report"; stream: DdStream; found: IssueKind[] }
   | { type: "committee_decision"; outcome: IcOutcome }
   | { type: "deal_closed"; ev: number; equity: number; debt: number }
@@ -416,6 +540,40 @@ export interface View {
     carry_paid: number;
     salary: number;
     fired: boolean;
+    /** Founder only: each associate adds a point of attention and costs $400K a year. */
+    associates: number;
+    /** The player's own money in the fund; it returns at the fund's multiple. */
+    gp_commit: number;
+    perks: Perk[];
+  };
+  options: Options;
+  /** Months of sector research left, by sector index (same order as economy.sectors). */
+  insight: number[];
+  /** All nine houses by gross multiple, best first. `house` null is the player's fund. */
+  league: {
+    rank: number;
+    house: number | null;
+    deals: number;
+    exits: number;
+    invested: number;
+    returned: number;
+    held: number;
+    multiple_millis: number;
+  }[];
+  /** Trust per committee seat, 0–100. At 70 a doubt passes; at 30 a doubt becomes a no. */
+  partners: { trust: number }[];
+  /** Investors. Satisfaction decides what they commit to the next fund. */
+  lps: { kind: LpKind; share_bps: number; satisfaction: number }[];
+  next_fund_estimate: number;
+  /** This year's objectives from the chair. `clean_covenants` and `no_rejections` are met while progress is 0. */
+  objectives: { kind: ObjectiveKind; target: number; progress: number; met: boolean }[];
+  achievements: { achievement: Achievement; month: number }[];
+  records: {
+    best_moic_millis: number;
+    fastest_exit_months: number;
+    largest_deal_ev: number;
+    largest_exit_proceeds: number;
+    total_proceeds: number;
   };
   attention: { left: number; max: number };
   limits: { deals: number; initiatives: number };
@@ -473,6 +631,12 @@ export type Command =
   | { type: "set_offer"; company: number; offer: Offer }
   | { type: "submit_ic"; company: number }
   | { type: "submit_bid"; company: number }
+  | { type: "raise_bid"; company: number; ev: number }
+  | { type: "research_sector"; sector: number }
+  | { type: "hire_associate" }
+  | { type: "release_associate" }
+  | { type: "commit_personal"; amount: number }
+  | { type: "buy_perk"; perk: Perk }
   | { type: "propose_exclusive"; company: number }
   | { type: "drop_deal"; company: number }
   | { type: "set_budget"; company: number; budget: Budget }

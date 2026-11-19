@@ -78,6 +78,8 @@ pub enum SaleReason {
     FundExit,
     NonCore,
     Distress,
+    /// A listed company's board looks at offers.
+    StrategicReview,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -136,6 +138,8 @@ impl SaleReason {
             SaleReason::FundExit => 9_600,
             SaleReason::NonCore => 9_000,
             SaleReason::Distress => 7_000,
+            // Public shareholders want a premium over what the business is worth as it stands.
+            SaleReason::StrategicReview => 11_500,
         }
     }
 }
@@ -172,6 +176,7 @@ impl World {
                 (if stressed { 105 } else { 45 }, SaleReason::NonCore)
             }
             Owner::Lender => (900, SaleReason::Distress),
+            Owner::Public => (30, SaleReason::StrategicReview),
             Owner::Player | Owner::Merged => return None,
         };
         let _ = industry;
@@ -273,7 +278,9 @@ impl World {
                         }
                         Bidder::Player => 0,
                     };
-                    rival.ev = mul_bps(model_ev, (factor + difficulty).clamp(6_500, 12_800));
+                    // Control of a listed company costs a premium to everyone.
+                    let premium = if reason == SaleReason::StrategicReview { 1_500 } else { 0 };
+                    rival.ev = mul_bps(model_ev, (factor + difficulty + premium).clamp(6_500, 13_800));
                 }
                 let months = self.rng.range(2, 3) as u32;
                 let process = self.companies[index].process.as_mut().expect("process exists");

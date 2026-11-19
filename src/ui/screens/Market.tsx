@@ -10,11 +10,12 @@ import "./Market.css";
 
 type OwnerKind = Owner["kind"];
 
-const OWNER_KINDS: OwnerKind[] = ["founder", "sponsor", "corporate", "player", "lender"];
+const OWNER_KINDS: OwnerKind[] = ["founder", "sponsor", "corporate", "public", "player", "lender"];
 const OWNER_COLOR: Record<OwnerKind, string> = {
   founder: "var(--s3)",
   sponsor: "var(--s4)",
   corporate: "var(--s1)",
+  public: "var(--s6)",
   player: "var(--accent)",
   lender: "var(--s5)",
   merged: "var(--muted)",

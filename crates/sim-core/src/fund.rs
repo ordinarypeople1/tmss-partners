@@ -232,7 +232,38 @@ pub struct Career {
     pub carry_paid: i64,
     pub spinout_offered: bool,
     pub fired: bool,
+    /// Associates on the founder's payroll. Each adds a point of attention.
+    #[serde(default)]
+    pub associates: i64,
+    /// The player's own money in the fund.
+    #[serde(default)]
+    pub gp_commit: i64,
+    #[serde(default)]
+    pub perks: Vec<Perk>,
 }
+
+/// Things personal money buys.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Perk {
+    /// Owners warm to the player faster.
+    IndustryClub,
+    /// Sales are heard of at a lower relationship.
+    ConferenceCircuit,
+}
+
+impl Perk {
+    pub fn cost(self) -> i64 {
+        match self {
+            Perk::IndustryClub => 150,
+            Perk::ConferenceCircuit => 300,
+        }
+    }
+}
+
+pub const MAX_ASSOCIATES: i64 = 6;
+/// Annual cost of one associate, thousand USD.
+pub const ASSOCIATE_COST: i64 = 400;
 
 impl Career {
     pub fn new() -> Career {
@@ -248,6 +279,9 @@ impl Career {
             carry_paid: 0,
             spinout_offered: false,
             fired: false,
+            associates: 0,
+            gp_commit: 0,
+            perks: Vec::new(),
         }
     }
 

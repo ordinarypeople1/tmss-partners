@@ -23,6 +23,11 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   sale_failed: ["close"],
   rival_deal: ["gavel"],
   auction_lost: ["gavel", "bad"],
+  final_round: ["gavel", "warn"],
+  regulator_blocked: ["alert", "bad"],
+  event: ["bolt", "warn"],
+  achievement_unlocked: ["flag", "good"],
+  objectives_review: ["check"],
   diligence_report: ["search"],
   committee_decision: ["gavel"],
   deal_closed: ["check", "good"],
@@ -53,6 +58,7 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     message.company === null ? "" : (view.companies.find((row) => row.i === message.company)?.name ?? "");
   const values: Record<string, string> = { company };
   let bodyId = `msg.${message.type}.body`;
+  let titleId = `msg.${message.type}.title`;
   switch (message.type) {
     case "rate_changed":
       values.from = f.pct(message.from_bps, 2);
@@ -143,9 +149,27 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     case "promotion":
       values.rank = t(`rank.${message.rank}`);
       break;
+    case "final_round":
+      values.rank = String(message.rank);
+      values.bidders = String(message.bidders);
+      break;
+    case "event":
+      titleId = `msg.event.${message.event}.title`;
+      bodyId = `msg.event.${message.event}.body`;
+      values.amount = f.money(message.amount);
+      break;
+    case "achievement_unlocked":
+      values.name = t(`achievement.${message.achievement}`);
+      values.detail = t(`achievement.${message.achievement}.detail`);
+      break;
+    case "objectives_review":
+      values.met = String(message.met);
+      values.total = String(message.total);
+      values.bonus = f.money(message.bonus);
+      break;
     default:
       break;
   }
   const [icon, tone] = LOOK[message.type];
-  return { title: t(`msg.${message.type}.title`, values), body: t(bodyId, values), icon, tone };
+  return { title: t(titleId, values), body: t(bodyId, values), icon, tone };
 }

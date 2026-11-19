@@ -22,9 +22,11 @@
   "shell.harvest": "회수 기간",
   "shell.forSale": "매물 {count, number, ::integer}",
   "shell.newGame": "새 게임",
-  "shell.newGameConfirm": "지금 게임을 버리고 새로 시작합니다.",
   "shell.fired.title": "커리어가 끝났습니다",
   "shell.fired.body": "하우스가 계약을 연장하지 않았습니다. 기록은 커리어 화면에 남아 있습니다.",
   "shell.toast.dismiss": "알림 닫기",
-  "shell.panel.close": "회사 패널 닫기"
+  "shell.panel.close": "회사 패널 닫기",
+  "nav.league": "리그",
+  "shell.sound.on": "소리 켬",
+  "shell.sound.off": "소리 끔"
 }
