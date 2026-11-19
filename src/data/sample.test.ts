@@ -1,9 +1,10 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import geo from "./geo/admin1.json";
 
 const fixture = JSON.parse(readFileSync("src/data/fixtures/sample-companies.json", "utf8"));
-const page = JSON.parse(readFileSync("public/sample-page.json", "utf8"));
+const universe = JSON.parse(readFileSync("public/content/universe.json", "utf8"));
 
 function clientSources(dir: string): string[] {
   const files: string[] = [];
@@ -23,10 +24,11 @@ function clientSources(dir: string): string[] {
   return files;
 }
 
-describe("sample content", () => {
+describe("generated content", () => {
   it("keeps closed books in the generator fixture", () => {
     expect(fixture.placeholder_parameters).toBe(true);
     expect(fixture.fitted_to_real_filings).toBe(false);
+    expect(fixture.unit).toBe("usd_thousand");
     expect(fixture.companies.length).toBeGreaterThan(0);
     for (const company of fixture.companies) {
       expect(company.identity.fictional).toBe(true);
@@ -41,26 +43,41 @@ describe("sample content", () => {
     }
   });
 
-  it("publishes one card page and leaves quarter history out of it", () => {
-    expect(page.schema).toBe("company_card_page");
-    expect(page.unit).toBe("krw_million");
-    expect(page.page_size).toBe(20);
-    expect(page.cards.length).toBeLessThanOrEqual(page.page_size);
-    expect(page.cards.length).toBe(fixture.companies.length);
-    const first = fixture.companies[0];
-    const latest = first.quarters[first.quarters.length - 1];
-    expect(page.cards[0].id).toBe(first.id);
-    expect(page.cards[0].ebitda).toBe(latest.income.ebitda);
-    expect(page.cards[0].model_multiple_millis).toBe(Math.round(latest.model_multiple * 1000));
-    expect(page.cards[0]).not.toHaveProperty("quarters");
+  it("opens the universe in thousand USD with balanced books and no history", () => {
+    expect(universe.schema).toBe("universe");
+    expect(universe.unit).toBe("usd_thousand");
+    expect(universe.placeholder_parameters).toBe(true);
+    expect(universe.companies.length).toBeGreaterThanOrEqual(250);
+    const regions = new Set(geo.admin1.map((unit) => unit.code));
+    const sectors = new Set(universe.industries.map((industry: { sector_id: string }) => industry.sector_id));
+    const names = new Set<string>();
+    for (const company of universe.companies) {
+      const assets =
+        company.cash +
+        company.accounts_receivable +
+        company.inventory +
+        company.gross_ppe -
+        company.accumulated_depreciation;
+      const claims = company.accounts_payable + company.debt + company.share_capital + company.retained_earnings;
+      expect(assets, company.id).toBe(claims);
+      expect(regions.has(company.admin1), company.admin1).toBe(true);
+      expect(company.admin1.startsWith(`${company.country}-`)).toBe(true);
+      expect(sectors.has(company.sector_id)).toBe(true);
+      expect(company).not.toHaveProperty("quarters");
+      expect(company).not.toHaveProperty("ticker");
+      expect(Number((company.lat as number).toFixed(2))).toBe(company.lat);
+      names.add(company.legal_name);
+    }
+    expect(names.size).toBe(universe.companies.length);
   });
 
-  it("does not import the full fixture into the client", () => {
+  it("does not import generated content into the client bundle", () => {
     const roots = ["src/ui", "src/data", "src/sim", "src/i18n"];
     for (const file of roots.flatMap((root) => clientSources(root))) {
       const text = readFileSync(file, "utf8");
       expect(text, file).not.toContain("sample-companies");
       expect(text, file).not.toContain("fixtures/");
+      expect(text, file).not.toMatch(/from "[^"]*universe\.json"/);
     }
   });
 });

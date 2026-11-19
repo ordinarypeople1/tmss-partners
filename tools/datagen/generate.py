@@ -4,13 +4,17 @@
 Public filings are not read here. Industry parameters live in distributions.py
 and are explicitly marked as placeholders.
 
+Money is an integer count of thousand USD. Every company sits in a country and
+a first-level region (a US state for now), drawn from the profiles in states.py.
+
 Outputs
   JSON document of companies and quarters
   SQLite database with the same facts, plus a company_cards table
-  fixture copy for the generator check
-  one card page for the web client, without quarter history
+  fixture copy of the first few companies for the generator check
+  the opening universe for sim-core, without quarter history
 
 Run
+  node tools/build-geo.mjs
   python3 tools/datagen/generate.py --check
 """
 
@@ -23,30 +27,78 @@ import random
 import sqlite3
 from pathlib import Path
 
-from distributions import INDUSTRIES, NAME_DENYLIST, REGION_BOXES, IndustryDistribution
+from distributions import INDUSTRIES, NAME_DENYLIST, IndustryDistribution
+from states import STATE_PROFILES, StateProfile
 
-UNIT = "krw_million"
-SCHEMA_VERSION = 1
+UNIT = "usd_thousand"
+SCHEMA_VERSION = 2
+COUNTRY = "US"
+PAGE_SIZE = 20
 
+INDUSTRY_BY_ID = {industry.sector_id: industry for industry in INDUSTRIES}
+
+# Invented stems. A stem plus a sector word plus a suffix makes a name.
 NAME_STEMS = (
-    "가온",
-    "나래",
-    "다온",
-    "라온",
-    "모람",
-    "바르",
-    "소담",
-    "아람",
-    "온새",
-    "이든",
-    "지온",
-    "하람",
+    "Harlow Ridge",
+    "Bramwell",
+    "Kestrel",
+    "Tallow Creek",
+    "Northgate",
+    "Quillfeather",
+    "Emberly",
+    "Stonemere",
+    "Calloway Fork",
+    "Wrenfield",
+    "Osprey Point",
+    "Larkmoor",
+    "Dunmore",
+    "Ashbury Lane",
+    "Pinecrest",
+    "Marrowstone",
+    "Fenwick",
+    "Halcyon",
+    "Thistledown",
+    "Corbin Vale",
+    "Redfern",
+    "Saltmarsh",
+    "Greyling",
+    "Wexcombe",
+    "Alderpoint",
+    "Brightwater",
+    "Coldspring",
+    "Driftwood",
+    "Elmhaven",
+    "Foxglove",
+    "Garrison Mill",
+    "Hawthorne",
+    "Ironvale",
+    "Juniper Bluff",
+    "Kingsbridge",
+    "Lowell Reach",
+    "Merrivale",
+    "Nettlebank",
+    "Oakhurst",
+    "Pemberly",
+    "Quarry Hill",
+    "Ravenscroft",
+    "Sedgewick",
+    "Tidewell",
+    "Underhill",
+    "Vantage Point",
+    "Whitlock",
+    "Yarrow",
+    "Zephyr Ridge",
+    "Abernathy",
 )
 NAME_CORES = {
-    "food_manufacturing": ("제분", "발효", "소스", "냉동식품"),
-    "industrial_components": ("정밀", "금형", "밸브", "베어링"),
-    "cold_chain_logistics": ("냉장", "창고", "운송", "보세"),
+    "food_manufacturing": ("Foods", "Milling", "Provisions", "Bakeries", "Kitchens", "Creamery"),
+    "industrial_components": ("Precision", "Bearings", "Valve", "Tool & Die", "Castings", "Fasteners"),
+    "cold_chain_logistics": ("Cold Storage", "Refrigerated Lines", "Freezer Depots", "Cold Chain"),
+    "business_services": ("Facility Services", "Staffing", "Compliance Group", "Field Services", "Testing Labs"),
+    "healthcare_services": ("Dental Partners", "Home Health", "Physical Therapy", "Veterinary Group", "Urgent Care"),
+    "building_products": ("Windows", "Roofing Supply", "Millwork", "Insulation", "Cabinetry"),
 }
+NAME_SUFFIXES = ("Inc.", "LLC", "Co.", "Corp.")
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -78,32 +130,100 @@ def model_multiple(
     return round(clamp(raw, industry.multiple_floor, industry.multiple_cap), 2)
 
 
+def hits_denylist(name: str) -> bool:
+    lowered = name.lower()
+    return any(token.lower() in lowered for token in NAME_DENYLIST)
+
+
 def make_name(rng: random.Random, sector_id: str, used: set[str]) -> str:
     cores = NAME_CORES[sector_id]
-    for _ in range(50):
-        name = f"{rng.choice(NAME_STEMS)}{rng.choice(cores)}"
-        if name in used:
-            continue
-        if any(token in name for token in NAME_DENYLIST):
+    for _ in range(200):
+        name = f"{rng.choice(NAME_STEMS)} {rng.choice(cores)}"
+        if name in used or hits_denylist(name):
             continue
         used.add(name)
         return name
     raise RuntimeError("could not mint a fictional company name")
 
 
+def weighted_choice(rng: random.Random, weighted: list[tuple[object, float]]):
+    total = sum(weight for _, weight in weighted)
+    mark = rng.uniform(0.0, total)
+    running = 0.0
+    for item, weight in weighted:
+        running += weight
+        if mark <= running:
+            return item
+    return weighted[-1][0]
+
+
+def load_regions(path: Path) -> dict[str, list]:
+    """Region code to its polygons. A polygon is a list of rings; the first is the outline."""
+    collection = json.loads(path.read_text(encoding="utf-8"))
+    regions: dict[str, list] = {}
+    for feature in collection["features"]:
+        geometry = feature["geometry"]
+        polygons = (
+            [geometry["coordinates"]] if geometry["type"] == "Polygon" else geometry["coordinates"]
+        )
+        regions[feature["properties"]["code"]] = polygons
+    return regions
+
+
+def ring_contains(ring: list, lon: float, lat: float) -> bool:
+    inside = False
+    previous = ring[-1]
+    for current in ring:
+        (x1, y1), (x2, y2) = previous, current
+        if (y1 > lat) != (y2 > lat) and lon < (x2 - x1) * (lat - y1) / (y2 - y1) + x1:
+            inside = not inside
+        previous = current
+    return inside
+
+
+def region_contains(polygons: list, lon: float, lat: float) -> bool:
+    for rings in polygons:
+        if ring_contains(rings[0], lon, lat) and not any(
+            ring_contains(hole, lon, lat) for hole in rings[1:]
+        ):
+            return True
+    return False
+
+
+def ring_area(ring: list) -> float:
+    return abs(
+        sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1])) / 2.0
+    )
+
+
+def sample_site(rng: random.Random, polygons: list) -> tuple[float, float]:
+    """A two-decimal point inside the region's largest polygon. Not an address."""
+    outline = max((rings[0] for rings in polygons), key=ring_area)
+    lons = [point[0] for point in outline]
+    lats = [point[1] for point in outline]
+    for _ in range(2_000):
+        lon = round(rng.uniform(min(lons), max(lons)), 2)
+        lat = round(rng.uniform(min(lats), max(lats)), 2)
+        if region_contains(polygons, lon, lat):
+            return lat, lon
+    raise RuntimeError("could not place a site inside its region")
+
+
 def opening_state(
     rng: random.Random,
     industry: IndustryDistribution,
+    profile: StateProfile,
     policy_rate: float,
 ) -> dict:
-    revenue = round_int(
-        lognormal(rng, industry.revenue_median_krw_million, industry.revenue_log_sigma) / 4.0
-    )
+    median = industry.revenue_median_usd_thousand * profile.size_factor
+    revenue = round_int(lognormal(rng, median, industry.revenue_log_sigma) / 4.0)
     revenue = max(revenue, 1_000)
     gross_margin = clamp(
         rng.gauss(industry.gross_margin_mean, industry.gross_margin_std), 0.1, 0.7
     )
-    sga_ratio = clamp(rng.gauss(industry.sga_ratio_mean, industry.sga_ratio_std), 0.05, 0.4)
+    # Half of SG&A is treated as labor and scales with the state's wage level.
+    sga_mean = industry.sga_ratio_mean * (0.5 + 0.5 * profile.wage_index)
+    sga_ratio = clamp(rng.gauss(sga_mean, industry.sga_ratio_std), 0.05, 0.4)
     annual_revenue = revenue * 4
     ebitda_margin = gross_margin - sga_ratio
     ebitda_annual = max(round_int(annual_revenue * ebitda_margin), 1)
@@ -142,7 +262,12 @@ def opening_state(
         "share_capital": share_capital,
         "retained_earnings": retained,
         "interest_rate": policy_rate + industry.cash_interest_spread,
-        "employees": max(40, round_int(annual_revenue / industry.revenue_per_employee_krw_million)),
+        "employees": max(
+            40,
+            round_int(
+                annual_revenue / (industry.revenue_per_employee_usd_thousand * profile.wage_index)
+            ),
+        ),
     }
 
 
@@ -300,22 +425,23 @@ def build_document(
     start_year: int,
     policy_rate: float,
     neutral_rate: float,
+    regions: dict[str, list],
 ) -> dict:
     rng = random.Random(seed)
     used_names: set[str] = set()
     companies = []
     for index in range(count):
-        industry = INDUSTRIES[index % len(INDUSTRIES)]
-        region = REGION_BOXES[index % len(REGION_BOXES)]
+        profile = weighted_choice(rng, [(item, item.weight) for item in STATE_PROFILES])
+        sector_id = weighted_choice(rng, sorted(profile.sector_weights.items()))
+        industry = INDUSTRY_BY_ID[sector_id]
         name = make_name(rng, industry.sector_id, used_names)
-        state = opening_state(rng, industry, policy_rate)
+        state = opening_state(rng, industry, profile, policy_rate)
         base_multiple = clamp(
             rng.gauss(industry.base_multiple_mean, industry.base_multiple_std),
             industry.multiple_floor,
             industry.multiple_cap,
         )
-        lat = round(rng.uniform(*region["lat"]), 2)
-        lon = round(rng.uniform(*region["lon"]), 2)
+        lat, lon = sample_site(rng, regions[profile.admin1])
         series = []
         for quarter_index, period in enumerate(period_labels(start_year, 1, quarters)):
             quarter, state = step_quarter(
@@ -331,17 +457,18 @@ def build_document(
             series.append(quarter)
         companies.append(
             {
-                "id": f"co-{index + 1:03d}",
-                "name_ko": name,
-                "legal_name_ko": f"주식회사 {name}",
+                "id": f"co-{index + 1:04d}",
+                "name": name,
+                "legal_name": f"{name} {rng.choice(NAME_SUFFIXES)}",
                 "sector_id": industry.sector_id,
-                "sector_label_ko": industry.label_ko,
-                "region_label_ko": region["label_ko"],
-                "complex_name_ko": region["complex_ko"],
+                "country": COUNTRY,
+                "admin1": profile.admin1,
+                "site_name": rng.choice(profile.parks),
                 "lat": lat,
                 "lon": lon,
-                "founded_year": rng.randint(1988, 2016),
+                "founded_year": rng.randint(1952, 2014),
                 "employees": state["employees"],
+                "union_strength": profile.union_strength,
                 "identity": {
                     "fictional": True,
                     "ticker": None,
@@ -349,6 +476,7 @@ def build_document(
                     "coordinate_precision": "two decimal degrees",
                 },
                 "quarters": series,
+                "_sim": {"state": state, "base_multiple": base_multiple},
             }
         )
     return {
@@ -356,7 +484,7 @@ def build_document(
         "generator": "deal-atlas-datagen",
         "seed": seed,
         "unit": UNIT,
-        "unit_label_ko": "백만 원",
+        "unit_label": "thousand USD",
         "placeholder_parameters": True,
         "fitted_to_real_filings": False,
         "price_policy": "model_multiple_only_no_share_price",
@@ -364,14 +492,15 @@ def build_document(
             "era": "high_rate_2024_2026",
             "policy_rate": policy_rate,
             "neutral_rate": neutral_rate,
-            "note": "Placeholder rate regime. Not a published Bank of Korea series.",
+            "note": "Placeholder rate regime. Not a published Federal Reserve series.",
         },
         "industries": [item.to_public_dict() for item in INDUSTRIES],
+        "state_profiles": [item.to_public_dict() for item in STATE_PROFILES],
         "companies": companies,
     }
 
 
-def validate(document: dict) -> list[str]:
+def validate(document: dict, regions: dict[str, list]) -> list[str]:
     errors: list[str] = []
     if document.get("placeholder_parameters") is not True:
         errors.append("placeholder flag missing")
@@ -379,15 +508,23 @@ def validate(document: dict) -> list[str]:
         errors.append("document claims to be fitted to filings")
     names = []
     for company in document["companies"]:
-        names.append(company["name_ko"])
+        names.append(company["name"])
         if company["identity"].get("ticker") not in (None,):
             errors.append(f"{company['id']} has a ticker")
         if "share_price" in company or "ticker" in company:
             errors.append(f"{company['id']} exposes a market price field")
-        if any(token in company["name_ko"] for token in NAME_DENYLIST):
+        if hits_denylist(company["name"]):
             errors.append(f"{company['id']} name hit the denylist")
-        if not (33.0 <= company["lat"] <= 39.5 and 124.0 <= company["lon"] <= 132.0):
-            errors.append(f"{company['id']} is outside the Korea box")
+        if not company["admin1"].startswith(company["country"] + "-"):
+            errors.append(f"{company['id']} region is not in its country")
+        polygons = regions.get(company["admin1"])
+        if polygons is None:
+            errors.append(f"{company['id']} has an unknown region")
+        elif not region_contains(polygons, company["lon"], company["lat"]):
+            errors.append(f"{company['id']} sits outside {company['admin1']}")
+        for axis in ("lat", "lon"):
+            if round(company[axis], 2) != company[axis]:
+                errors.append(f"{company['id']} {axis} is finer than two decimals")
         previous_cash = None
         previous_re = None
         for quarter in company["quarters"]:
@@ -450,17 +587,18 @@ def write_sqlite(path: Path, document: dict) -> None:
             CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE industry_parameters (
               sector_id TEXT PRIMARY KEY,
-              label_ko TEXT NOT NULL,
+              label TEXT NOT NULL,
               placeholder INTEGER NOT NULL,
               payload TEXT NOT NULL
             );
             CREATE TABLE companies (
               id TEXT PRIMARY KEY,
-              name_ko TEXT NOT NULL,
-              legal_name_ko TEXT NOT NULL,
+              name TEXT NOT NULL,
+              legal_name TEXT NOT NULL,
               sector_id TEXT NOT NULL,
-              region_label_ko TEXT NOT NULL,
-              complex_name_ko TEXT NOT NULL,
+              country TEXT NOT NULL,
+              admin1 TEXT NOT NULL,
+              site_name TEXT NOT NULL,
               lat REAL NOT NULL,
               lon REAL NOT NULL,
               founded_year INTEGER NOT NULL,
@@ -476,10 +614,11 @@ def write_sqlite(path: Path, document: dict) -> None:
             CREATE INDEX idx_quarters_company ON quarters(company_id);
             CREATE TABLE company_cards (
               id TEXT PRIMARY KEY,
-              legal_name_ko TEXT NOT NULL,
+              legal_name TEXT NOT NULL,
               sector_id TEXT NOT NULL,
-              region_label_ko TEXT NOT NULL,
-              complex_name_ko TEXT NOT NULL,
+              country TEXT NOT NULL,
+              admin1 TEXT NOT NULL,
+              site_name TEXT NOT NULL,
               lat REAL NOT NULL,
               lon REAL NOT NULL,
               founded_year INTEGER NOT NULL,
@@ -507,24 +646,25 @@ def write_sqlite(path: Path, document: dict) -> None:
         )
         for industry in document["industries"]:
             connection.execute(
-                "INSERT INTO industry_parameters (sector_id, label_ko, placeholder, payload) VALUES (?, ?, 1, ?)",
-                (industry["sector_id"], industry["label_ko"], json.dumps(industry, ensure_ascii=False)),
+                "INSERT INTO industry_parameters (sector_id, label, placeholder, payload) VALUES (?, ?, 1, ?)",
+                (industry["sector_id"], industry["label"], json.dumps(industry, ensure_ascii=False)),
             )
         for company in document["companies"]:
             connection.execute(
                 """
                 INSERT INTO companies (
-                  id, name_ko, legal_name_ko, sector_id, region_label_ko,
-                  complex_name_ko, lat, lon, founded_year, employees
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  id, name, legal_name, sector_id, country, admin1,
+                  site_name, lat, lon, founded_year, employees
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     company["id"],
-                    company["name_ko"],
-                    company["legal_name_ko"],
+                    company["name"],
+                    company["legal_name"],
                     company["sector_id"],
-                    company["region_label_ko"],
-                    company["complex_name_ko"],
+                    company["country"],
+                    company["admin1"],
+                    company["site_name"],
                     company["lat"],
                     company["lon"],
                     company["founded_year"],
@@ -545,17 +685,18 @@ def write_sqlite(path: Path, document: dict) -> None:
             connection.execute(
                 """
                 INSERT INTO company_cards (
-                  id, legal_name_ko, sector_id, region_label_ko, complex_name_ko,
+                  id, legal_name, sector_id, country, admin1, site_name,
                   lat, lon, founded_year, employees, period, revenue, ebitda,
                   model_multiple_millis, debt, cash
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     company["id"],
-                    company["legal_name_ko"],
+                    company["legal_name"],
                     company["sector_id"],
-                    company["region_label_ko"],
-                    company["complex_name_ko"],
+                    company["country"],
+                    company["admin1"],
+                    company["site_name"],
                     company["lat"],
                     company["lon"],
                     company["founded_year"],
@@ -577,10 +718,11 @@ def card_from_company(company: dict) -> dict:
     latest = company["quarters"][-1]
     return {
         "id": company["id"],
-        "legal_name_ko": company["legal_name_ko"],
+        "legal_name": company["legal_name"],
         "sector_id": company["sector_id"],
-        "region_label_ko": company["region_label_ko"],
-        "complex_name_ko": company["complex_name_ko"],
+        "country": company["country"],
+        "admin1": company["admin1"],
+        "site_name": company["site_name"],
         "lat": company["lat"],
         "lon": company["lon"],
         "founded_year": company["founded_year"],
@@ -594,29 +736,92 @@ def card_from_company(company: dict) -> dict:
     }
 
 
-def write_card_page(path: Path, document: dict, page_size: int = 20) -> None:
-    page = {
-        "schema": "company_card_page",
+def bps(value: float) -> int:
+    return round_int(value * 10_000)
+
+
+def build_universe(document: dict, sim_states: dict, start_year: int, quarters: int) -> dict:
+    """What sim-core needs to open a game: each company's books on day one and
+    the parameters that move them. Quarter history is left out."""
+    industries = []
+    for item in INDUSTRIES:
+        industries.append(
+            {
+                "sector_id": item.sector_id,
+                "monthly_growth_bps": bps(item.quarterly_growth_mean / 3.0),
+                "monthly_growth_std_bps": bps(item.quarterly_growth_std / 3.0),
+                "monthly_da_rate_bps": bps(item.quarterly_da_rate / 3.0),
+                "capex_ratio_bps": bps(item.quarterly_capex_ratio),
+                "interest_spread_bps": bps(item.cash_interest_spread),
+                "tax_rate_bps": bps(item.tax_rate),
+                "dso_days": round_int(item.dso_days),
+                "dio_days": round_int(item.dio_days),
+                "dpo_days": round_int(item.dpo_days),
+                "min_cash_to_revenue_bps": bps(item.min_cash_to_revenue),
+                "dividend_payout_bps": bps(item.dividend_payout),
+                "dividend_leverage_cap_millis": round_int(item.dividend_leverage_cap * 1000),
+                "base_multiple_millis": round_int(item.base_multiple_mean * 1000),
+                "rate_beta_millis": round_int(item.rate_beta * 1000),
+                "cycle_amplitude_bps": bps(item.cycle_amplitude),
+                "multiple_floor_millis": round_int(item.multiple_floor * 1000),
+                "multiple_cap_millis": round_int(item.multiple_cap * 1000),
+            }
+        )
+    companies = []
+    for company in document["companies"]:
+        sim = sim_states[company["id"]]
+        state = sim["state"]
+        companies.append(
+            {
+                "id": company["id"],
+                "legal_name": company["legal_name"],
+                "sector_id": company["sector_id"],
+                "country": company["country"],
+                "admin1": company["admin1"],
+                "site_name": company["site_name"],
+                "lat": company["lat"],
+                "lon": company["lon"],
+                "founded_year": company["founded_year"],
+                "employees": company["employees"],
+                "union_strength_bps": bps(company["union_strength"]),
+                "base_multiple_millis": round_int(sim["base_multiple"] * 1000),
+                "gross_margin_bps": bps(state["gross_margin"]),
+                "sga_ratio_bps": bps(state["sga_ratio"]),
+                "monthly_revenue": round_int(state["revenue"] / 3.0),
+                "cash": state["cash"],
+                "accounts_receivable": state["ar"],
+                "inventory": state["inv"],
+                "gross_ppe": state["gross_ppe"],
+                "accumulated_depreciation": state["accum_dep"],
+                "accounts_payable": state["ap"],
+                "debt": state["debt"],
+                "share_capital": state["share_capital"],
+                "retained_earnings": state["retained_earnings"],
+            }
+        )
+    end_year = start_year + (quarters // 4)
+    return {
+        "schema": "universe",
+        "schema_version": SCHEMA_VERSION,
         "seed": document["seed"],
         "unit": document["unit"],
-        "page": 0,
-        "page_size": page_size,
+        "opens": {"year": end_year, "month": 1},
         "placeholder_parameters": True,
-        "cards": [card_from_company(company) for company in document["companies"][:page_size]],
+        "industries": industries,
+        "companies": companies,
     }
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(page, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description="Generate fictional companies and three-statement history.")
     parser.add_argument("--seed", type=int, default=2024)
-    parser.add_argument("--count", type=int, default=4)
+    parser.add_argument("--count", type=int, default=250)
+    parser.add_argument("--fixture-count", type=int, default=4)
     parser.add_argument("--quarters", type=int, default=8)
-    parser.add_argument("--start-year", type=int, default=2024)
-    parser.add_argument("--policy-rate", type=float, default=0.035)
-    parser.add_argument("--neutral-rate", type=float, default=0.025)
+    parser.add_argument("--start-year", type=int, default=2022)
+    parser.add_argument("--policy-rate", type=float, default=0.0525)
+    parser.add_argument("--neutral-rate", type=float, default=0.0275)
     parser.add_argument(
         "--json",
         type=Path,
@@ -633,10 +838,16 @@ def parse_args() -> argparse.Namespace:
         default=root / "src" / "data" / "fixtures" / "sample-companies.json",
     )
     parser.add_argument(
-        "--page",
+        "--universe",
         type=Path,
-        default=root / "public" / "sample-page.json",
-        help="One card page for the web client. Quarter history is not included.",
+        default=root / "public" / "content" / "universe.json",
+        help="Opening books for sim-core. Quarter history is not included.",
+    )
+    parser.add_argument(
+        "--regions",
+        type=Path,
+        default=root / "public" / "geo" / "us-states.json",
+        help="Region outlines built by tools/build-geo.mjs.",
     )
     parser.add_argument(
         "--check",
@@ -648,6 +859,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if not args.regions.exists():
+        print(f"error: {args.regions} is missing. Run node tools/build-geo.mjs first.")
+        return 1
+    regions = load_regions(args.regions)
     document = build_document(
         seed=args.seed,
         count=args.count,
@@ -655,26 +870,33 @@ def main() -> int:
         start_year=args.start_year,
         policy_rate=args.policy_rate,
         neutral_rate=args.neutral_rate,
+        regions=regions,
     )
-    errors = validate(document)
+    sim_states = {company["id"]: company.pop("_sim") for company in document["companies"]}
+    errors = validate(document, regions)
     if errors:
         for error in errors:
             print(f"error: {error}")
         return 1
-    text = json.dumps(document, ensure_ascii=False, indent=2)
-    for path in (args.json, args.fixture):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text + "\n", encoding="utf-8")
+    args.json.parent.mkdir(parents=True, exist_ok=True)
+    args.json.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    fixture = dict(document, companies=document["companies"][: args.fixture_count])
+    args.fixture.parent.mkdir(parents=True, exist_ok=True)
+    args.fixture.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     write_sqlite(args.sqlite, document)
-    write_card_page(args.page, document)
+    universe = build_universe(document, sim_states, args.start_year, args.quarters)
+    args.universe.parent.mkdir(parents=True, exist_ok=True)
+    args.universe.write_text(
+        json.dumps(universe, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8"
+    )
     print(
         f"wrote {len(document['companies'])} companies x {args.quarters} quarters "
         f"seed={args.seed} unit={UNIT}"
     )
     print(f"json {args.json}")
     print(f"sqlite {args.sqlite}")
-    print(f"fixture {args.fixture}")
-    print(f"page {args.page}")
+    print(f"fixture {args.fixture} ({len(fixture['companies'])} companies)")
+    print(f"universe {args.universe}")
     return 0
 
 

@@ -17,5 +17,6 @@ tools/datagen/out/
 src-tauri/target/
 /target/
 src/sim/pkg/
+public/geo/
 storybook-static/
 *storybook.log

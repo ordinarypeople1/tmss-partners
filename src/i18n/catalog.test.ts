@@ -1,82 +1,76 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import geo from "../data/geo/admin1.json";
 import { PLANNED_LOCALES, SOURCE_LOCALE } from "./config";
-import ko from "./locales/ko.json";
+import base from "./locales/ko.json";
+import { fragmentEntries, messages } from "./messages";
 
-const REQUIRED = [
-  "app.house",
-  "app.title",
-  "app.era",
-  "map.label",
-  "map.note",
-  "map.zoomIn",
-  "map.zoomOut",
-  "company.empty",
-  "company.loading",
-  "company.loadError",
-  "company.meta",
-  "fact.revenue",
-  "fact.ebitda",
-  "fact.multiple",
-  "fact.multipleValue",
-  "fact.modelEv",
-  "fact.netDebt",
-  "fact.modelEquity",
-  "fact.pending",
-  "fact.error",
-  "card.disclaimer",
-  "pin.factory",
-  "pin.warehouse",
-  "pin.select",
-  "sector.food_manufacturing",
-  "sector.industrial_components",
-  "sector.cold_chain_logistics",
-  "money.krw.jo",
-  "money.krw.eok",
-  "money.krw.million",
-  "money.usd.jo",
-  "money.usd.eok",
-  "money.usd.man",
-  "money.usd.thousand",
-  "clock.label",
-  "clock.date",
-  "clock.advance",
-  "clock.restart",
-  "clock.loading",
-  "clock.error",
-  "clock.policyRate",
-  "clock.rateValue",
-  "clock.uncalled",
-  "clock.investmentPeriod",
-  "clock.monthsLeft",
-  "event.month_closed",
-  "event.quarter_closed",
-  "event.policy_rate_changed",
-  "event.investment_period_ended",
-  "event.fund_term_ended",
-] as const;
+const here = dirname(fileURLToPath(import.meta.url));
+
+function sources(dir: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) {
+      if (entry !== "pkg" && entry !== "locales") {
+        files.push(...sources(path));
+      }
+    } else if (/\.(ts|tsx)$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
+      files.push(path);
+    }
+  }
+  return files;
+}
 
 describe("ko catalog", () => {
-  it("is the only locale file", () => {
-    const dir = join(dirname(fileURLToPath(import.meta.url)), "locales");
-    expect(readdirSync(dir).filter((name) => name.endsWith(".json"))).toEqual(["ko.json"]);
+  it("is the only locale", () => {
+    expect(readdirSync(join(here, "locales")).sort()).toEqual(["ko", "ko.json"]);
     expect(SOURCE_LOCALE).toBe("ko");
     expect(PLANNED_LOCALES).toEqual(["en", "ja", "zh-Hans", "zh-Hant"]);
   });
 
-  it("has a non-empty Korean string for every id the hello world uses", () => {
-    for (const id of REQUIRED) {
-      const message = ko[id];
-      expect(message, id).toBeTruthy();
-      expect(message.trim(), id).not.toBe("");
+  it("defines each key once across the base file and the fragments", () => {
+    const seen = new Map<string, string>(Object.keys(base).map((key) => [key, "ko.json"]));
+    for (const [file, fragment] of fragmentEntries) {
+      for (const key of Object.keys(fragment)) {
+        expect(seen.get(key), `${key} in ${file}`).toBeUndefined();
+        seen.set(key, file);
+      }
+    }
+  });
+
+  it("has no empty message", () => {
+    for (const [key, value] of Object.entries(messages)) {
+      expect(value.trim(), key).not.toBe("");
+    }
+  });
+
+  it("has every id the screens ask for", () => {
+    const literal = /\bt\(\s*"([a-zA-Z0-9_.]+)"/g;
+    const formatted = /\bid:\s*"([a-zA-Z0-9_.]+)"/g;
+    for (const file of sources(join(here, ".."))) {
+      const text = readFileSync(file, "utf8");
+      for (const pattern of [literal, formatted]) {
+        for (const match of text.matchAll(pattern)) {
+          expect(messages[match[1]], `${match[1]} used in ${file}`).toBeTruthy();
+        }
+      }
+    }
+  });
+
+  it("names every country and region on the map", () => {
+    for (const country of geo.countries) {
+      expect(messages[`country.${country.code}`], country.code).toBeTruthy();
+    }
+    expect(geo.admin1).toHaveLength(187);
+    for (const unit of geo.admin1) {
+      expect(messages[`admin1.${unit.code}`], unit.code).toBeTruthy();
     }
   });
 
   it("keeps years ungrouped", () => {
-    expect(ko["company.meta"]).toContain("group-off");
-    expect(ko["card.disclaimer"]).toContain("group-off");
-    expect(ko["clock.date"]).toContain("group-off");
+    expect(messages["format.date"]).toContain("group-off");
   });
 });

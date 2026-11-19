@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node tools/build-wasm.mjs && vite --host 127.0.0.1",
-    "build": "node tools/build-wasm.mjs && tsc --noEmit && vite build && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook",
-    "test": "node tools/build-wasm.mjs && cargo test --workspace && tsc --noEmit && vitest run",
-    "preview": "node tools/build-wasm.mjs && vite preview --host 127.0.0.1",
-    "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 node tools/build-wasm.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006 --host 127.0.0.1 --no-open",
-    "build-storybook": "node tools/build-wasm.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook"
+    "dev": "node tools/build-wasm.mjs && node tools/build-geo.mjs && vite --host 127.0.0.1",
+    "build": "node tools/build-wasm.mjs && node tools/build-geo.mjs && tsc --noEmit && vite build && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook",
+    "test": "node tools/build-wasm.mjs && node tools/build-geo.mjs && cargo test --workspace && tsc --noEmit && vitest run",
+    "preview": "node tools/build-wasm.mjs && node tools/build-geo.mjs && vite preview --host 127.0.0.1",
+    "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 node tools/build-wasm.mjs && node tools/build-geo.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006 --host 127.0.0.1 --no-open",
+    "build-storybook": "node tools/build-wasm.mjs && node tools/build-geo.mjs && STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o dist/storybook"
   },
   "dependencies": {
     "maplibre-gl": "^5.6.1",
@@ -25,8 +25,11 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "storybook": "^10.6.7",
+    "topojson-client": "^3.1.0",
     "typescript": "^5.7.3",
+    "us-atlas": "^3.0.1",
     "vite": "^6.2.2",
-    "vitest": "^3.0.9"
+    "vitest": "^3.0.9",
+    "world-atlas": "^2.0.2"
   }
 }

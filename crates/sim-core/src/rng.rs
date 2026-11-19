@@ -34,6 +34,24 @@ impl Rng {
         }
     }
 
+    /// Uniform in `low..=high`.
+    pub fn range(&mut self, low: i64, high: i64) -> i64 {
+        assert!(low <= high, "range is empty");
+        low + self.below((high - low) as u64 + 1) as i64
+    }
+
+    /// Roughly normal around zero with the given standard deviation. The sum
+    /// of four uniforms: integer only, so every machine draws the same value.
+    pub fn noise(&mut self, std: i64) -> i64 {
+        if std <= 0 {
+            return 0;
+        }
+        // Four uniforms on [-1, 1] have a standard deviation of sqrt(4/3).
+        let span = std * 1_000;
+        let sum: i64 = (0..4).map(|_| self.range(-span, span)).sum();
+        sum * 866 / 1_000_000
+    }
+
     /// True with probability `bps` / 10 000.
     pub fn chance_bps(&mut self, bps: u32) -> bool {
         self.below(10_000) < u64::from(bps)
