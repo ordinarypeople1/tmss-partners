@@ -34,7 +34,7 @@
   "holding.cure.suggested": "{amount} to reach the limit",
   "holding.cure.notNeeded": "Within limit",
   "holding.cure.submit": "Cure",
-  "holding.unit": "× $10K",
+  "holding.unit": "× $100K",
   "holding.attentionCost": "Attention {cost, number, ::integer}",
   "holding.budget.title": "Monthly capital budget",
   "holding.budget.growth": "Growth investment",

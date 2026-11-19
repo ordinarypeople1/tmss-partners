@@ -35,6 +35,14 @@ describe("ko catalog", () => {
     }
   });
 
+  it("translates every Korean key into every shipped locale", () => {
+    for (const locale of LOCALES) {
+      const own = new Set(catalogFiles(locale).flatMap(([, entries]) => Object.keys(entries)));
+      const missing = Object.keys(messages).filter((key) => !own.has(key));
+      expect(missing, locale).toEqual([]);
+    }
+  });
+
   it("translates nothing that Korean does not have, and keeps the placeholders", () => {
     const placeholders = (text: string) =>
       // Arguments only: a brace that follows a plural or select keyword opens a branch, not an argument.

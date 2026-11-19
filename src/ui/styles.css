@@ -40,7 +40,8 @@
   line-height: 1.4;
   /* Korean breaks between words, not inside them. Long labels wrap; nothing is pinned to one line. */
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  /* Break inside a word only when it cannot fit at all, so table columns size to whole words. */
+  overflow-wrap: break-word;
 }
 
 :lang(ja) {

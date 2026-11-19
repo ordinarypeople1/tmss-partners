@@ -1,7 +1,7 @@
 import { createIntl, createIntlCache } from "react-intl";
 import { describe, expect, it } from "vitest";
 import { makeFormat } from "../ui/format";
-import { messages } from "./messages";
+import { catalogs, messages } from "./messages";
 import { formatUsdThousand } from "./money";
 
 const intl = createIntl({ locale: "ko", messages }, createIntlCache());
@@ -29,5 +29,20 @@ describe("money", () => {
     expect(f.shortMoney(49_000)).toBe("4,900만");
     expect(f.date({ year: 2024, month: 3 })).toBe("2024년 3월");
     expect(f.shortDate({ year: 2024, month: 3 })).toBe("24.03");
+  });
+
+  it("counts in thousands in English and in myriads in Japanese and Chinese", () => {
+    const en = createIntl({ locale: "en", messages: catalogs.en }, createIntlCache());
+    expect(formatUsdThousand(en, 750_000)).toBe("$750M");
+    expect(formatUsdThousand(en, 1_200_000)).toBe("$1.2B");
+    expect(formatUsdThousand(en, 2_500)).toBe("$2.5M");
+    expect(formatUsdThousand(en, 5)).toBe("$5K");
+    expect(formatUsdThousand(en, -50_000)).toBe("-$50M");
+    expect(makeFormat(en).shortFigure([100_000, 150_000])).toBe("100M–150M");
+    const ja = createIntl({ locale: "ja", messages: catalogs.ja }, createIntlCache());
+    expect(formatUsdThousand(ja, 750_000)).toBe("7.5億ドル");
+    const zh = createIntl({ locale: "zh-Hans", messages: catalogs["zh-Hans"] }, createIntlCache());
+    expect(formatUsdThousand(zh, 750_000)).toBe("7.5亿美元");
+    expect(makeFormat(en).date({ year: 2024, month: 3 })).toBe("2024-03");
   });
 });

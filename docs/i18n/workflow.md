@@ -1,6 +1,6 @@
 # 문자열
 
-화면 문장은 한국어 카탈로그에만 있다. 공용 용어는 `src/i18n/locales/ko.json`에, 화면별 문장은 `src/i18n/locales/ko/` 아래 조각 파일에 있다. 조각은 자기 접두어(`map.`, `inbox.` …)의 키만 갖고, 한 키는 한 곳에만 정의한다. `src/i18n/messages.ts`가 합친다. 소스 로케일은 `ko`다. `src/i18n/config.ts`의 `PLANNED_LOCALES`는 `en`, `ja`, `zh-Hans`, `zh-Hant`다. 그 파일은 아직 만들지 않는다. 개발 중에 문장이 계속 바뀌므로, 번역은 화면 문장이 잠긴 뒤에 한 번 한다.
+화면 문장은 한국어 카탈로그에만 있다. 공용 용어는 `src/i18n/locales/ko.json`에, 화면별 문장은 `src/i18n/locales/ko/` 아래 조각 파일에 있다. 조각은 자기 접두어(`map.`, `inbox.` …)의 키만 갖고, 한 키는 한 곳에만 정의한다. `src/i18n/messages.ts`가 합친다. 소스 로케일은 `ko`다. `src/i18n/config.ts`의 `LOCALES`는 `ko`, `en`, `ja`, `zh-Hans`이고 `PLANNED_LOCALES`는 `zh-Hant`다. 한국어로 먼저 쓰고, 나머지는 같은 파일 구조(`locales/<로케일>.json`, `locales/<로케일>/*.json`)로 옮긴다. 번역은 기계가 초벌을 냈고 원어민 검수 전이다. 그 파일은 아직 만들지 않는다. 개발 중에 문장이 계속 바뀌므로, 번역은 화면 문장이 잠긴 뒤에 한 번 한다.
 
 ## 지금 하는 일
 
@@ -66,3 +66,4 @@ id는 고정한다. 한국어가 소스다. 목표 언어는 문장이 잠긴 �
 
 - `src/i18n/checkUiStrings.test.ts`: `src/ui` 아래에 하드코딩된 문장이 없는지, 어떤 스타일시트에도 `nowrap`이 없는지 본다.
 - `src/i18n/catalog.test.ts`: 키가 두 번 정의되지 않았는지, 화면이 쓰는 `t("…")` 키가 전부 있는지, 지도의 187개 지역과 7개 나라에 이름이 있는지 본다.
+- 같은 테스트가 로케일마다 한국어 키가 전부 있는지, ICU 인자 이름이 같은지 본다. 돈은 한·일·중이 만 단위(`money.usd.jo/eok/man/thousand`), 영어가 천 단위(`money.usd.b/m/k`)로 센다.

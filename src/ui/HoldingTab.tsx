@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "./HoldingTab.css";
+import { useLocale } from "../i18n/LocaleProvider";
 import { useT } from "../i18n/useT";
 import type { Budget, CompanyView, ExitRoute, Financials, HoldingView, InitiativeKind, Trait } from "../sim/types";
 import { Bridge, Donut, Gauge, LineChart, Meter, Rating, Ring, SERIES, Stat, Tag } from "./charts";
@@ -100,10 +101,16 @@ function ConfirmButton({
   );
 }
 
-/** An amount typed in ten-thousand dollars (the catalog's 만 달러); the value is thousand USD. */
+/**
+ * An amount typed in the unit the locale counts in: ten-thousand dollars
+ * (만 달러) where money is counted in myriads, a hundred thousand dollars in
+ * English. The value is thousand USD; `holding.unit` names the unit.
+ */
 function AmountField({ id, label, value, onChange }: { id: string; label: string; value: number; onChange: (value: number) => void }) {
   const t = useT();
   const f = useFormat();
+  const { locale } = useLocale();
+  const unit = locale === "en" ? 100 : 10;
   return (
     <div className="hd-amount">
       <label htmlFor={id}>{label}</label>
@@ -114,8 +121,8 @@ function AmountField({ id, label, value, onChange }: { id: string; label: string
           inputMode="numeric"
           min={0}
           step={10}
-          value={Math.round(value / 10)}
-          onChange={(event) => onChange(Math.max(0, Math.round(Number(event.target.value) || 0)) * 10)}
+          value={Math.round(value / unit)}
+          onChange={(event) => onChange(Math.max(0, Math.round(Number(event.target.value) || 0)) * unit)}
         />
         <small>{t("holding.unit")}</small>
       </span>

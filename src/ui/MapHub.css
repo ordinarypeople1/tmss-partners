@@ -61,6 +61,8 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
+  /* Leaves the layer switcher its corner, however long its labels run. */
+  max-width: calc(100% - 230px);
 }
 .map-zoom .btn {
   background: var(--raised);
