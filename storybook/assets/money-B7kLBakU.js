@@ -1,1 +1,0 @@
-function n(r,e){return r<0?`-${e}`:e}function a(r,e){const o=Math.abs(e);return o>=1e6?n(e,r.formatMessage({id:"money.krw.jo"},{value:o/1e6})):o>=100?n(e,r.formatMessage({id:"money.krw.eok"},{value:o/100})):n(e,r.formatMessage({id:"money.krw.million"},{value:o}))}export{a as f};
