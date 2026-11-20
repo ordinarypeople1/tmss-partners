@@ -62,6 +62,13 @@ export function MapHub() {
   return <MapHubView key={theme} />;
 }
 
+const TILE_SIZE = 512;
+/** The zoom at which one copy of the world covers the whole container. The map never zooms out past it. */
+function fullWorldZoom(node: HTMLElement): number {
+  const side = Math.max(node.clientWidth, node.clientHeight, 1);
+  return Math.max(0, Math.log2(side / TILE_SIZE));
+}
+
 const HOME_BOUNDS: [[number, number], [number, number]] = [
   [-125, 24.5],
   [-66.5, 49.5],
@@ -237,13 +244,28 @@ function MapHubView() {
       },
       bounds: HOME_BOUNDS,
       fitBoundsOptions: { padding: 30 },
-      minZoom: 1,
+      minZoom: fullWorldZoom(node.current),
       maxZoom: 9,
+      renderWorldCopies: false,
       attributionControl: false,
       dragRotate: false,
       locale: { "NavigationControl.ZoomIn": zoomIn, "NavigationControl.ZoomOut": zoomOut },
     });
     map.touchZoomRotate.disableRotation();
+    const container = node.current;
+    map.on("resize", () => map.setMinZoom(fullWorldZoom(container)));
+    // Keep the one world inside the frame. maplibre's maxBounds throws on resize in 5.x, so clamp by hand.
+    map.on("move", () => {
+      const world = TILE_SIZE * 2 ** map.getZoom();
+      const halfX = Math.min(container.clientWidth / 2 / world, 0.5);
+      const halfY = Math.min(container.clientHeight / 2 / world, 0.5);
+      const at = maplibregl.MercatorCoordinate.fromLngLat(map.getCenter());
+      const x = Math.min(Math.max(at.x, halfX), 1 - halfX);
+      const y = Math.min(Math.max(at.y, halfY), 1 - halfY);
+      if (Math.abs(x - at.x) > 1e-9 || Math.abs(y - at.y) > 1e-9) {
+        map.setCenter(new maplibregl.MercatorCoordinate(x, y).toLngLat());
+      }
+    });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
     map.on("load", () => {
       fetch(publicUrl(base, "geo/us-states.json"))
@@ -626,7 +648,7 @@ function MapHubView() {
     } else if (target === "home") {
       map?.fitBounds(HOME_BOUNDS, { padding: 30, duration: 600 });
     } else {
-      map?.easeTo({ center: [25, 32], zoom: 1.15, duration: 600 });
+      map?.easeTo({ center: [25, 32], zoom: Math.max(1.15, map.getMinZoom()), duration: 600 });
     }
   };
 
