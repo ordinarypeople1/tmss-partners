@@ -1693,3 +1693,59 @@ th,
     transition: none !important;
   }
 }
+
+/* ---- Depth: a quiet wash behind everything, and glass for what floats above it. ---- */
+#root {
+  background:
+    radial-gradient(1100px 620px at 88% -12%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%),
+    radial-gradient(900px 560px at -8% 108%, color-mix(in srgb, var(--good) 10%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 92%, var(--panel)), var(--paper));
+}
+.topbar,
+.sidebar {
+  background: color-mix(in srgb, var(--side) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+.card {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--raised) 96%, transparent), color-mix(in srgb, var(--raised) 88%, transparent));
+}
+.btn.primary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #fff), var(--accent));
+}
+.glass,
+.talk,
+.moment,
+.newgame,
+.overlay > *,
+.turn-ask,
+.turn-summary,
+.guide,
+.map-legend,
+.map-layers,
+.toast,
+.more-sheet {
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--raised) 78%, transparent), color-mix(in srgb, var(--raised) 58%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent),
+    0 24px 60px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+}
+.guide,
+.map-legend,
+.map-layers,
+.toast,
+.turn-summary {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
+    0 8px 24px rgb(0 0 0 / 14%);
+}
+.talk-scrim,
+.moment-backdrop,
+.newgame-backdrop,
+.overlay {
+  background: color-mix(in srgb, var(--scrim) 55%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
