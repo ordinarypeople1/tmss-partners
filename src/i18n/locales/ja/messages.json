@@ -193,5 +193,13 @@
   "msg.owner_succeeded.title": "{company}: {from}氏が引退、{to}氏が承継",
   "msg.owner_succeeded.body": "新オーナーとは一から築き直しです。関係は半分になりました。",
   "msg.ceo_moved.title": "{name}氏、{from}から{company}へ移籍",
-  "msg.ceo_moved.body": "知人が席を移しました。{from}で築いた関係の半分が{company}に引き継がれます。"
+  "msg.ceo_moved.body": "知人が席を移しました。{from}で築いた関係の半分が{company}に引き継がれます。",
+  "msg.teaser_received.title": "{adviser}: {company}のティーザー",
+  "msg.teaser_received.body": "{format}。NDAを結ぶとIMを受け取れます。締切までに意向表明を出さないとショートリストに入れません。",
+  "msg.shortlisted.title": "{company}: ショートリスト入り",
+  "msg.shortlisted.body": "{bidders}社が最終入札に進みました。データルームと現地調査が開きます。ICの承認を得て最終入札を提出してください。",
+  "msg.not_shortlisted.title": "{company}: ショートリスト落選",
+  "msg.not_shortlisted.body": "意向表明の価格が不足したか、未提出でした。ディールファイルを閉じます。",
+  "msg.bank_pitch.title": "{adviser}: {company}を紹介",
+  "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。"
 }

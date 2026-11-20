@@ -193,5 +193,13 @@
   "msg.owner_succeeded.title": "{company}: {from} 대표 은퇴, {to} 승계",
   "msg.owner_succeeded.body": "새 오너와는 처음부터 다시 쌓아야 합니다. 관계가 절반으로 줄었습니다.",
   "msg.ceo_moved.title": "{name}, {from}에서 {company}로 이직",
-  "msg.ceo_moved.body": "아는 사람이 자리를 옮겼습니다. {from}에서 쌓은 관계의 절반이 {company}로 따라갑니다."
+  "msg.ceo_moved.body": "아는 사람이 자리를 옮겼습니다. {from}에서 쌓은 관계의 절반이 {company}로 따라갑니다.",
+  "msg.teaser_received.title": "{adviser}: {company} 티저",
+  "msg.teaser_received.body": "{format}. NDA를 맺으면 IM을 받습니다. 예비입찰 마감 전에 가격을 내야 숏리스트에 듭니다.",
+  "msg.shortlisted.title": "{company}: 숏리스트 선정",
+  "msg.shortlisted.body": "본입찰에 {bidders}곳이 올라갔습니다. 데이터룸과 현장 실사가 열립니다. IC 승인을 받아 본입찰가를 내세요.",
+  "msg.not_shortlisted.title": "{company}: 숏리스트 탈락",
+  "msg.not_shortlisted.body": "예비입찰가가 부족했거나 내지 않았습니다. 딜 파일을 닫습니다.",
+  "msg.bank_pitch.title": "{adviser}: {company}를 소개합니다",
+  "msg.bank_pitch.body": "오너가 매각에 열려 있다고 합니다. 소개를 받아 관계 20에서 시작합니다."
 }

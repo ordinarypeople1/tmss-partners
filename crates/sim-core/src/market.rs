@@ -172,6 +172,17 @@ pub struct Process {
     /// The last month of bidding: bidders have seen the field and may raise.
     #[serde(default)]
     pub final_round: bool,
+    /// The bank running the sale. None in talks the owner holds alone.
+    #[serde(default)]
+    pub adviser: Option<u8>,
+    #[serde(default)]
+    pub format: crate::advisers::Format,
+    /// What the teaser calls the company.
+    #[serde(default)]
+    pub codename: String,
+    /// Whether the player went through to the second round. None until round one closes.
+    #[serde(default)]
+    pub shortlisted: Option<bool>,
 }
 
 impl SaleReason {
@@ -265,7 +276,12 @@ impl World {
                             rivals: Vec::new(),
                             player_bid: None,
                             final_round: false,
+                            adviser: None,
+                            format: crate::advisers::Format::Broad,
+                            codename: String::new(),
+                            shortlisted: None,
                         });
+                        self.hire_adviser(index);
                         if self.process_visible(index) {
                             self.post(MessageKind::SaleEarlyNotice { reason }, Some(index));
                         }
@@ -315,9 +331,14 @@ impl World {
                 process.stage = Stage::Marketing;
                 process.months_left = months;
                 process.rivals = rivals;
+                // Talks alone that ran out go to a bank like any other sale.
+                if process.adviser.is_none() {
+                    self.hire_adviser(index);
+                }
                 if self.is_followed(index) {
                     self.post(MessageKind::SaleStarted { reason }, Some(index));
                 }
+                self.send_teaser(index);
             }
             Stage::Marketing => {
                 let model_ev = self.model_ev(index);
@@ -368,6 +389,7 @@ impl World {
                         (factor + difficulty + premium).clamp(6_500, 13_800),
                     );
                 }
+                let rivals = self.cut_shortlist(index, rivals);
                 let months = self.rng.range(2, 3) as u32;
                 let process = self.companies[index]
                     .process
@@ -614,6 +636,9 @@ impl World {
             None => false,
             Some(process) => {
                 process.stage != Stage::Preparing
+                    || process.adviser.is_some_and(|adviser| {
+                        self.coverage(adviser) >= crate::advisers::HEADS_UP_AT
+                    })
                     || company.relationship >= self.early_notice_threshold()
                     || self.insight.get(company.sector).copied().unwrap_or(0) > 0
             }

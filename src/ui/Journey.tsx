@@ -9,7 +9,7 @@ import { Portrait } from "./Portrait";
 import "./Journey.css";
 
 /** The road from a first meeting to owning the company. */
-const NODES = ["contact", "trust", "talks", "nda", "diligence", "committee", "bid", "close"] as const;
+const NODES = ["contact", "trust", "talks", "nda", "ioi", "diligence", "committee", "bid", "close"] as const;
 
 const STEP_ICON: Record<Step, string> = {
   meet: "handshake",
@@ -19,6 +19,7 @@ const STEP_ICON: Record<Step, string> = {
   diligence: "search",
   offer: "layers",
   committee: "gavel",
+  indicate: "flag",
   bid: "gavel",
   raise: "up",
   wait: "clock",
@@ -45,13 +46,17 @@ const ACCESS_ORDER: Access[] = ["stranger", "acquainted", "trusted", "confidant"
 function position(row: CompanyRow): number {
   const { step, block } = row.next;
   if (row.in_deal) {
-    if (step === "diligence" || block === "reports_due") {
+    const roundOne = row.sale?.round === 1;
+    if (step === "indicate" || block === "awaiting_shortlist" || (roundOne && (step === "diligence" || block === "reports_due"))) {
       return 4;
     }
-    if (step === "offer" || step === "committee") {
+    if (step === "diligence" || block === "reports_due") {
       return 5;
     }
-    return 6;
+    if (step === "offer" || step === "committee") {
+      return 6;
+    }
+    return 7;
   }
   if (step === "sign_nda" || step === "propose_exclusive") {
     return step === "sign_nda" ? 3 : 2;

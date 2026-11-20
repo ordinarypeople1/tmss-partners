@@ -6,7 +6,7 @@
 /* The road: eight stops joined by a line. */
 .journey-track {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;

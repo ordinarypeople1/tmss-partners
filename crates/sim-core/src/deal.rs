@@ -135,6 +135,9 @@ pub struct Deal {
     pub coinvest: bool,
     #[serde(default)]
     pub coinvest_asked: bool,
+    /// The indication of interest given in round one, as an enterprise value.
+    #[serde(default)]
+    pub indication: Option<i64>,
 }
 
 impl Deal {
@@ -160,6 +163,12 @@ impl World {
         if !self.process_visible(company) {
             return Err(CommandError::NotForSale);
         }
+        if !self.on_buyer_list(company) {
+            return Err(CommandError::NotInvited);
+        }
+        if self.first_round_closed(company) {
+            return Err(CommandError::FirstRoundClosed);
+        }
         if self.deals.len() >= self.career.rank.max_live_deals() {
             return Err(CommandError::TooManyDeals);
         }
@@ -179,6 +188,7 @@ impl World {
             approved_ev: 0,
             coinvest: false,
             coinvest_asked: false,
+            indication: None,
         });
         self.companies[company].watched = true;
         Ok(())
@@ -202,6 +212,9 @@ impl World {
         let deal = self.deal_index(company).ok_or(CommandError::NoDeal)?;
         if self.deals[deal].has(stream) || self.deals[deal].streams_running.contains(&stream) {
             return Err(CommandError::AlreadyDone);
+        }
+        if !self.stream_open(company, stream) {
+            return Err(CommandError::SecondRoundOnly);
         }
         let cost = self.diligence_cost(company);
         self.spend_attention(1)?;
@@ -696,6 +709,8 @@ impl World {
             .as_mut()
             .expect("process exists");
         process.stage = Stage::Exclusive;
+        // The owner deals directly: no bank, no list, no rounds.
+        process.adviser = None;
         process.months_left = 4;
         if self.deal_index(company).is_none() {
             self.sign_nda(company)?;
@@ -774,8 +789,9 @@ impl World {
         let Some(index) = self.deal_index(company) else {
             return;
         };
-        // An owner who was paid what was agreed says so.
+        // An owner who was paid what was agreed says so, and the bank remembers its fee.
         self.adjust_street(2);
+        self.pay_adviser(company);
         let deal = self.deals[index].clone();
         let mut offer = deal.offer.clone().expect("a bid carries an offer");
         offer.ev = ev;

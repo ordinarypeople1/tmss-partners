@@ -193,5 +193,13 @@
   "msg.owner_succeeded.title": "{company}: {from} retires, {to} takes over",
   "msg.owner_succeeded.body": "You start again with the new owner. The relationship is halved.",
   "msg.ceo_moved.title": "{name} moves from {from} to {company}",
-  "msg.ceo_moved.body": "Someone you know has changed desks. Half of what you built at {from} follows to {company}."
+  "msg.ceo_moved.body": "Someone you know has changed desks. Half of what you built at {from} follows to {company}.",
+  "msg.teaser_received.title": "{adviser}: teaser for {company}",
+  "msg.teaser_received.body": "{format}. Sign the NDA for the memorandum. Give an indication before the deadline to make the shortlist.",
+  "msg.shortlisted.title": "{company}: you are shortlisted",
+  "msg.shortlisted.body": "{bidders} bidders go through. The data room and site visits are open. Take it to the committee and submit a binding bid.",
+  "msg.not_shortlisted.title": "{company}: not shortlisted",
+  "msg.not_shortlisted.body": "Your indication fell short, or none was given. The deal file is closed.",
+  "msg.bank_pitch.title": "{adviser} introduces {company}",
+  "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20."
 }

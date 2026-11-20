@@ -121,5 +121,6 @@
   "dealroom.raise.ceiling": "IC 上限 {amount}",
   "dealroom.raise.submit": "提高报价",
   "dealroom.raise.exhausted": "IC 批准上限已用尽，不能再加。",
-  "dealroom.listedNote": "上市公司：董事会要求在模型价值之上给出约 15% 的溢价。"
+  "dealroom.listedNote": "上市公司：董事会要求在模型价值之上给出约 15% 的溢价。",
+  "dealroom.stream.round2": "第二轮开放"
 }

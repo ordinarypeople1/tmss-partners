@@ -121,5 +121,6 @@
   "dealroom.raise.ceiling": "IC上限 {amount}",
   "dealroom.raise.submit": "入札額引き上げ",
   "dealroom.raise.exhausted": "IC承認の上限に達しました。これ以上は上げられません。",
-  "dealroom.listedNote": "上場企業: 取締役会はモデル価値に対して15%前後のプレミアムを求めます。"
+  "dealroom.listedNote": "上場企業: 取締役会はモデル価値に対して15%前後のプレミアムを求めます。",
+  "dealroom.stream.round2": "二次ラウンドで開放"
 }

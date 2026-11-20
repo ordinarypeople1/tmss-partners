@@ -193,5 +193,13 @@
   "msg.owner_succeeded.title": "{company}：{from} 退休，{to} 接班",
   "msg.owner_succeeded.body": "需与新所有者重新建立关系。关系减半。",
   "msg.ceo_moved.title": "{name} 从 {from} 转任 {company}",
-  "msg.ceo_moved.body": "熟人换了岗位。在 {from} 建立的关系有一半随之转到 {company}。"
+  "msg.ceo_moved.body": "熟人换了岗位。在 {from} 建立的关系有一半随之转到 {company}。",
+  "msg.teaser_received.title": "{adviser}：{company} 项目简介",
+  "msg.teaser_received.body": "{format}。签署 NDA 后可获得信息备忘录。须在截止前提交意向报价才能入围。",
+  "msg.shortlisted.title": "{company}：已入围",
+  "msg.shortlisted.body": "{bidders}家进入下一轮。数据室和现场尽调已开放。请获得投委会批准后提交约束性报价。",
+  "msg.not_shortlisted.title": "{company}：未入围",
+  "msg.not_shortlisted.body": "意向报价不足或未提交。交易档案已关闭。",
+  "msg.bank_pitch.title": "{adviser}：介绍 {company}",
+  "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。"
 }

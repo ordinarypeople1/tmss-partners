@@ -1,3 +1,4 @@
+import { ProcessCard } from "./Process";
 import { useEffect, useState } from "react";
 import { useT, type Translate } from "../i18n/useT";
 import type { CompanyView, Financials, Owner, Stage, View } from "../sim/types";
@@ -532,6 +533,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             <Tag>{t(`reason.${sale.reason}`)}</Tag>
             {sale.bid_in ? <Tag tone="good">{t("company.bidIn")}</Tag> : null}
           </h3>
+          <ProcessCard company={company} />
           <div className="cp-sale">
             <Ring
               fraction={sale.months_left / STAGE_MONTHS}

@@ -38,7 +38,7 @@ const months = async (page, count = 1) => {
 async function openDeal(page, maxMonths = 24) {
   for (let i = 0; i < maxMonths; i += 1) {
     const state = await view(page);
-    const target = state.companies.find((row) => row.sale && !row.in_deal && !row.held && row.sale.stage !== "bidding");
+    const target = state.companies.find((row) => row.sale && !row.in_deal && !row.held && row.sale.stage !== "bidding" && row.sale.invited && row.country === "US");
     if (target) {
       const result = await cmd(page, { type: "sign_nda", company: target.i });
       if (result.ok) {
@@ -53,6 +53,22 @@ async function openDeal(page, maxMonths = 24) {
 /** Diligence, an offer, and the committee on an open deal. Leaves the bid to the caller. */
 async function prepare(page, company) {
   for (const stream of ["financial", "commercial", "operational", "legal"]) {
+    await cmd(page, { type: "run_diligence", company, stream });
+  }
+  // Round one: a number before the bank cuts its shortlist.
+  const early = (await view(page)).companies.find((item) => item.i === company);
+  if (early && early.sale && early.sale.round === 1) {
+    await cmd(page, { type: "submit_indication", company, ev: Math.round(early.ev[0] * 1.06) });
+  }
+  for (let wait = 0; wait < 4; wait += 1) {
+    await months(page);
+    const now = (await view(page)).companies.find((item) => item.i === company);
+    if (!now || !now.in_deal || !now.sale || now.sale.round !== 1) {
+      break;
+    }
+  }
+  // Round two: the data room.
+  for (const stream of ["operational", "legal"]) {
     await cmd(page, { type: "run_diligence", company, stream });
   }
   await months(page);

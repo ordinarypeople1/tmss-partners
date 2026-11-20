@@ -53,6 +53,8 @@ pub enum Step {
     Diligence,
     Offer,
     Committee,
+    /// A non-binding indication of interest in round one.
+    Indicate,
     Bid,
     Raise,
     /// Nothing to do but close the month.
@@ -76,6 +78,12 @@ pub enum Block {
     BidIn,
     CommitteeHeld,
     InvestmentPeriodOver,
+    /// The bank did not send the teaser.
+    NotInvited,
+    /// Round one closed without the player.
+    FirstRoundClosed,
+    /// The indication is in; the bank is choosing its shortlist.
+    AwaitingShortlist,
 }
 
 impl World {
@@ -195,6 +203,10 @@ impl World {
             rivals: Vec::new(),
             player_bid: None,
             final_round: false,
+            adviser: None,
+            format: crate::advisers::Format::Broad,
+            codename: String::new(),
+            shortlisted: None,
         });
         self.sign_nda(company)?;
         self.post(MessageKind::OwnerOpened { reason }, Some(company));
@@ -231,6 +243,28 @@ impl World {
                     (Step::Wait, Some(Block::BidIn))
                 };
             }
+            let round_one = target.process.as_ref().is_some_and(|process| {
+                process.adviser.is_some()
+                    && matches!(process.stage, Stage::Preparing | Stage::Marketing)
+            });
+            if round_one && deal.ic.is_none() {
+                // Read the memorandum, name a number, wait for the cut.
+                let desktop = deal
+                    .streams_done
+                    .iter()
+                    .chain(&deal.streams_running)
+                    .filter(|stream| self.stream_open(company, **stream))
+                    .count();
+                return if deal.indication.is_none() && desktop < 2 {
+                    (Step::Diligence, tired(1))
+                } else if deal.indication.is_none() {
+                    (Step::Indicate, None)
+                } else if !deal.streams_running.is_empty() {
+                    (Step::Wait, Some(Block::ReportsDue))
+                } else {
+                    (Step::Wait, Some(Block::AwaitingShortlist))
+                };
+            }
             return match &deal.ic {
                 Some(ic) if ic.outcome == IcOutcome::Approved => {
                     if matches!(stage, Some(Stage::Bidding | Stage::Exclusive)) {
@@ -258,7 +292,11 @@ impl World {
             if preparing && target.relationship >= PROPOSAL_AT && !abroad_locked {
                 return (Step::ProposeExclusive, tired(1));
             }
-            let block = if abroad_locked {
+            let block = if !self.on_buyer_list(company) {
+                Some(Block::NotInvited)
+            } else if self.first_round_closed(company) {
+                Some(Block::FirstRoundClosed)
+            } else if abroad_locked {
                 Some(Block::CrossBorderLocked)
             } else if self.deals.len() >= self.career.rank.max_live_deals() {
                 Some(Block::TooManyDeals)

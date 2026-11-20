@@ -170,8 +170,14 @@ impl World {
                     rivals: Vec::new(),
                     player_bid: None,
                     final_round: false,
+                    adviser: None,
+                    format: crate::advisers::Format::Broad,
+                    codename: String::new(),
+                    shortlisted: None,
                 });
+                self.hire_adviser(index);
                 self.post_news(MessageKind::HouseDistress { house: id }, Some(index));
+                self.send_teaser(index);
             }
         }
     }

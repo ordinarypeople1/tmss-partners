@@ -1,3 +1,4 @@
+import { Banks } from "../Process";
 import { Building } from "../Building";
 import { useMemo, useState } from "react";
 import { useT, type Translate } from "../../i18n/useT";
@@ -365,6 +366,8 @@ export function Deals() {
         )}
       </section>
 
+      <Banks />
+
       <section className="card">
         <h2>
           <Icon name="table" size={15} />
@@ -599,8 +602,8 @@ export function Deals() {
                           <button
                             type="button"
                             className="btn small"
-                            disabled={slotsFull}
-                            title={slotsFull ? t("error.too_many_deals") : undefined}
+                            disabled={slotsFull || !sale.invited || sale.first_round_closed}
+                            title={slotsFull ? t("error.too_many_deals") : !sale.invited ? t("block.not_invited") : sale.first_round_closed ? t("block.first_round_closed") : undefined}
                             onClick={(event) => {
                               event.stopPropagation();
                               if (game.act({ type: "sign_nda", company: row.i })) {
@@ -652,6 +655,17 @@ function SaleCard({ row, locked, reach }: { row: CompanyRow; locked: boolean; re
       </span>
       <span className="sale-card-tags">
         <Tag tone="muted">{t(`reason.${sale.reason}`)}</Tag>
+        {sale.adviser === null ? null : <Tag tone={sale.format === "targeted" ? "warn" : "muted"}>{t(`format.${sale.format}`)}</Tag>}
+        {sale.invited ? null : (
+          <Tag tone="bad" icon={<Lock size={11} />}>
+            {t("process.notInvited")}
+          </Tag>
+        )}
+        {sale.first_round_closed ? (
+          <Tag tone="bad" icon={<Lock size={11} />}>
+            {t("process.closed")}
+          </Tag>
+        ) : null}
         {sale.final_round ? (
           <Tag tone="bad" icon={<Icon name="gavel" size={12} />}>
             {t("deals.final.tag")}

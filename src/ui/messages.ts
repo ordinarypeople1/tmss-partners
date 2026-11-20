@@ -24,6 +24,10 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   sale_withdrawn: ["close"],
   sale_failed: ["close"],
   rival_deal: ["gavel"],
+  teaser_received: ["inbox"],
+  shortlisted: ["check", "good"],
+  not_shortlisted: ["close", "bad"],
+  bank_pitch: ["handshake", "good"],
   rival_approach: ["flag", "warn"],
   lost_to_rival: ["flag", "bad"],
   rival_rebuffed: ["flag", "good"],
@@ -82,6 +86,16 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     case "owner_opened":
     case "sale_started":
       values.reason = t(`reason.${message.reason}`);
+      break;
+    case "teaser_received":
+      values.adviser = view.advisers[message.adviser]?.name ?? "";
+      values.format = t(`format.${message.format}`);
+      break;
+    case "bank_pitch":
+      values.adviser = view.advisers[message.adviser]?.name ?? "";
+      break;
+    case "shortlisted":
+      values.bidders = String(message.bidders);
       break;
     case "rival_approach":
     case "rival_rebuffed":

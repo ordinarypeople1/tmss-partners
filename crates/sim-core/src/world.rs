@@ -111,6 +111,19 @@ pub enum MessageKind {
         reason: SaleReason,
     },
     OwnerDeclined,
+    /// The bank's teaser for a sale the player is on the list for.
+    TeaserReceived {
+        adviser: u8,
+        format: crate::advisers::Format,
+    },
+    Shortlisted {
+        bidders: u32,
+    },
+    NotShortlisted,
+    /// A bank that knows the player introduces an owner who would sell.
+    BankPitch {
+        adviser: u8,
+    },
     /// A rival house has proposed to an owner the player knows.
     RivalApproach {
         house: u8,
@@ -298,6 +311,15 @@ pub enum Command {
     SubmitBid {
         company: usize,
     },
+    /// A non-binding indication of interest in the first round.
+    SubmitIndication {
+        company: usize,
+        ev: i64,
+    },
+    /// A coverage call on a sell-side bank.
+    CoverBank {
+        adviser: u8,
+    },
     RaiseBid {
         company: usize,
         ev: i64,
@@ -393,6 +415,12 @@ pub enum CommandError {
     TeamFull,
     NotEnoughWealth,
     AlreadyForSale,
+    /// The bank did not put the player on its buyer list.
+    NotInvited,
+    /// Indications are in and the shortlist is set.
+    FirstRoundClosed,
+    /// The data room and site visits open in the second round.
+    SecondRoundOnly,
     OwnerNotReady,
 }
 
@@ -453,6 +481,9 @@ pub struct World {
     /// What owners say about the player to each other, −40 to 40.
     #[serde(default)]
     pub street: i64,
+    /// Coverage of each sell-side bank, 0 to 100.
+    #[serde(default)]
+    pub banks: Vec<i64>,
     next_message_id: u64,
     pub(crate) rng: Rng,
 }
@@ -511,6 +542,7 @@ impl World {
             records: Records::default(),
             fund_started_month: 0,
             street: 0,
+            banks: vec![0; crate::advisers::ADVISERS],
             next_message_id: 0,
             rng,
         };
@@ -567,6 +599,8 @@ impl World {
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
             Command::SubmitIc { company } => self.submit_ic(company),
             Command::SubmitBid { company } => self.submit_bid(company),
+            Command::SubmitIndication { company, ev } => self.submit_indication(company, ev),
+            Command::CoverBank { adviser } => self.cover_bank(adviser),
             Command::RaiseBid { company, ev } => self.raise_bid(company, ev),
             Command::ResearchSector { sector } => self.research_sector(sector),
             Command::HireAssociate => self.change_team(1),
@@ -830,6 +864,7 @@ impl World {
         self.refinance_maturities();
         self.market_step();
         self.rivals_step();
+        self.advisers_step();
         if closes_quarter {
             self.close_quarter();
             self.update_lps();
@@ -1062,6 +1097,10 @@ pub mod tests {
             for stream in DD_STREAMS {
                 let _ = world.apply(Command::RunDiligence { company, stream });
             }
+            let _ = world.apply(Command::SubmitIndication {
+                company,
+                ev: world.model_ev(company) * 104 / 100,
+            });
             let deal = &world.deals[world.deal_index(company).unwrap()];
             let ready = DD_STREAMS.iter().all(|stream| deal.has(*stream));
             if ready && deal.offer.is_none() {
@@ -1282,18 +1321,7 @@ pub mod tests {
     #[test]
     fn figures_are_ranges_until_an_nda() {
         let mut world = world(5);
-        // Play on until something at home is for sale: deals abroad are a principal's.
-        let mut index = None;
-        for _ in 0..36 {
-            index = (0..world.companies.len()).find(|index| {
-                world.process_visible(*index) && !world.companies[*index].is_abroad()
-            });
-            if index.is_some() {
-                break;
-            }
-            run(&mut world, 1);
-        }
-        let index = index.expect("something at home is for sale");
+        let index = joinable(&mut world);
         let before = world.company_view(index);
         assert!(before["revenue"][0].as_i64() < before["revenue"][1].as_i64());
         assert!(before.get("financials").is_none());
@@ -1321,13 +1349,32 @@ pub mod tests {
         assert!(world.apply(Command::MeetOwner { company: 9 }).is_ok());
     }
 
+    /// A sale at home the player can still join: on the list, round one open.
+    fn joinable(world: &mut World) -> usize {
+        for _ in 0..48 {
+            let found = (0..world.companies.len()).find(|index| {
+                world.process_visible(*index)
+                    && !world.companies[*index].is_abroad()
+                    && world.on_buyer_list(*index)
+                    && !world.first_round_closed(*index)
+                    && world.companies[*index]
+                        .process
+                        .as_ref()
+                        .is_some_and(|process| process.stage == Stage::Marketing)
+            });
+            if let Some(index) = found {
+                return index;
+            }
+            run(world, 1);
+        }
+        panic!("nothing to join in four years");
+    }
+
     #[test]
     fn a_bid_needs_the_committee() {
         let mut world = world(7);
         run(&mut world, 12);
-        let index = (0..world.companies.len())
-            .find(|index| world.process_visible(*index))
-            .unwrap();
+        let index = joinable(&mut world);
         world.apply(Command::SignNda { company: index }).unwrap();
         assert_eq!(
             world.apply(Command::SubmitBid { company: index }),
@@ -1603,23 +1650,55 @@ pub mod tests {
         use crate::sourcing::{Block, Step};
         let mut world = world(7);
         run(&mut world, 12);
-        let company = (0..world.companies.len())
-            .find(|index| world.process_visible(*index) && !world.companies[*index].is_abroad())
-            .unwrap();
+        let company = joinable(&mut world);
         assert_eq!(world.next_step(company), (Step::SignNda, None));
         world.apply(Command::SignNda { company }).unwrap();
         assert_eq!(world.next_step(company), (Step::Diligence, None));
-        for stream in DD_STREAMS {
+        // Round one: the memorandum supports financial and commercial work, nothing on site.
+        assert_eq!(
+            world.apply(Command::RunDiligence {
+                company,
+                stream: DdStream::Legal
+            }),
+            Err(CommandError::SecondRoundOnly)
+        );
+        for stream in [DdStream::Financial, DdStream::Commercial] {
             world
                 .apply(Command::RunDiligence { company, stream })
                 .unwrap();
         }
+        assert_eq!(world.next_step(company), (Step::Indicate, None));
+        let ev = world.model_ev(company) * 110 / 100;
+        world
+            .apply(Command::SubmitIndication { company, ev })
+            .unwrap();
         assert_eq!(
             world.next_step(company),
             (Step::Wait, Some(Block::ReportsDue))
         );
-        let abroad = (0..world.companies.len())
-            .find(|index| world.companies[*index].is_abroad() && world.process_visible(*index));
+        // A full indication takes the player into round two, where the data room opens.
+        for _ in 0..4 {
+            if world.companies[company]
+                .process
+                .as_ref()
+                .is_none_or(|process| process.stage != Stage::Marketing)
+            {
+                break;
+            }
+            run_idle(&mut world);
+        }
+        if let Some(process) = world.companies[company].process.as_ref() {
+            assert_eq!(process.stage, Stage::Bidding);
+            assert_eq!(process.shortlisted, Some(true));
+            assert!(process.rivals.len() < process.format.shortlist());
+            assert!(world.stream_open(company, DdStream::Legal));
+        }
+        let abroad = (0..world.companies.len()).find(|index| {
+            world.companies[*index].is_abroad()
+                && world.process_visible(*index)
+                && world.on_buyer_list(*index)
+                && !world.first_round_closed(*index)
+        });
         if let Some(abroad) = abroad {
             assert_eq!(
                 world.next_step(abroad),
@@ -1673,5 +1752,69 @@ pub mod tests {
             let _ = world.apply(Command::AdvanceMonth);
         }
         assert!(world.companies[company].suitor.is_none());
+    }
+
+    fn run_idle(world: &mut World) {
+        let _ = world.apply(Command::AdvanceMonth);
+    }
+
+    #[test]
+    fn a_targeted_sale_goes_to_buyers_the_bank_knows() {
+        use crate::advisers::{Format, LIST_AT};
+        let mut world = world(3);
+        let mut seen = None;
+        for _ in 0..60 {
+            seen = (0..world.companies.len()).find(|index| {
+                world.companies[*index]
+                    .process
+                    .as_ref()
+                    .is_some_and(|process| {
+                        process.format == Format::Targeted
+                            && process.stage == Stage::Marketing
+                            && process.adviser.is_some()
+                    })
+                    && !world.on_buyer_list(*index)
+                    && !world.companies[*index].is_abroad()
+            });
+            if seen.is_some() {
+                break;
+            }
+            run_idle(&mut world);
+        }
+        let company = seen.expect("a targeted sale the player is not on the list for");
+        assert_eq!(
+            world.apply(Command::SignNda { company }),
+            Err(CommandError::NotInvited)
+        );
+        let adviser = world.companies[company]
+            .process
+            .as_ref()
+            .unwrap()
+            .adviser
+            .unwrap();
+        world.banks[adviser as usize] = LIST_AT;
+        assert!(world.on_buyer_list(company));
+        assert!(world.apply(Command::SignNda { company }).is_ok());
+    }
+
+    #[test]
+    fn a_buyer_who_gives_no_indication_is_cut() {
+        let mut world = world(9);
+        let company = joinable(&mut world);
+        world.apply(Command::SignNda { company }).unwrap();
+        for _ in 0..4 {
+            run_idle(&mut world);
+            if world.deal_index(company).is_none() {
+                break;
+            }
+        }
+        assert!(world.deal_index(company).is_none());
+        assert!(world.messages.iter().any(|message| matches!(
+            message.kind,
+            MessageKind::NotShortlisted
+        ) || matches!(
+            message.kind,
+            MessageKind::SaleWithdrawn | MessageKind::SaleFailed
+        )));
     }
 }

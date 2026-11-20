@@ -121,5 +121,6 @@
   "dealroom.raise.ceiling": "IC ceiling {amount}",
   "dealroom.raise.submit": "Raise bid",
   "dealroom.raise.exhausted": "The IC-approved ceiling is used up. No further raise.",
-  "dealroom.listedNote": "Public company: the board wants a premium of about 15% over model value."
+  "dealroom.listedNote": "Public company: the board wants a premium of about 15% over model value.",
+  "dealroom.stream.round2": "Opens in round two"
 }

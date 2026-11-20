@@ -166,6 +166,7 @@ export type Step =
   | "diligence"
   | "offer"
   | "committee"
+  | "indicate"
   | "bid"
   | "raise"
   | "wait"
@@ -181,7 +182,10 @@ export type Block =
   | "not_bidding_yet"
   | "bid_in"
   | "committee_held"
-  | "investment_period_over";
+  | "investment_period_over"
+  | "not_invited"
+  | "first_round_closed"
+  | "awaiting_shortlist";
 export type Difficulty = "relaxed" | "standard" | "hard";
 export type Era = "high_rates" | "cheap_money" | "late_cycle";
 export interface Options {
@@ -228,6 +232,30 @@ export interface SaleView {
   my_bid: number | null;
   /** The most the player may bid without going back to the committee (approved price + 5%). 0 without approval. */
   bid_ceiling: number;
+  /** The bank running the sale, an index into `view.advisers`. Null in talks the owner holds alone. */
+  adviser: number | null;
+  /** Whether the teaser went to every buyer or to a short list. */
+  format: "broad" | "targeted";
+  /** What the teaser calls the company. */
+  codename: string;
+  /** Whether the bank would send the player the teaser. Without it the NDA is refused. */
+  invited: boolean;
+  /** 0 talks alone, 1 teaser to indications, 2 shortlist to binding bids. */
+  round: 0 | 1 | 2;
+  /** Whether the player went through to round two. Null until round one closes. */
+  shortlisted: boolean | null;
+  /** Bidders the bank takes into round two. */
+  seats: number;
+  /** Round one closed without the player: the sale can only be watched. */
+  first_round_closed: boolean;
+}
+
+export interface Adviser {
+  name: string;
+  tier: "bulge" | "boutique" | "regional";
+  focus: string | null;
+  /** 0 to 100: how well the bank knows the fund. */
+  coverage: number;
 }
 
 export interface CompanyRow {
@@ -398,6 +426,10 @@ export interface DealView {
   /** Investors take a fifth of the equity alongside the fund. */
   coinvest: boolean;
   approved_ev: number;
+  /** The non-binding indication given in round one, as an enterprise value. */
+  indication: number | null;
+  /** Diligence that can be ordered now: the memorandum supports two streams, the data room the rest. */
+  open_streams: DdStream[];
 }
 
 export interface Budget {
@@ -493,6 +525,10 @@ export type MessageBody =
   | { type: "sale_early_notice"; reason: SaleReason }
   | { type: "owner_opened"; reason: SaleReason }
   | { type: "owner_declined" }
+  | { type: "teaser_received"; adviser: number; format: "broad" | "targeted" }
+  | { type: "shortlisted"; bidders: number }
+  | { type: "not_shortlisted" }
+  | { type: "bank_pitch"; adviser: number }
   | { type: "rival_approach"; house: number }
   | { type: "lost_to_rival"; house: number; ev: number }
   | { type: "rival_rebuffed"; house: number }
@@ -672,6 +708,10 @@ export interface View {
   };
   market: { companies: number; live: number; visible: number };
   rivals: string[];
+  /** The sell-side banks. */
+  advisers: Adviser[];
+  /** Coverage that puts the fund on targeted lists, earns favour at the shortlist, and earns a call before the teaser. */
+  coverage_marks: [number, number, number];
   companies: CompanyRow[];
   /** Company indices with an open deal file. */
   deals: number[];
@@ -683,6 +723,8 @@ export type Command =
   | { type: "watch"; company: number; on: boolean }
   | { type: "meet_owner"; company: number }
   | { type: "approach_owner"; company: number }
+  | { type: "submit_indication"; company: number; ev: number }
+  | { type: "cover_bank"; adviser: number }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
   | { type: "set_offer"; company: number; offer: Offer }

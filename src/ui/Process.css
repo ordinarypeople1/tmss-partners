@@ -1,0 +1,161 @@
+.process {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.process-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.process-code {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.process-steps li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 0.66rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.process-steps li::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 50%;
+  left: -50%;
+  height: 2px;
+  background: var(--line);
+}
+.process-steps li:first-child::before {
+  display: none;
+}
+/* The gap between the rounds is the cut. */
+.process-steps li[data-round="2"]:nth-child(5)::before {
+  background: repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 8px);
+}
+.process-steps i {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
+}
+.process-steps li[data-state="done"] i {
+  border-color: var(--good);
+  background: var(--good);
+}
+.process-steps li[data-state="done"]::before,
+.process-steps li[data-state="now"]::before {
+  background: var(--good);
+}
+.process-steps li[data-state="now"] i {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.process-steps li[data-state="now"] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.indication {
+  display: grid;
+  gap: 8px;
+  border-color: var(--warn);
+}
+.indication[data-done] {
+  border-color: var(--line);
+}
+.indication-value {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.indication-value strong {
+  font-size: 1.4rem;
+}
+.indication-note {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.indication .btn {
+  justify-self: start;
+}
+
+.banks-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.banks-marks b {
+  margin-right: 4px;
+  color: var(--ink);
+}
+.banks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.bank {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.bank-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+.bank-head strong {
+  flex: 1;
+}
+.bank-focus {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--line-soft);
+}
+.bank .btn {
+  justify-self: start;
+}
+@media (max-width: 760px) {
+  .process-steps li span {
+    font-size: 0.58rem;
+  }
+  .banks-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bank .btn,
+  .indication .btn {
+    justify-self: stretch;
+    min-height: 44px;
+  }
+}

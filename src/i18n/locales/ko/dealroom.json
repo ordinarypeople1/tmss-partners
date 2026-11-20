@@ -121,5 +121,6 @@
   "dealroom.raise.ceiling": "IC 한도 {amount}",
   "dealroom.raise.submit": "입찰가 인상",
   "dealroom.raise.exhausted": "IC 승인 한도를 다 썼습니다. 더 올릴 수 없습니다.",
-  "dealroom.listedNote": "상장사: 이사회는 모델 가치보다 15% 안팎의 프리미엄을 요구합니다."
+  "dealroom.listedNote": "상장사: 이사회는 모델 가치보다 15% 안팎의 프리미엄을 요구합니다.",
+  "dealroom.stream.round2": "2차 라운드에 열림"
 }

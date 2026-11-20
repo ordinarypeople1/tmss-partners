@@ -4,6 +4,7 @@
 //! thousandths: 7200 means 7.200x. Rounding is half away from zero. Positive
 //! examples match the previous `Math.round` results (2549 × 7.2 = 18353).
 
+pub mod advisers;
 pub mod calendar;
 pub mod company;
 pub mod content;

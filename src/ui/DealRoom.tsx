@@ -1,3 +1,4 @@
+import { Indication, ProcessCard } from "./Process";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
 import {
@@ -436,6 +437,12 @@ export function DealRoom({ company }: { company: CompanyView }) {
   return (
     <>
     <div className="stack dr">
+      {company.sale ? (
+        <section className="card">
+          <ProcessCard company={company} />
+        </section>
+      ) : null}
+      <Indication company={company} />
       <ol className="dr-steps">
         {steps.map((step, index) => (
           <li
@@ -507,6 +514,10 @@ export function DealRoom({ company }: { company: CompanyView }) {
                   </div>
                 ) : running ? (
                   <span className="muted">{t("dealroom.stream.arrives")}</span>
+                ) : !deal.open_streams.includes(stream) ? (
+                  <Tag tone="muted" icon={<Icon name="lock" size={11} />}>
+                    {t("dealroom.stream.round2")}
+                  </Tag>
                 ) : (
                   <button
                     type="button"

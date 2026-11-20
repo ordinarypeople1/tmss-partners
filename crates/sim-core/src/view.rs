@@ -108,6 +108,14 @@ impl World {
             },
             "my_bid": process.player_bid.as_ref().map(|bid| bid.ev),
             "bid_ceiling": self.bid_ceiling(index),
+            "adviser": process.adviser,
+            "format": process.format,
+            "codename": process.codename,
+            "invited": self.on_buyer_list(index),
+            "round": if process.adviser.is_none() { 0 } else if process.stage == Stage::Bidding { 2 } else { 1 },
+            "shortlisted": process.shortlisted,
+            "seats": process.format.shortlist(),
+            "first_round_closed": self.first_round_closed(index),
         })
     }
 
@@ -286,6 +294,13 @@ impl World {
                 "visible": active.iter().filter(|index| self.process_visible(**index)).count(),
             },
             "rivals": RIVAL_NAMES,
+            "advisers": crate::advisers::ADVISER_BOOK.iter().enumerate().map(|(id, adviser)| json!({
+                "name": adviser.name,
+                "tier": adviser.tier,
+                "focus": adviser.focus,
+                "coverage": self.coverage(id as u8),
+            })).collect::<Vec<_>>(),
+            "coverage_marks": [crate::advisers::LIST_AT, crate::advisers::FAVOUR_AT, crate::advisers::HEADS_UP_AT],
             "companies": active.iter().map(|index| self.row(*index)).collect::<Vec<_>>(),
             "deals": self.deals.iter().map(|deal| deal.company).collect::<Vec<_>>(),
             "messages": self.messages,
@@ -484,6 +499,8 @@ impl World {
                     "can_roll": matches!(company.owner, Owner::Founder { .. }),
                     "coinvest": deal.coinvest,
                     "approved_ev": deal.approved_ev,
+                    "indication": deal.indication,
+                    "open_streams": crate::company::DD_STREAMS.iter().filter(|stream| self.stream_open(index, **stream)).collect::<Vec<_>>(),
                 }),
             );
         }
