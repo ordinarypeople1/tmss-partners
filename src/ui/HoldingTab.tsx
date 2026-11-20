@@ -177,7 +177,7 @@ function PeopleCard({ company }: SectionProps) {
       <div className="hd-ceo">
         <span className="hd-portrait">
           <i aria-hidden>{ceo.name.slice(0, 1)}</i>
-          <Portrait seed={ceo.name} feminine={ceo.feminine} size={48} />
+          <Portrait seed={ceo.name} feminine={ceo.feminine} country={company.country} size={48} />
         </span>
         <div className="hd-ceo-main">
           <b>{ceo.name}</b>

@@ -35,6 +35,14 @@ describe("portraitSpec", () => {
     }
   });
 
+  it("draws skin and hair from the country", () => {
+    const korean = SEEDS.map((seed) => portraitSpec(seed, undefined, "KR"));
+    expect(korean.every((spec) => spec.skin <= 2)).toBe(true);
+    expect(korean.filter((spec) => spec.hairTone === 2).length).toBe(0);
+    const american = new Set(SEEDS.map((seed) => portraitSpec(seed, undefined, "US").skin));
+    expect(american.size).toBe(SKIN.length);
+  });
+
   it("gives different names different faces", () => {
     const distinct = new Set(SPECS.map((spec) => JSON.stringify(spec)));
     expect(distinct.size).toBeGreaterThan(480);

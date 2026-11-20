@@ -262,20 +262,40 @@ function hairWeights(presentation: number, textured: boolean): number[] {
   return weights;
 }
 
+/**
+ * Skin weights (light to deep) by the country a person works in. East Asian
+ * companies draw from the lighter-to-middle tones, European ones lean light
+ * with some spread, the US keeps the whole range. Unknown or absent: even.
+ */
+const SKIN_BY_COUNTRY: Record<string, number[]> = {
+  KR: [24, 48, 28, 0, 0, 0],
+  JP: [26, 48, 26, 0, 0, 0],
+  CN: [20, 46, 34, 0, 0, 0],
+  DE: [40, 32, 15, 7, 4, 2],
+  FR: [34, 30, 16, 9, 6, 5],
+  GB: [36, 30, 15, 8, 6, 5],
+  US: [24, 22, 18, 13, 12, 11],
+};
+const SKIN_EVEN = [19, 18, 17, 15, 16, 15];
+/** Countries where hair is nearly always dark and straight. */
+const DARK_STRAIGHT_HAIR = new Set(["KR", "JP", "CN"]);
+
 /** The face for a name. Pure: the same seed always gives the same spec. */
 /** `feminine`, when the game knows it, fixes the presentation; the rest still follows the seed. */
-export function portraitSpec(seed: string, feminine?: boolean): Spec {
+/** `country` sets how likely each skin tone and hair colour is. */
+export function portraitSpec(seed: string, feminine?: boolean, country?: string): Spec {
   const random = generator(hash(seed));
   const drawn = random() < 0.5 ? 0 : 1;
   const presentation = feminine === undefined ? drawn : feminine ? 1 : 0;
-  const skin = weighted(random, [19, 18, 17, 15, 16, 15]);
+  const skin = weighted(random, (country && SKIN_BY_COUNTRY[country]) || SKIN_EVEN);
+  const eastAsian = country !== undefined && DARK_STRAIGHT_HAIR.has(country);
   const age = weighted(random, [34, 42, 24]);
   const head = weighted(random, presentation === 0 ? [20, 14, 20, 16, 8, 22] : [26, 18, 8, 16, 22, 10]);
 
-  const texturedChance = [0.03, 0.04, 0.14, 0.45, 0.85, 0.9][skin];
+  const texturedChance = eastAsian ? 0.02 : [0.03, 0.04, 0.14, 0.45, 0.85, 0.9][skin];
   const hair = weighted(random, hairWeights(presentation, random() < texturedChance));
   const greyChance = [0.02, 0.12, 0.55][age];
-  const naturalTone = weighted(random, skin <= 1 ? [42, 38, 20] : skin === 2 ? [62, 34, 4] : [88, 12, 0]);
+  const naturalTone = weighted(random, eastAsian ? [94, 6, 0] : skin <= 1 ? [42, 38, 20] : skin === 2 ? [62, 34, 4] : [88, 12, 0]);
   const hairTone = random() < greyChance ? 3 : naturalTone;
   const beardTone = age === 2 && random() < 0.6 ? 3 : hairTone;
 
@@ -1285,11 +1305,11 @@ function Silhouette() {
   );
 }
 
-function resolve(seed: string | undefined, partner: number | undefined, feminine?: boolean): Spec | null {
+function resolve(seed: string | undefined, partner: number | undefined, feminine?: boolean, country?: string): Spec | null {
   if (partner !== undefined && PARTNERS[partner]) {
     return PARTNERS[partner];
   }
-  return seed !== undefined && seed !== "" ? portraitSpec(seed, feminine) : null;
+  return seed !== undefined && seed !== "" ? portraitSpec(seed, feminine, country) : null;
 }
 
 /**
@@ -1304,9 +1324,11 @@ export function Portrait(props: {
   mood?: Mood;
   size?: number;
   feminine?: boolean;
+  /** The country the person works in, for skin tone and hair colour. */
+  country?: string;
 }): ReactNode {
-  const { seed, partner, mood = "neutral", size = 48, feminine } = props;
-  const spec = resolve(seed, partner, feminine);
+  const { seed, partner, mood = "neutral", size = 48, feminine, country } = props;
+  const spec = resolve(seed, partner, feminine, country);
   return (
     <span className="portrait" data-mood={mood} aria-hidden="true" style={{ width: size, height: size * 1.2 }}>
       <svg viewBox={VIEW_BOX} strokeLinecap="round" strokeLinejoin="round" focusable="false">

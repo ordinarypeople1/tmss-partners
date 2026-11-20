@@ -301,7 +301,7 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
         </header>
         <div className="talk-body">
           <div className="talk-who">
-            <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} size={104} />
+            <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} country={company.country} size={104} />
             <b>{founder ? company.ceo.name : t(`talk.role.${company.owner.kind}`, { house })}</b>
             {founder ? <small className="muted">{t("talk.role.founder")}</small> : null}
           </div>
