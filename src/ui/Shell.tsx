@@ -276,28 +276,28 @@ function Topbar() {
         <TurnControls />
       </div>
       <div className="chips">
-        <span className="chip" data-phase={economy.phase}>
+        <span className="chip tip" tabIndex={0} data-tip={t("shell.tip.phase")} data-phase={economy.phase}>
           <i />
           {t(`phase.${economy.phase}`)}
         </span>
-        <span className="chip">
+        <span className="chip tip" tabIndex={0} data-tip={t("shell.tip.policyRate")}>
           <small>{t("shell.policyRate")}</small>
           <b>{f.pct(economy.policy_rate_bps, 2)}</b>
         </span>
-        <span className="chip">
+        <span className="chip tip" tabIndex={0} data-tip={t("shell.tip.valuation")}>
           <small>{t("shell.valuation")}</small>
           <b>{economy.valuation_index}</b>
         </span>
-        <span className="chip">
+        <span className="chip tip" tabIndex={0} data-tip={t("shell.tip.credit")}>
           <small>{t("shell.credit")}</small>
           <b>{f.pct(economy.credit_spread_bps, 2)}</b>
         </span>
-        <span className="chip">
+        <span className="chip tip" tabIndex={0} data-tip={t("shell.tip.forSale")}>
           <Icon name="deals" size={14} />
           {t("shell.forSale", { count: view.market.visible })}
         </span>
       </div>
-      <div className="fund-strip">
+      <div className="fund-strip tip" tabIndex={0} data-tip={t("shell.tip.uncalled")}>
         <Meter value={fund.uncalled} max={fund.committed} tone="ink" label={t("shell.uncalled")} text={f.money(fund.uncalled)} />
         <Tag tone={fund.investing ? "accent" : "muted"} icon={<Icon name="clock" size={13} />}>
           {fund.investing ? t("shell.investing", { months: monthsLeft }) : t("shell.harvest")}

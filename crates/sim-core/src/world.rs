@@ -1094,7 +1094,7 @@ pub mod tests {
     #[test]
     fn starts_on_day_one_with_an_empty_fund() {
         let world = world(1);
-        assert_eq!(world.date, GameDate::new(2024, 1));
+        assert_eq!(world.date, GameDate::new(2027, 1));
         assert_eq!(world.fund.called, 0);
         assert_eq!(world.fund.uncalled(), 750_000);
         assert_eq!(world.companies.len(), 500);
@@ -1121,7 +1121,7 @@ pub mod tests {
     fn a_month_closes_and_the_next_opens() {
         let mut world = world(1);
         world.apply(Command::AdvanceMonth).unwrap();
-        assert_eq!(world.date, GameDate::new(2024, 2));
+        assert_eq!(world.date, GameDate::new(2027, 2));
         assert_eq!(world.months_elapsed, 1);
         assert_eq!(world.attention_left, Rank::VicePresident.attention());
     }

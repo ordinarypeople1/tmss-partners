@@ -514,7 +514,7 @@ def build_document(
                 "site_name": rng.choice(profile.parks),
                 "lat": lat,
                 "lon": lon,
-                "founded_year": rng.randint(1952, 2014),
+                "founded_year": rng.randint(1955, 2017),
                 "employees": state["employees"],
                 "union_strength": profile.union_strength,
                 "identity": {
@@ -877,7 +877,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--foreign-count", type=int, default=250, help="Companies in the other six countries.")
     parser.add_argument("--fixture-count", type=int, default=4)
     parser.add_argument("--quarters", type=int, default=8)
-    parser.add_argument("--start-year", type=int, default=2022)
+    parser.add_argument("--start-year", type=int, default=2025)
     parser.add_argument("--policy-rate", type=float, default=0.0525)
     parser.add_argument("--neutral-rate", type=float, default=0.0275)
     parser.add_argument(

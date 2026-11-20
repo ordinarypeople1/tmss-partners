@@ -18,7 +18,7 @@ export interface TurnReport {
   /** Everything that arrived, oldest first. */
   messages: Message[];
 }
-const SAVE_KEY = "deal-atlas.save.v4";
+const SAVE_KEY = "deal-atlas.save.v5";
 
 export interface Toast {
   id: number;

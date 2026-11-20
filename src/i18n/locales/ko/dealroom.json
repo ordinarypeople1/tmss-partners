@@ -65,7 +65,7 @@
   "dealroom.bid.certainty": "매도자 확실성 가산",
   "dealroom.bid.monthsLeft": "{months, plural, other {#개월}} 남음",
   "dealroom.bid.resolves": "입찰 기간이 끝나면 낙찰자가 정해집니다.",
-  "dealroom.bid.exclusiveNote": "독점 협상: 매도자가 받으면 제출 즉시 체결됩니다.",
+  "dealroom.bid.exclusiveNote": "배타적 협상: 매도자가 받으면 제출 즉시 체결됩니다.",
   "dealroom.bid.waiting": "{ev}에 입찰했습니다. 결과를 기다립니다.",
   "dealroom.bid.needsOffer": "오퍼를 먼저 저장하세요.",
   "dealroom.bid.needsApproval": "IC 승인이 필요합니다.",

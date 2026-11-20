@@ -1638,7 +1638,7 @@
       "site_name": "Piedmont Gate Logistics Park",
       "lat": 34.13,
       "lon": -84.44,
-      "founded_year": 1972,
+      "founded_year": 1975,
       "employees": 550,
       "union_strength": 0.15,
       "identity": {
@@ -1649,7 +1649,7 @@
       },
       "quarters": [
         {
-          "period": "2022Q1",
+          "period": "2025Q1",
           "model_multiple": 6.42,
           "income": {
             "revenue": 28053,
@@ -1696,7 +1696,7 @@
           }
         },
         {
-          "period": "2022Q2",
+          "period": "2025Q2",
           "model_multiple": 6.57,
           "income": {
             "revenue": 26849,
@@ -1743,7 +1743,7 @@
           }
         },
         {
-          "period": "2022Q3",
+          "period": "2025Q3",
           "model_multiple": 6.69,
           "income": {
             "revenue": 26200,
@@ -1790,7 +1790,7 @@
           }
         },
         {
-          "period": "2022Q4",
+          "period": "2025Q4",
           "model_multiple": 6.78,
           "income": {
             "revenue": 26409,
@@ -1837,7 +1837,7 @@
           }
         },
         {
-          "period": "2023Q1",
+          "period": "2026Q1",
           "model_multiple": 6.81,
           "income": {
             "revenue": 26348,
@@ -1884,7 +1884,7 @@
           }
         },
         {
-          "period": "2023Q2",
+          "period": "2026Q2",
           "model_multiple": 6.78,
           "income": {
             "revenue": 26851,
@@ -1931,7 +1931,7 @@
           }
         },
         {
-          "period": "2023Q3",
+          "period": "2026Q3",
           "model_multiple": 6.69,
           "income": {
             "revenue": 26740,
@@ -1978,7 +1978,7 @@
           }
         },
         {
-          "period": "2023Q4",
+          "period": "2026Q4",
           "model_multiple": 6.57,
           "income": {
             "revenue": 27575,
@@ -2036,7 +2036,7 @@
       "site_name": "Valley Oak Packing District",
       "lat": 41.63,
       "lon": -121.13,
-      "founded_year": 2009,
+      "founded_year": 2012,
       "employees": 487,
       "union_strength": 0.45,
       "identity": {
@@ -2047,7 +2047,7 @@
       },
       "quarters": [
         {
-          "period": "2022Q1",
+          "period": "2025Q1",
           "model_multiple": 9.14,
           "income": {
             "revenue": 22715,
@@ -2094,7 +2094,7 @@
           }
         },
         {
-          "period": "2022Q2",
+          "period": "2025Q2",
           "model_multiple": 9.38,
           "income": {
             "revenue": 23562,
@@ -2141,7 +2141,7 @@
           }
         },
         {
-          "period": "2022Q3",
+          "period": "2025Q3",
           "model_multiple": 9.59,
           "income": {
             "revenue": 24294,
@@ -2188,7 +2188,7 @@
           }
         },
         {
-          "period": "2022Q4",
+          "period": "2025Q4",
           "model_multiple": 9.73,
           "income": {
             "revenue": 25128,
@@ -2235,7 +2235,7 @@
           }
         },
         {
-          "period": "2023Q1",
+          "period": "2026Q1",
           "model_multiple": 9.78,
           "income": {
             "revenue": 25083,
@@ -2282,7 +2282,7 @@
           }
         },
         {
-          "period": "2023Q2",
+          "period": "2026Q2",
           "model_multiple": 9.73,
           "income": {
             "revenue": 24689,
@@ -2329,7 +2329,7 @@
           }
         },
         {
-          "period": "2023Q3",
+          "period": "2026Q3",
           "model_multiple": 9.59,
           "income": {
             "revenue": 24656,
@@ -2376,7 +2376,7 @@
           }
         },
         {
-          "period": "2023Q4",
+          "period": "2026Q4",
           "model_multiple": 9.38,
           "income": {
             "revenue": 25244,
@@ -2434,7 +2434,7 @@
       "site_name": "Prairie Junction Park",
       "lat": 39.87,
       "lon": -90.46,
-      "founded_year": 2012,
+      "founded_year": 2015,
       "employees": 1524,
       "union_strength": 0.65,
       "identity": {
@@ -2445,7 +2445,7 @@
       },
       "quarters": [
         {
-          "period": "2022Q1",
+          "period": "2025Q1",
           "model_multiple": 10.72,
           "income": {
             "revenue": 51282,
@@ -2492,7 +2492,7 @@
           }
         },
         {
-          "period": "2022Q2",
+          "period": "2025Q2",
           "model_multiple": 10.89,
           "income": {
             "revenue": 52281,
@@ -2539,7 +2539,7 @@
           }
         },
         {
-          "period": "2022Q3",
+          "period": "2025Q3",
           "model_multiple": 11.03,
           "income": {
             "revenue": 52699,
@@ -2586,7 +2586,7 @@
           }
         },
         {
-          "period": "2022Q4",
+          "period": "2025Q4",
           "model_multiple": 11.12,
           "income": {
             "revenue": 53765,
@@ -2633,7 +2633,7 @@
           }
         },
         {
-          "period": "2023Q1",
+          "period": "2026Q1",
           "model_multiple": 11.15,
           "income": {
             "revenue": 53947,
@@ -2680,7 +2680,7 @@
           }
         },
         {
-          "period": "2023Q2",
+          "period": "2026Q2",
           "model_multiple": 11.12,
           "income": {
             "revenue": 55700,
@@ -2727,7 +2727,7 @@
           }
         },
         {
-          "period": "2023Q3",
+          "period": "2026Q3",
           "model_multiple": 11.03,
           "income": {
             "revenue": 57433,
@@ -2774,7 +2774,7 @@
           }
         },
         {
-          "period": "2023Q4",
+          "period": "2026Q4",
           "model_multiple": 10.89,
           "income": {
             "revenue": 57700,
@@ -2832,7 +2832,7 @@
       "site_name": "Ozark Gate Works",
       "lat": 39.74,
       "lon": -91.65,
-      "founded_year": 1990,
+      "founded_year": 1993,
       "employees": 537,
       "union_strength": 0.4,
       "identity": {
@@ -2843,7 +2843,7 @@
       },
       "quarters": [
         {
-          "period": "2022Q1",
+          "period": "2025Q1",
           "model_multiple": 6.23,
           "income": {
             "revenue": 33517,
@@ -2890,7 +2890,7 @@
           }
         },
         {
-          "period": "2022Q2",
+          "period": "2025Q2",
           "model_multiple": 6.42,
           "income": {
             "revenue": 33499,
@@ -2937,7 +2937,7 @@
           }
         },
         {
-          "period": "2022Q3",
+          "period": "2025Q3",
           "model_multiple": 6.58,
           "income": {
             "revenue": 33623,
@@ -2984,7 +2984,7 @@
           }
         },
         {
-          "period": "2022Q4",
+          "period": "2025Q4",
           "model_multiple": 6.69,
           "income": {
             "revenue": 34385,
@@ -3031,7 +3031,7 @@
           }
         },
         {
-          "period": "2023Q1",
+          "period": "2026Q1",
           "model_multiple": 6.73,
           "income": {
             "revenue": 33746,
@@ -3078,7 +3078,7 @@
           }
         },
         {
-          "period": "2023Q2",
+          "period": "2026Q2",
           "model_multiple": 6.69,
           "income": {
             "revenue": 33186,
@@ -3125,7 +3125,7 @@
           }
         },
         {
-          "period": "2023Q3",
+          "period": "2026Q3",
           "model_multiple": 6.58,
           "income": {
             "revenue": 33163,
@@ -3172,7 +3172,7 @@
           }
         },
         {
-          "period": "2023Q4",
+          "period": "2026Q4",
           "model_multiple": 6.42,
           "income": {
             "revenue": 33885,

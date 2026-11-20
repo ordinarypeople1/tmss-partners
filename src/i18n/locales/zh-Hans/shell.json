@@ -41,5 +41,11 @@
   "shell.turn.close": "关闭摘要",
   "shell.turn.open": "在收件箱查看",
   "shell.more": "更多",
-  "shell.more.close": "关闭菜单"
+  "shell.more.close": "关闭菜单",
+  "shell.tip.phase": "经济周期：扩张→放缓→衰退→复苏。衰退期业绩和交易倍数下降。",
+  "shell.tip.policyRate": "基准利率，是并购贷款利率的下限。上升时利息负担加重，可借倍数下降。",
+  "shell.tip.valuation": "估值指数，100为长期平均。越高，买入和卖出价格都越贵。",
+  "shell.tip.credit": "信用利差，即在基准利率上的加点。扩大时贷款方会收紧借款额度。",
+  "shell.tip.forSale": "当前可见的出售数量。准备阶段仅在关系达到40或研究该行业时可见。",
+  "shell.tip.uncalled": "未缴出资：基金尚未投出的承诺额。投资期结束后不能用于新交易。"
 }

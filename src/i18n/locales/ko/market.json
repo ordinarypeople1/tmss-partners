@@ -53,7 +53,7 @@
   "market.country.open": "딜 가능",
   "market.country.closed": "잠김",
   "market.country.abroadOpen": "해외 딜 가능",
-  "market.country.note": "해외는 주인 면담 행동력 2, 실사 비용 1.5배. 종결 때 당국이 막을 수 있습니다. 국가를 누르면 아래 표가 걸러집니다.",
+  "market.country.note": "해외는 오너 미팅 행동력 2, 실사 비용 1.5배. 종결 때 당국이 막을 수 있습니다. 국가를 누르면 아래 표가 걸러집니다.",
   "market.country.filter": "국가 필터",
   "market.country.all": "모든 국가",
   "market.country.homeOption": "{country} (본국)",

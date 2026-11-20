@@ -249,6 +249,10 @@ th,
   padding: 10px 8px 0;
   border-top: 1px solid color-mix(in srgb, var(--side-ink) 10%, transparent);
 }
+.sidebar-foot,
+.sidebar-foot .me {
+  grid-template-columns: minmax(0, 1fr);
+}
 .sidebar-foot .me {
   display: grid;
   gap: 8px;
@@ -278,8 +282,12 @@ th,
 }
 .settings {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+.sidebar .settings .language {
+  flex: 1 1 100%;
 }
 .icon-btn {
   display: grid;
@@ -1487,4 +1495,41 @@ th,
 }
 .building-ground {
   fill: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+/* A short explanation on hover or focus. The text comes from the catalog through data-tip. */
+.tip {
+  position: relative;
+  cursor: help;
+}
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  color: var(--panel);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.45;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.tip:hover::after,
+.tip:focus-visible::after {
+  opacity: 1;
+  transform: none;
+}
+.fund-strip.tip::after {
+  right: 0;
+  left: auto;
 }

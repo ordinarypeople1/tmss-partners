@@ -44,7 +44,7 @@
   "deals.next.submit_bid": "입찰 제출",
   "deals.next.wait_result": "결과 대기",
   "deals.board.title": "매물",
-  "deals.board.empty": "지금 보이는 매물이 없습니다. 주인과 관계를 쌓거나 섹터를 리서치하면 준비 단계부터 보입니다.",
+  "deals.board.empty": "지금 보이는 매물이 없습니다. 오너와 관계를 쌓거나 섹터를 리서치하면 준비 단계부터 보입니다.",
   "deals.board.noMatch": "조건에 맞는 매물이 없습니다.",
   "deals.filter.search": "회사 이름",
   "deals.filter.allSectors": "모든 섹터",
@@ -77,7 +77,7 @@
   "deals.next.raise_bid": "입찰가 인상",
   "deals.unit": "금액 단위: {unit}",
   "deals.courting.title": "관계를 쌓는 회사",
-  "deals.courting.empty": "아직 만난 주인이 없습니다. 지도에서 회사를 눌러 주인을 만나세요. 매물이 아니어도 관계 60이면 직접 제안할 수 있습니다.",
+  "deals.courting.empty": "아직 만난 오너가 없습니다. 지도에서 회사를 눌러 오너를 만나세요. 매물이 아니어도 관계 60이면 인수를 제안할 수 있습니다.",
   "deals.view.cards": "카드로 보기",
   "deals.view.table": "표로 보기"
 }
