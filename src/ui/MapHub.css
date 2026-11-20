@@ -326,3 +326,61 @@
 .drawer-table .rel {
   width: 70px;
 }
+
+/* A phone: the map fills the screen, the layer switcher shrinks to icons, and the table is a short sheet. */
+@media (max-width: 760px) {
+  .map-hub[data-drawer="open"] {
+    grid-template-rows: minmax(0, 1fr) minmax(150px, 44%);
+  }
+  .map-layers {
+    top: 8px;
+    left: 8px;
+    grid-auto-flow: column;
+  }
+  .map-layers button {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+  .map-layers button span {
+    display: none;
+  }
+  .map-zoom {
+    top: 58px;
+    right: 8px;
+    left: 8px;
+    flex-flow: row;
+    justify-content: flex-start;
+    max-width: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .map-zoom .btn {
+    flex: none;
+  }
+  .map-legend {
+    display: none;
+  }
+  .map-canvas .maplibregl-ctrl-bottom-right {
+    display: none;
+  }
+  .drawer-bar {
+    flex-flow: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .drawer-bar > * {
+    flex: none;
+  }
+  .drawer-bar .search {
+    order: -1;
+    margin-left: 0;
+  }
+  .drawer-bar .search input {
+    width: 110px;
+  }
+  .drawer-table .table {
+    min-width: 640px;
+  }
+}

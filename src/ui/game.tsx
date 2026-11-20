@@ -1,16 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GameSession } from "../sim/wasm";
-import type { Command, CompanyRow, CompanyView, Offer, OfferPreview, Options, View } from "../sim/types";
+import type { Command, CompanyRow, CompanyView, GameDate, Message, Offer, OfferPreview, Options, View } from "../sim/types";
 import { joinBase } from "./publicPath";
 import { playSound, soundFor } from "./sound";
 
 export type Screen = "map" | "inbox" | "deals" | "portfolio" | "market" | "league" | "fund" | "career";
 export const SCREENS: Screen[] = ["map", "inbox", "deals", "portfolio", "market", "league", "fund", "career"];
-/** 0 is paused. */
-export type Speed = 0 | 1 | 2 | 3;
+/** The most months "skip ahead" will close in one go. */
+const SKIP_LIMIT = 12;
 
-export const DAYS_PER_MONTH = 30;
-const DAY_MS: Record<Exclude<Speed, 0>, number> = { 1: 400, 2: 160, 3: 55 };
+/** What happened while the last turn closed. */
+export interface TurnReport {
+  /** The first month that closed. */
+  from: GameDate;
+  /** How many months closed. More than one after a skip. */
+  months: number;
+  /** Everything that arrived, oldest first. */
+  messages: Message[];
+}
 const SAVE_KEY = "deal-atlas.save.v4";
 
 export interface Toast {
@@ -38,11 +45,13 @@ export interface Game {
   /** Reads a company without selecting it. */
   peek(company: number): CompanyView | null;
   previewOffer(company: number, offer: Offer): OfferPreview | null;
-  speed: Speed;
-  setSpeed(speed: Speed): void;
-  /** 1 through 30: where the open month stands on screen. */
-  day: number;
+  /** Closes the month. The game is turn-based: nothing moves until the player says so. */
   nextMonth(): void;
+  /** Closes months until something is addressed to the player, a year at most. For quiet stretches. */
+  skipAhead(): void;
+  /** The summary of the turn that just closed, until dismissed. */
+  turn: TurnReport | null;
+  dismissTurn(): void;
   /** Starts over. Without options the defaults apply (standard difficulty, high-rates era). */
   newGame(options?: Options): void;
   toasts: Toast[];
@@ -111,8 +120,7 @@ export function GameProvider({
   const [screen, setScreen] = useState<Screen>("map");
   const [selected, setSelected] = useState<number | null>(null);
   const [company, setCompany] = useState<CompanyView | null>(null);
-  const [speed, setSpeed] = useState<Speed>(0);
-  const [day, setDay] = useState(1);
+  const [turn, setTurn] = useState<TurnReport | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
   const selectedRef = useRef<number | null>(null);
@@ -137,8 +145,7 @@ export function GameProvider({
           session.current = opened;
           selectedRef.current = null;
           setSelected(null);
-          setSpeed(0);
-          setDay(1);
+          setTurn(null);
           const first = redraw();
           lastMessage.current = Math.max(-1, ...(first?.messages ?? []).map((message) => message.id));
           if (fresh) {
@@ -180,48 +187,46 @@ export function GameProvider({
     [redraw, toast],
   );
 
-  const nextMonth = useCallback(() => {
-    const current = session.current;
-    if (!current) {
-      return;
-    }
-    const result = current.command({ type: "advance_month" });
-    setDay(1);
-    if (!result.ok) {
-      setSpeed(0);
-      return;
-    }
-    const next = redraw();
-    writeSave(current.save());
-    // Anything addressed to the player stops the clock.
-    const fresh = (next?.messages ?? []).filter((message) => message.id > lastMessage.current);
-    for (const message of fresh) {
-      const sound = soundFor(message);
-      if (sound) {
-        playSound(sound);
+  const advance = useCallback(
+    (limit: number) => {
+      const current = session.current;
+      if (!current) {
+        return;
       }
-    }
-    lastMessage.current = Math.max(lastMessage.current, ...fresh.map((message) => message.id));
-    if (fresh.some((message) => !message.news) || next?.career.fired) {
-      setSpeed(0);
-    }
-  }, [redraw]);
-
-  useEffect(() => {
-    if (speed === 0) {
-      return;
-    }
-    const timer = window.setInterval(() => {
-      setDay((value) => value + 1);
-    }, DAY_MS[speed]);
-    return () => window.clearInterval(timer);
-  }, [speed]);
-
-  useEffect(() => {
-    if (day > DAYS_PER_MONTH) {
-      nextMonth();
-    }
-  }, [day, nextMonth]);
+      const from = current.view().date;
+      const arrived: Message[] = [];
+      let months = 0;
+      let next: View | undefined;
+      while (months < limit) {
+        if (!current.command({ type: "advance_month" }).ok) {
+          break;
+        }
+        months += 1;
+        next = current.view();
+        const fresh = next.messages.filter((message) => message.id > lastMessage.current);
+        lastMessage.current = Math.max(lastMessage.current, ...fresh.map((message) => message.id));
+        arrived.push(...fresh);
+        // Anything addressed to the player ends a skip.
+        if (fresh.some((message) => !message.news) || next.career.fired) {
+          break;
+        }
+      }
+      if (months === 0) {
+        return;
+      }
+      redraw();
+      writeSave(current.save());
+      playSound("month");
+      const loudest = arrived.map(soundFor).find((sound) => sound !== null);
+      if (loudest) {
+        playSound(loudest);
+      }
+      setTurn({ from, months, messages: arrived });
+    },
+    [redraw],
+  );
+  const nextMonth = useCallback(() => advance(1), [advance]);
+  const skipAhead = useCallback(() => advance(SKIP_LIMIT), [advance]);
 
   useEffect(() => {
     const flush = () => {
@@ -274,15 +279,15 @@ export function GameProvider({
       act,
       peek: (index) => session.current?.company(index) ?? null,
       previewOffer: (index, offer) => session.current?.previewOffer(index, offer) ?? null,
-      speed,
-      setSpeed,
-      day: Math.min(day, DAYS_PER_MONTH),
       nextMonth,
+      skipAhead,
+      turn,
+      dismissTurn: () => setTurn(null),
       newGame: (options) => start(true, options),
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, selected, company, select, act, speed, day, nextMonth, start, toasts]);
+  }, [view, rows, screen, selected, company, select, act, nextMonth, skipAhead, turn, start, toasts]);
 
   if (error) {
     return <>{failed}</>;

@@ -96,7 +96,7 @@ function moicTone(millis: number): "good" | "bad" | undefined {
 /** Full-screen cards for the moments that matter: a close, an exit, a promotion. */
 export function Moments() {
   const game = useGame();
-  const { view, setSpeed } = game;
+  const { view } = game;
   const [queue, setQueue] = useState<Card[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   // The newest message already accounted for, and the game it belongs to.
@@ -149,7 +149,6 @@ export function Moments() {
     }
     if (cards.length > 0) {
       setQueue((list) => [...list, ...cards]);
-      setSpeed(0);
     }
     if (earned.length > 0) {
       setBadges((list) => [...list, ...earned]);
@@ -159,7 +158,7 @@ export function Moments() {
         );
       }
     }
-  }, [view, setSpeed]);
+  }, [view]);
 
   useEffect(() => {
     const pending = timers.current;
