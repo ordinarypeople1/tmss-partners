@@ -91,11 +91,11 @@ function windowsRight(y0: number, y1: number, z0: number, z1: number, x: number,
 }
 
 function tree(x: number, y: number): ReactNode[] {
-  return [...box(x - 0.15, y - 0.15, 0, 0.3, 0.3, 0.8, "#8a6a4a"), ...cylinder(x, y, 0.8, 0.55, 0.9, "#4fae6a"), ...cylinder(x, y, 1.5, 0.35, 0.6, "#5fc07a")];
+  return [...box(x - 0.15, y - 0.15, 0, 0.3, 0.3, 0.8, "#6b727d"), ...cylinder(x, y, 0.8, 0.55, 0.9, "#7f97a8"), ...cylinder(x, y, 1.5, 0.35, 0.6, "#9bb1c0")];
 }
 
 function crate(x: number, y: number, s = 0.8): ReactNode[] {
-  return box(x, y, 0, s, s, s, "#d9a45a");
+  return box(x, y, 0, s, s, s, BRASS);
 }
 
 interface Livery {
@@ -104,40 +104,33 @@ interface Livery {
   trim: string;
 }
 
-const GLASS = "#8fd0f5";
-const DARK_GLASS = "#2f5f9a";
+const GLASS = "#bcd3e4";
+const DARK_GLASS = "#2f5f82";
+const CARMINE = "#a3122f";
+const STEEL = "#3f6f94";
+const BRASS = "#c9a24a";
+const SLATE = "#4a525e";
+const WHITE = "#f4f5f7";
+const STONE = "#e4e6ea";
 
+/** Three liveries for every sector: walls stay neutral, the roof and one trim carry the colour. */
+const SET: Livery[] = [
+  { wall: WHITE, roof: CARMINE, trim: BRASS },
+  { wall: STONE, roof: STEEL, trim: CARMINE },
+  { wall: WHITE, roof: SLATE, trim: BRASS },
+];
+const TOWERS: Livery[] = [
+  { wall: STEEL, roof: "#2a4d68", trim: "#cfe0ec" },
+  { wall: SLATE, roof: "#343b45", trim: "#cfd6de" },
+  { wall: CARMINE, roof: "#7c0d23", trim: "#f1cfd6" },
+];
 const LIVERIES: Record<string, Livery[]> = {
-  industrial_components: [
-    { wall: "#e9edf3", roof: "#4f6a8f", trim: "#f2b233" },
-    { wall: "#e6e2da", roof: "#6b5f7a", trim: "#e2703a" },
-    { wall: "#dfe8ea", roof: "#3f7f86", trim: "#f2b233" },
-  ],
-  cold_chain_logistics: [
-    { wall: "#eef1f5", roof: "#3f6fb0", trim: "#f2b233" },
-    { wall: "#eef1f5", roof: "#3a8f9a", trim: "#e2703a" },
-    { wall: "#e9eaf0", roof: "#5a64a8", trim: "#f2b233" },
-  ],
-  food_manufacturing: [
-    { wall: "#f4ead8", roof: "#d6553f", trim: "#f2b233" },
-    { wall: "#f1eee6", roof: "#3f9a6a", trim: "#f2b233" },
-    { wall: "#f4ead8", roof: "#d08a2a", trim: "#d6553f" },
-  ],
-  business_services: [
-    { wall: "#3d6fd0", roof: "#2a4f9a", trim: "#8fd0f5" },
-    { wall: "#566178", roof: "#3a4458", trim: "#8fd0f5" },
-    { wall: "#2f8f95", roof: "#226a70", trim: "#b8f0e8" },
-  ],
-  healthcare_services: [
-    { wall: "#f3f6f9", roof: "#7fb6d8", trim: "#e5484d" },
-    { wall: "#f3f6f9", roof: "#7fc8a8", trim: "#e5484d" },
-    { wall: "#f1f0f6", roof: "#9a8fd0", trim: "#e5484d" },
-  ],
-  building_products: [
-    { wall: "#ead9c0", roof: "#b5623a", trim: "#f2b233" },
-    { wall: "#e6e4dc", roof: "#5f7f55", trim: "#f2b233" },
-    { wall: "#ead9c0", roof: "#6a6f80", trim: "#e2703a" },
-  ],
+  industrial_components: SET,
+  cold_chain_logistics: [SET[1], SET[0], SET[2]],
+  food_manufacturing: SET,
+  business_services: TOWERS,
+  healthcare_services: [SET[1], SET[2], SET[0]],
+  building_products: [SET[2], SET[0], SET[1]],
 };
 
 function scene(sector: string, l: Livery): ReactNode[] {
@@ -145,10 +138,10 @@ function scene(sector: string, l: Livery): ReactNode[] {
     case "industrial_components":
       return [
         // chimneys behind the hall
-        ...cylinder(1.2, 1.2, 0, 0.45, 7.2, "#f1f1f1"),
-        ...cylinder(1.2, 1.2, 5.4, 0.46, 0.7, "#d6453f"),
-        ...cylinder(2.8, 1.0, 0, 0.45, 6.2, "#f1f1f1"),
-        ...cylinder(2.8, 1.0, 4.6, 0.46, 0.7, "#d6453f"),
+        ...cylinder(1.2, 1.2, 0, 0.45, 7.2, WHITE),
+        ...cylinder(1.2, 1.2, 5.4, 0.46, 0.7, CARMINE),
+        ...cylinder(2.8, 1.0, 0, 0.45, 6.2, WHITE),
+        ...cylinder(2.8, 1.0, 4.6, 0.46, 0.7, CARMINE),
         ...box(0, 2, 0, 7, 5, 3, l.wall, l.roof),
         // sawtooth roof
         ...[0, 1, 2].flatMap((i) => gable(0.3 + i * 2.2, 2.3, 3, 2, 4.4, 0.9, l.roof)),
@@ -169,7 +162,7 @@ function scene(sector: string, l: Livery): ReactNode[] {
         ...[0, 1, 2].flatMap((i) => [onLeft(0.8 + i * 2.5, 2.6 + i * 2.5, 0, 2.1, 7, shade(l.roof, -0.25)), onLeft(0.95 + i * 2.5, 2.45 + i * 2.5, 1.3, 1.9, 7, GLASS)]),
         ...windowsRight(1.6, 6.4, 1.6, 2.5, 8, 4, 1, GLASS),
         // truck
-        ...box(1.2, 8.4, 0.3, 2.6, 1.3, 1.5, "#ffffff"),
+        ...box(1.2, 8.4, 0.3, 2.6, 1.3, 1.5, WHITE),
         ...box(3.9, 8.4, 0.3, 0.9, 1.3, 1.1, l.trim),
         ...crate(6, 8.2),
         ...crate(6.95, 8.3, 0.7),
@@ -178,14 +171,14 @@ function scene(sector: string, l: Livery): ReactNode[] {
       ];
     case "food_manufacturing":
       return [
-        ...cylinder(1, 1.6, 0, 1, 5.2, "#eef0f3"),
-        ...cylinder(3.3, 1.4, 0, 1, 4.4, "#eef0f3"),
+        ...cylinder(1, 1.6, 0, 1, 5.2, WHITE),
+        ...cylinder(3.3, 1.4, 0, 1, 4.4, WHITE),
         ...cylinder(1, 1.6, 3.8, 1.02, 0.35, l.roof),
         ...cylinder(3.3, 1.4, 3.1, 1.02, 0.35, l.roof),
         ...box(0, 3, 0, 7.5, 4.5, 2.8, l.wall, shade(l.wall, -0.08)),
         ...box(-0.2, 2.8, 2.8, 7.9, 4.9, 0.45, l.roof),
         // striped awning over the shop front
-        ...[0, 1, 2, 3, 4, 5].map((i) => <path key={k()} d={d([pt(0.5 + i * 0.75, 7.5, 2), pt(1.25 + i * 0.75, 7.5, 2), pt(1.25 + i * 0.75, 8.3, 1.5), pt(0.5 + i * 0.75, 8.3, 1.5)])} fill={i % 2 ? "#ffffff" : l.roof} />),
+        ...[0, 1, 2, 3, 4, 5].map((i) => <path key={k()} d={d([pt(0.5 + i * 0.75, 7.5, 2), pt(1.25 + i * 0.75, 7.5, 2), pt(1.25 + i * 0.75, 8.3, 1.5), pt(0.5 + i * 0.75, 8.3, 1.5)])} fill={i % 2 ? WHITE : l.roof} />),
         ...windowsLeft(0.5, 5, 0.4, 1.5, 7.5, 3, 1, GLASS),
         onLeft(5.6, 6.8, 0, 1.9, 7.5, shade(l.roof, -0.3)),
         ...windowsRight(3.6, 7, 1, 2.1, 7.5, 3, 1, GLASS),
@@ -215,9 +208,9 @@ function scene(sector: string, l: Livery): ReactNode[] {
         ...windowsLeft(0.8, 4.4, 0.8, 5, 6, 3, 4, GLASS),
         ...windowsRight(1.9, 5.7, 0.8, 5, 4.7, 3, 4, shade(GLASS, -0.2)),
         // the sign
-        ...box(1.6, 3, 5.4, 2, 1.6, 1.5, "#ffffff"),
-        onLeft(2.4, 2.8, 5.7, 6.6, 4.6, l.trim),
-        onLeft(2.1, 3.1, 5.98, 6.32, 4.6, l.trim),
+        ...box(1.6, 3, 5.4, 2, 1.6, 1.5, WHITE),
+        onLeft(2.4, 2.8, 5.7, 6.6, 4.6, CARMINE),
+        onLeft(2.1, 3.1, 5.98, 6.32, 4.6, CARMINE),
         ...box(4.9, 3, 0, 3.6, 4, 2.6, shade(l.wall, -0.04), l.roof),
         ...windowsLeft(5.2, 8.2, 0.7, 2.1, 7, 3, 1, GLASS),
         ...windowsRight(3.4, 6.6, 0.7, 2.1, 8.5, 2, 1, shade(GLASS, -0.2)),
@@ -233,9 +226,9 @@ function scene(sector: string, l: Livery): ReactNode[] {
         onLeft(1, 2.2, 0, 2, 5.7, shade(l.roof, -0.3)),
         ...windowsLeft(2.8, 5.2, 0.9, 2.1, 5.7, 2, 1, GLASS),
         ...windowsRight(2.2, 5, 0.9, 2.1, 5.7, 2, 1, shade(GLASS, -0.2)),
-        ...box(6.6, 2.4, 0, 2.6, 1.1, 0.5, "#d9a45a"),
-        ...box(6.7, 2.5, 0.5, 2.4, 0.9, 0.45, "#c98f48"),
-        ...box(6.8, 2.6, 0.95, 2.2, 0.7, 0.4, "#d9a45a"),
+        ...box(6.6, 2.4, 0, 2.6, 1.1, 0.5, BRASS),
+        ...box(6.7, 2.5, 0.5, 2.4, 0.9, 0.45, "#b08a38"),
+        ...box(6.8, 2.6, 0.95, 2.2, 0.7, 0.4, BRASS),
         ...box(6.4, 5, 0, 2.8, 2.6, 1.3, "#b9bec8"),
         ...box(6.4, 5, 1.3, 2.8, 2.6, 0.9, shade("#b9bec8", -0.1)),
         ...cylinder(1.4, 7.6, 0, 0.5, 1, l.trim),

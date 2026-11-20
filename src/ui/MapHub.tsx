@@ -26,11 +26,11 @@ const LAYERS: { id: Layer; icon: string }[] = [
 /** MapLibre paint cannot read CSS variables, so the tokens are copied here each time the theme changes. */
 const C = { sea: "", land: "", home: "", locked: "", border: "", ink: "", muted: "", accent: "", good: "", bad: "", warn: "", held: "" };
 const SERIES: string[] = [];
-const HOUSES = ["#5b78c8", "#a56bb0", "#3d9aa0", "#6fa04a", "#c07a45", "#4a86c0", "#c0608a", "#6a8f72"];
+const HOUSES = ["#5c7f9c", "#8a92a0", "#b8923a", "#cf7f90", "#3f4852", "#8fb0c9", "#d6c08a", "#7a5a66"];
 const HEAT: string[] = [];
 const HEAT_BY_THEME: Record<Theme, string[]> = {
-  light: ["#f3f5f9", "#dbe5fb", "#bccffa", "#93b0f6", "#638bf0", "#2f62e8"],
-  dark: ["#232a35", "#263a66", "#2a4a90", "#325cb8", "#3f6ddc", "#4d7df5"],
+  light: ["#f3f4f6", "#f1dde1", "#e6b9c2", "#d68a9a", "#bf4f68", "#a3122f"],
+  dark: ["#232a35", "#3a2630", "#5a2638", "#7f2a42", "#a8304e", "#d23a5c"],
 };
 const STAGE_COLOR: Record<Stage, string> = { preparing: "", marketing: "", bidding: "", exclusive: "" };
 
@@ -51,7 +51,7 @@ function readPalette(theme: Theme) {
   });
   SERIES.splice(0, SERIES.length, ...["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(token));
   HEAT.splice(0, HEAT.length, ...HEAT_BY_THEME[theme]);
-  Object.assign(STAGE_COLOR, { preparing: C.good, marketing: C.warn, bidding: C.bad, exclusive: C.good });
+  Object.assign(STAGE_COLOR, { preparing: C.good, marketing: C.warn, bidding: C.accent, exclusive: C.good });
 }
 
 /** The map is rebuilt when the theme changes: its paint is set once, from the tokens of that theme. */

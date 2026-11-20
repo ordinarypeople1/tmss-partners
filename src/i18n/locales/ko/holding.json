@@ -35,7 +35,7 @@
   "holding.cure.notNeeded": "한도 이내",
   "holding.cure.submit": "큐어 실행",
   "holding.unit": "× $100K",
-  "holding.attentionCost": "주의 {cost, number, ::integer}",
+  "holding.attentionCost": "행동력 {cost, number, ::integer}",
   "holding.budget.title": "월 자본 예산",
   "holding.budget.growth": "성장 투자",
   "holding.budget.growth.hint": "매출 성장률 ↑",

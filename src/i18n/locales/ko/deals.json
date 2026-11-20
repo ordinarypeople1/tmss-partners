@@ -10,7 +10,7 @@
   "deals.funnel.clear": "{stage} 필터 해제",
   "deals.slots": "진행 딜",
   "deals.slotsFull": "한도",
-  "deals.attention": "남은 주의",
+  "deals.attention": "남은 행동력",
   "deals.market": "보이는 매물",
   "deals.marketOf": "전체 {count, number, ::integer}개사 중",
   "deals.dryPowder": "미소진 약정",

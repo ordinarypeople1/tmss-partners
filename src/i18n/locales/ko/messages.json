@@ -60,7 +60,7 @@
   "msg.next_fund.body": "약정 {committed}.",
   "msg.next_fund.own": "당신의 이름으로 모은 첫 펀드입니다. 약정 {committed}.",
   "msg.promotion.title": "승진: {rank}",
-  "msg.promotion.body": "주의, 동시 딜 한도, 캐리 지분이 늘었습니다.",
+  "msg.promotion.body": "행동력, 동시 딜 한도, 캐리 지분이 늘었습니다.",
   "msg.fired.title": "계약 종료",
   "msg.fired.body": "하우스가 계약을 연장하지 않았습니다.",
   "msg.irrNone": "해당 없음",

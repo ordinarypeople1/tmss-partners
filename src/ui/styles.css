@@ -1,5 +1,6 @@
-/* Deal Atlas — monochrome surfaces in a light and a dark theme, one blue accent, and
-   colour kept for meaning (good, bad, warning) and for the illustrations.
+/* Deal Atlas — monochrome surfaces in a light and a dark theme and three colours:
+   deep carmine for the point (the action, what is selected, what is wrong), steel blue for what
+   is going well, brass for what needs watching. The illustrations use the same three.
    Tokens first, then the shell, then shared parts (cards, tables, buttons,
    tags, stats, tabs), then the chart kit. Screen files add their own rules
    in src/ui/screens/*.css and never redefine a token. */
@@ -13,19 +14,19 @@
   --muted: #6c7380;
   --line: #dcdfe5;
   --line-soft: #ebedf1;
-  --accent: #2f62e8;
-  --accent-ink: #1d3fae;
-  --good: #1f9d68;
-  --bad: #d64538;
-  --warn: #c98a12;
-  --warn-ink: #7a5200;
-  --amber: #f0b23a;
-  --s1: #3d7fe0;
-  --s2: #e2703a;
-  --s3: #d6a31f;
-  --s4: #7a69d6;
-  --s5: #c75c9c;
-  --s6: #46a868;
+  --accent: #a3122f;
+  --accent-ink: #7c0d23;
+  --good: #2f5f82;
+  --bad: #a3122f;
+  --warn: #a8822b;
+  --warn-ink: #6e5415;
+  --amber: #c9a24a;
+  --s1: #2f5f82;
+  --s2: #a3122f;
+  --s3: #b8923a;
+  --s4: #5c636e;
+  --s5: #cf7f90;
+  --s6: #8fb0c9;
   --side: #fafafb;
   --side-ink: #2d323b;
   --side-strong: #14171c;
@@ -49,12 +50,19 @@
   --muted: #8a92a0;
   --line: #2a313c;
   --line-soft: #202630;
-  --accent: #4d7df5;
-  --accent-ink: #a9c1ff;
-  --good: #35c285;
-  --bad: #f0665a;
-  --warn: #e3aa3c;
-  --warn-ink: #f2c871;
+  --accent: #d23a5c;
+  --accent-ink: #f3a3b5;
+  --good: #74a7cf;
+  --bad: #e2526f;
+  --warn: #d9b25c;
+  --warn-ink: #ecd08f;
+  --amber: #d9b25c;
+  --s1: #74a7cf;
+  --s2: #d23a5c;
+  --s3: #d9b25c;
+  --s4: #8a92a0;
+  --s5: #e8a0b0;
+  --s6: #a9c6dc;
   --side: #0f1319;
   --side-ink: #c5cad3;
   --side-strong: #ffffff;
