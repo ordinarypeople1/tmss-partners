@@ -177,5 +177,21 @@
   "msg.owner_opened.title": "{company}：所有者同意谈判",
   "msg.owner_opened.body": "单独谈判4个月。原因：{reason}。届时未达成一致，将聘请顾问转为竞拍。",
   "msg.owner_declined.title": "{company}：所有者拒绝了",
-  "msg.owner_declined.body": "对方表示目前无意出售。一年后可再提。"
+  "msg.owner_declined.body": "对方表示目前无意出售。一年后可再提。",
+  "msg.rival_approach.title": "{company}：{house} 提出了收购",
+  "msg.rival_approach.body": "所有者直接告知了你，将在三个月内答复。关系达到40即可立即提出反提议。",
+  "msg.lost_to_rival.title": "{company}：被 {house} 收购",
+  "msg.lost_to_rival.body": "所有者接受了 {house} 的提议。交易价格 {ev}。此前建立的关系已失去。",
+  "msg.rival_rebuffed.title": "{company}：所有者拒绝了 {house}",
+  "msg.rival_rebuffed.body": "提议被拒绝，公司仍归所有者。",
+  "msg.house_fundraised.title": "{house} 完成 {size} 基金募集",
+  "msg.house_fundraised.body": "新资金到位。一年内报价更高。",
+  "msg.house_partner_left.title": "{house} 核心合伙人离职",
+  "msg.house_partner_left.body": "交易团队动荡。一年内报价偏弱。",
+  "msg.house_distress.title": "{house} 旗下 {company} 应贷款方要求出售",
+  "msg.house_distress.body": "债务负担过重，被迫急售。",
+  "msg.owner_succeeded.title": "{company}：{from} 退休，{to} 接班",
+  "msg.owner_succeeded.body": "需与新所有者重新建立关系。关系减半。",
+  "msg.ceo_moved.title": "{name} 从 {from} 转任 {company}",
+  "msg.ceo_moved.body": "熟人换了岗位。在 {from} 建立的关系有一半随之转到 {company}。"
 }

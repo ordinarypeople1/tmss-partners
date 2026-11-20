@@ -597,5 +597,14 @@
   "talk.meet.eager.2": "I am looking for someone who can close quickly.",
   "talk.meet.sale": "The adviser runs the process. A buyer I know still reads differently.",
   "talk.yes": "All right. You have four months. Let us see if the numbers meet.",
-  "talk.no": "Thank you, but not now. Let us leave this for a while."
+  "talk.no": "Thank you, but not now. Let us leave this for a while.",
+  "shell.street": "Word among owners",
+  "shell.tip.street": "What owners say about you. Closing at the agreed price lifts it; walking from exclusivity or cutting jobs lowers it. It moves meeting gains and proposal odds.",
+  "journey.suitor": "{house} has proposed · answer within {months, plural, one {# month} other {# months}}",
+  "journey.counter": "Counter",
+  "talk.meet.suitor": "{house} has made me an offer. The terms are not bad. I owe them an answer within three months.",
+  "talk.street.good": "I hear good things about you. That you pay what you agreed.",
+  "talk.street.bad": "Frankly, what I hear about you in the market is mixed.",
+  "map.legend.suitor": "Rival proposal",
+  "map.legend.taken": "Just acquired"
 }

@@ -1749,3 +1749,49 @@ th,
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+
+.street {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  justify-self: stretch;
+  color: var(--side-muted);
+  font-size: 0.8rem;
+}
+.street b {
+  color: var(--side-strong);
+}
+.street-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--side-ink) 14%, transparent);
+}
+.street-bar::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 50%;
+  width: 1px;
+  background: var(--side-muted);
+}
+.street-bar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--muted);
+  transition: left 0.5s var(--ease), width 0.5s var(--ease);
+}
+.street[data-tone="good"] .street-bar i {
+  background: var(--good);
+}
+.street[data-tone="bad"] .street-bar i {
+  background: var(--bad);
+}
+.sidebar .street.tip::after {
+  top: auto;
+  bottom: calc(100% + 8px);
+}

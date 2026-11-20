@@ -235,6 +235,8 @@ export interface CompanyRow {
   i: number;
   id: string;
   name: string;
+  /** A rival house has proposed to the owner; null when there is none or the owner would not tell the player. */
+  suitor: { house: number; months_left: number } | null;
   /** The name without its legal form, for lists and tables. */
   short: string;
   sector: string;
@@ -491,6 +493,14 @@ export type MessageBody =
   | { type: "sale_early_notice"; reason: SaleReason }
   | { type: "owner_opened"; reason: SaleReason }
   | { type: "owner_declined" }
+  | { type: "rival_approach"; house: number }
+  | { type: "lost_to_rival"; house: number; ev: number }
+  | { type: "rival_rebuffed"; house: number }
+  | { type: "house_fundraised"; house: number; size: number }
+  | { type: "house_partner_left"; house: number }
+  | { type: "house_distress"; house: number }
+  | { type: "owner_succeeded"; from: string; to: string }
+  | { type: "ceo_moved"; name: string; from: string }
   | { type: "sale_started"; reason: SaleReason }
   | { type: "sale_withdrawn" }
   | { type: "sale_failed" }
@@ -574,6 +584,8 @@ export interface View {
   career: {
     rank: Rank;
     reputation: number;
+    /** What owners say about the player to each other, −40 to 40. It moves meeting gains and proposal odds. */
+    street: number;
     months_at_rank: number;
     deals_closed: number;
     exits: number;

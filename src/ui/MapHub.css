@@ -452,3 +452,49 @@
     font-size: 0.82rem;
   }
 }
+
+/* A rival house at an owner's door: a square flag in the house colour, counting down. */
+.map-pin[data-kind="suitor"] {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--panel);
+  border-radius: 5px;
+  background: var(--house, var(--warn));
+  box-shadow: 0 0 0 0 var(--house, var(--warn));
+  color: #fff;
+  animation: suitor 1.6s ease-out infinite;
+}
+.map-pin[data-kind="suitor"]::before {
+  display: none;
+}
+@keyframes suitor {
+  to {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+/* A company a house bought last month: its colour blooms once and stays as a ring. */
+.map-pin[data-kind="taken"] {
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--house, var(--muted));
+  border-radius: 50%;
+  background: var(--panel);
+  animation: taken 1.2s var(--ease) backwards;
+}
+.map-pin[data-kind="taken"]::before {
+  display: none;
+}
+@keyframes taken {
+  from {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+.map-legend i[data-shape="flag"] {
+  border-radius: 2px;
+  background: var(--warn);
+}
+.drawer-table .mark[data-kind="suitor"] {
+  border-radius: 2px;
+  background: var(--warn);
+}

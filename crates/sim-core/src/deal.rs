@@ -716,7 +716,12 @@ impl World {
         } else {
             0
         };
-        let gain = 12 + club + self.career.reputation / 10 + self.rng.range(0, 6);
+        let gain = (12
+            + club
+            + self.career.reputation / 10
+            + self.street_swing() / 2
+            + self.rng.range(0, 6))
+        .max(4);
         let target = &mut self.companies[company];
         target.relationship = (target.relationship + gain).min(100);
         target.watched = true;
@@ -742,6 +747,15 @@ impl World {
             .is_some_and(|ic| ic.outcome == IcOutcome::Approved);
         if was_approved {
             self.career.adjust_reputation(-2);
+            self.adjust_street(-3);
+        }
+        // Walking away from talks the owner gave alone is remembered.
+        if self.companies[company]
+            .process
+            .as_ref()
+            .is_some_and(|process| process.stage == Stage::Exclusive)
+        {
+            self.adjust_street(-6);
         }
         if let Some(process) = self.companies[company].process.as_mut() {
             process.player_bid = None;
@@ -760,6 +774,8 @@ impl World {
         let Some(index) = self.deal_index(company) else {
             return;
         };
+        // An owner who was paid what was agreed says so.
+        self.adjust_street(2);
         let deal = self.deals[index].clone();
         let mut offer = deal.offer.clone().expect("a bid carries an offer");
         offer.ev = ev;

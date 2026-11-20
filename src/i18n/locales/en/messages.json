@@ -177,5 +177,21 @@
   "msg.owner_opened.title": "{company}: the owner will talk",
   "msg.owner_opened.body": "Four months of talks alone. Reason: {reason}. Without an agreement by then, an adviser is hired and it goes to auction.",
   "msg.owner_declined.title": "{company}: the owner said no",
-  "msg.owner_declined.body": "They are not selling now. You can raise it again in a year."
+  "msg.owner_declined.body": "They are not selling now. You can raise it again in a year.",
+  "msg.rival_approach.title": "{company}: {house} has made a proposal",
+  "msg.rival_approach.body": "The owner told you directly. They will answer within three months. At relationship 40 you can counter now.",
+  "msg.lost_to_rival.title": "{company}: gone to {house}",
+  "msg.lost_to_rival.body": "The owner accepted {house}. Price {ev}. The relationship you built is gone.",
+  "msg.rival_rebuffed.title": "{company}: the owner sent {house} away",
+  "msg.rival_rebuffed.body": "The proposal was turned down. The company stays with its owner.",
+  "msg.house_fundraised.title": "{house} closes a {size} fund",
+  "msg.house_fundraised.body": "Fresh money. For a year it bids higher.",
+  "msg.house_partner_left.title": "{house} loses a senior partner",
+  "msg.house_partner_left.body": "The deal team is unsettled. For a year its bids are weaker.",
+  "msg.house_distress.title": "{house} forced to sell {company}",
+  "msg.house_distress.body": "The debt was too much. Lenders have put it on the market.",
+  "msg.owner_succeeded.title": "{company}: {from} retires, {to} takes over",
+  "msg.owner_succeeded.body": "You start again with the new owner. The relationship is halved.",
+  "msg.ceo_moved.title": "{name} moves from {from} to {company}",
+  "msg.ceo_moved.body": "Someone you know has changed desks. Half of what you built at {from} follows to {company}."
 }

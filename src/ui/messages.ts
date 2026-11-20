@@ -24,6 +24,14 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   sale_withdrawn: ["close"],
   sale_failed: ["close"],
   rival_deal: ["gavel"],
+  rival_approach: ["flag", "warn"],
+  lost_to_rival: ["flag", "bad"],
+  rival_rebuffed: ["flag", "good"],
+  house_fundraised: ["fund"],
+  house_partner_left: ["career"],
+  house_distress: ["alert"],
+  owner_succeeded: ["career", "warn"],
+  ceo_moved: ["career", "good"],
   auction_lost: ["gavel", "bad"],
   final_round: ["gavel", "warn"],
   regulator_blocked: ["alert", "bad"],
@@ -74,6 +82,28 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     case "owner_opened":
     case "sale_started":
       values.reason = t(`reason.${message.reason}`);
+      break;
+    case "rival_approach":
+    case "rival_rebuffed":
+    case "house_partner_left":
+    case "house_distress":
+      values.house = view.rivals[message.house] ?? "";
+      break;
+    case "lost_to_rival":
+      values.house = view.rivals[message.house] ?? "";
+      values.ev = f.money(message.ev);
+      break;
+    case "house_fundraised":
+      values.house = view.rivals[message.house] ?? "";
+      values.size = f.money(message.size);
+      break;
+    case "owner_succeeded":
+      values.from = message.from;
+      values.to = message.to;
+      break;
+    case "ceo_moved":
+      values.name = message.name;
+      values.from = message.from;
       break;
     case "rival_deal":
       values.buyer = bidderName(t, view, message.buyer);

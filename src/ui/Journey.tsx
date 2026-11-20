@@ -215,6 +215,12 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
   return (
     <>
       <footer className="action-bar" data-blocked={disabled ? "true" : undefined}>
+        {company.suitor ? (
+          <p className="action-suitor" role="status">
+            <Icon name="flag" size={13} />
+            {t("journey.suitor", { house: view.rivals[company.suitor.house] ?? "", months: company.suitor.months_left })}
+          </p>
+        ) : null}
         <div className="action-text">
           <span className="journey-kicker">{t("journey.next")}</span>
           <p>{block ? t(`block.${block}`, { months: approach.cooldown }) : t(`step.${step}.why`)}</p>
@@ -232,7 +238,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
           ) : null}
           <button type="button" className="btn primary" disabled={disabled} onClick={run}>
             <Icon name={disabled ? "lock" : STEP_ICON[step]} size={16} />
-            {t(`step.${step}`)}
+            {step === "approach" && company.suitor ? t("journey.counter") : t(`step.${step}`)}
             {cost > 0 ? (
               <span className="journey-cost" title={t("company.attentionLeft", { left: view.attention.left, max: view.attention.max })}>
                 <Icon name="bolt" size={11} />
@@ -258,13 +264,16 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
   const marks = [approach.known_at, approach.early_notice_at, approach.proposal_at];
   const unlocked = MARKS.filter((_, index) => talk.before < marks[index] && after >= marks[index]);
   const variant = ((company.i + talk.before) % 2) + 1;
+  const street = game.view.career.street;
   const line =
     talk.kind === "yes"
       ? "talk.yes"
       : talk.kind === "no"
         ? "talk.no"
-        : company.sale
-          ? "talk.meet.sale"
+        : company.suitor
+          ? "talk.meet.suitor"
+          : company.sale
+            ? "talk.meet.sale"
           : talk.before === 0
             ? `talk.meet.first.${variant}`
             : company.intent
@@ -283,7 +292,10 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
             <b>{founder ? company.ceo.name : t(`talk.role.${company.owner.kind}`, { house })}</b>
             {founder ? <small className="muted">{t("talk.role.founder")}</small> : null}
           </div>
-          <blockquote className="talk-line">{t(line)}</blockquote>
+          <div className="talk-lines">
+            <blockquote className="talk-line">{t(line, { house: company.suitor ? (game.view.rivals[company.suitor.house] ?? "") : "" })}</blockquote>
+            {talk.kind === "meet" && Math.abs(street) >= 8 ? <blockquote className="talk-line">{t(street > 0 ? "talk.street.good" : "talk.street.bad")}</blockquote> : null}
+          </div>
         </div>
         <div className="talk-result">
           <Meter label={t(`access.${company.access}`)} text={t("talk.gain", { before: talk.before, after })} value={after} max={100} markers={marks} tone={after >= approach.proposal_at ? "good" : "accent"} />

@@ -298,6 +298,9 @@ pub struct Company {
     /// Months before the owner will hear another unsolicited proposal.
     #[serde(default)]
     pub approach_cooldown: u32,
+    /// A rival house that has proposed to the owner.
+    #[serde(default)]
+    pub suitor: Option<crate::rivals::Suitor>,
 }
 
 fn monthly_ebitda(
@@ -533,6 +536,7 @@ impl Company {
             shortfall: false,
             sponsor_cost: 0,
             approach_cooldown: 0,
+            suitor: None,
         }
     }
 

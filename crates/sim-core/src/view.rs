@@ -132,9 +132,15 @@ impl World {
             && !company.is_player_owned())
         .then(|| self.intent(index));
         let (step, block) = self.next_step(index);
+        // The owner mentions a rival's proposal only to someone they know.
+        let suitor = company
+            .suitor
+            .filter(|_| self.knows_owner(index))
+            .map(|suitor| json!({ "house": suitor.house, "months_left": suitor.months_left }));
         json!({
             "i": index,
             "id": company.id,
+            "suitor": suitor,
             "name": company.legal_name,
             "short": short_name(&company.legal_name),
             "sector": self.industries[company.sector].sector_id,
@@ -204,6 +210,7 @@ impl World {
             "career": {
                 "rank": self.career.rank,
                 "reputation": self.career.reputation,
+                "street": self.street,
                 "months_at_rank": self.career.months_at_rank,
                 "deals_closed": self.career.deals_closed,
                 "exits": self.career.exits,
@@ -358,11 +365,11 @@ impl World {
         detail.insert(
             "approach".into(),
             json!({
-                "odds_pct": if company.relationship >= crate::sourcing::PROPOSAL_AT { json!(self.approach_odds(index)) } else { Value::Null },
+                "odds_pct": if company.relationship >= self.proposal_threshold(index) { json!(self.approach_odds(index)) } else { Value::Null },
                 "cooldown": company.approach_cooldown,
                 "known_at": crate::sourcing::KNOWN_AT,
                 "early_notice_at": self.early_notice_threshold(),
-                "proposal_at": crate::sourcing::PROPOSAL_AT,
+                "proposal_at": self.proposal_threshold(index),
             }),
         );
         detail.insert("country".into(), json!(company.country));

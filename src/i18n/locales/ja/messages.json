@@ -177,5 +177,21 @@
   "msg.owner_opened.title": "{company}: オーナーが交渉に応じました",
   "msg.owner_opened.body": "4か月間、単独で交渉します。理由は{reason}。その間に合意できなければ、アドバイザーを選任して入札に進みます。",
   "msg.owner_declined.title": "{company}: オーナーが断りました",
-  "msg.owner_declined.body": "今は売る気がないとのことです。1年後に再提案できます。"
+  "msg.owner_declined.body": "今は売る気がないとのことです。1年後に再提案できます。",
+  "msg.rival_approach.title": "{company}: {house}が買収を提案",
+  "msg.rival_approach.body": "オーナーが直接知らせてきました。3か月以内に回答するとのこと。関係40以上なら今すぐ対抗提案できます。",
+  "msg.lost_to_rival.title": "{company}: {house}の手に",
+  "msg.lost_to_rival.body": "オーナーが{house}の提案を受けました。取引価格{ev}。築いた関係は失われました。",
+  "msg.rival_rebuffed.title": "{company}: オーナーが{house}を断りました",
+  "msg.rival_rebuffed.body": "提案は拒否されました。会社はオーナーのもとに残ります。",
+  "msg.house_fundraised.title": "{house}、{size}のファンドを組成",
+  "msg.house_fundraised.body": "新ファンドをクローズ。1年間、入札で高値を付けます。",
+  "msg.house_partner_left.title": "{house}、主要パートナーが離脱",
+  "msg.house_partner_left.body": "ディールチームが動揺。1年間、入札が弱まります。",
+  "msg.house_distress.title": "{house}の{company}、レンダーの要求で売却",
+  "msg.house_distress.body": "借入負担に耐えられませんでした。急ぎの売却です。",
+  "msg.owner_succeeded.title": "{company}: {from}氏が引退、{to}氏が承継",
+  "msg.owner_succeeded.body": "新オーナーとは一から築き直しです。関係は半分になりました。",
+  "msg.ceo_moved.title": "{name}氏、{from}から{company}へ移籍",
+  "msg.ceo_moved.body": "知人が席を移しました。{from}で築いた関係の半分が{company}に引き継がれます。"
 }

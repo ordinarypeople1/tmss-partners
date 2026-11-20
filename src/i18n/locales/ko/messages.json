@@ -177,5 +177,21 @@
   "msg.owner_opened.title": "{company}: 오너가 협상에 응했습니다",
   "msg.owner_opened.body": "4개월간 배타적으로 협상합니다. 사유는 {reason}. 그 안에 합의하지 못하면 자문사를 선임해 경매로 갑니다.",
   "msg.owner_declined.title": "{company}: 오너가 거절했습니다",
-  "msg.owner_declined.body": "지금은 팔 생각이 없다고 합니다. 1년 뒤에 다시 꺼낼 수 있습니다."
+  "msg.owner_declined.body": "지금은 팔 생각이 없다고 합니다. 1년 뒤에 다시 꺼낼 수 있습니다.",
+  "msg.rival_approach.title": "{company}: {house}가 인수를 제안했습니다",
+  "msg.rival_approach.body": "오너가 직접 알려 왔습니다. 석 달 안에 답한다고 합니다. 관계 40 이상이면 지금 맞제안할 수 있습니다.",
+  "msg.lost_to_rival.title": "{company}: {house}에 넘어갔습니다",
+  "msg.lost_to_rival.body": "오너가 {house}의 제안을 받았습니다. 거래 가격 {ev}. 쌓은 관계는 사라졌습니다.",
+  "msg.rival_rebuffed.title": "{company}: 오너가 {house}를 돌려보냈습니다",
+  "msg.rival_rebuffed.body": "제안을 거절했습니다. 회사는 그대로 오너에게 남았습니다.",
+  "msg.house_fundraised.title": "{house}, {size} 펀드 결성",
+  "msg.house_fundraised.body": "새 펀드를 닫았습니다. 한 해 동안 입찰에서 더 높게 부릅니다.",
+  "msg.house_partner_left.title": "{house}, 핵심 파트너 이탈",
+  "msg.house_partner_left.body": "딜 팀이 흔들립니다. 한 해 동안 입찰이 약해집니다.",
+  "msg.house_distress.title": "{house}의 {company}, 대주단 요구로 매각",
+  "msg.house_distress.body": "차입 부담을 못 버텼습니다. 급매로 나왔습니다.",
+  "msg.owner_succeeded.title": "{company}: {from} 대표 은퇴, {to} 승계",
+  "msg.owner_succeeded.body": "새 오너와는 처음부터 다시 쌓아야 합니다. 관계가 절반으로 줄었습니다.",
+  "msg.ceo_moved.title": "{name}, {from}에서 {company}로 이직",
+  "msg.ceo_moved.body": "아는 사람이 자리를 옮겼습니다. {from}에서 쌓은 관계의 절반이 {company}로 따라갑니다."
 }

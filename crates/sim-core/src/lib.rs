@@ -14,6 +14,7 @@ pub mod market;
 pub mod math;
 pub mod people;
 pub mod portfolio;
+pub mod rivals;
 pub mod rng;
 pub mod sourcing;
 pub mod story;

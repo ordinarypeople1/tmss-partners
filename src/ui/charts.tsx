@@ -320,7 +320,7 @@ export function Meter({
       <div className="meter-track">
         <span style={{ width: share(value) }} />
         {marker !== undefined ? <i style={{ left: share(marker) }} /> : null}
-        {markers?.map((at) => <i key={at} style={{ left: share(at) }} />)}
+        {markers?.map((at, index) => <i key={index} style={{ left: share(at) }} />)}
       </div>
     </div>
   );

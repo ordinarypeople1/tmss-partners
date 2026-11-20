@@ -98,6 +98,11 @@ pub struct HouseRecord {
     pub exits: u32,
     pub invested: i64,
     pub returned: i64,
+    /// How much harder or softer the house bids for now: fresh money, or a partner gone.
+    #[serde(default)]
+    pub mood_bps: i64,
+    #[serde(default)]
+    pub mood_months: u32,
 }
 
 /// Where the player's bid stands once the final round opens.
@@ -343,7 +348,11 @@ impl World {
                             } else {
                                 0
                             };
-                            10_050 + style.aggression_bps + focus + self.rng.noise(450)
+                            10_050
+                                + style.aggression_bps
+                                + self.houses[house as usize % RIVAL_HOUSES].mood_bps
+                                + focus
+                                + self.rng.noise(450)
                                 - (spread - 400) * 2
                         }
                         Bidder::Player => 0,
@@ -557,7 +566,7 @@ impl World {
         })
     }
 
-    fn transfer_to_rival(&mut self, index: usize, bidder: Bidder, ev: i64) {
+    pub(crate) fn transfer_to_rival(&mut self, index: usize, bidder: Bidder, ev: i64) {
         self.record_house_exit(index, ev);
         let senior = self.economy.max_senior_millis();
         let spread = self.economy.credit_spread_bps;
@@ -585,6 +594,7 @@ impl World {
         }
         let company = &mut self.companies[index];
         company.process = None;
+        company.suitor = None;
         company.cooldown = 24;
         company.relationship = 0;
     }

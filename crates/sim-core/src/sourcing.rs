@@ -117,7 +117,18 @@ impl World {
             Stance::PriceMaximizer => -10,
             _ => 0,
         };
-        (base + warmth + stance).clamp(3, 95)
+        // A rival at the door makes the owner take the question seriously.
+        let courted = if target.suitor.is_some() { 10 } else { 0 };
+        (base + warmth + stance + courted + self.street_swing()).clamp(3, 95)
+    }
+
+    /// The relationship an unsolicited proposal needs: lower when a rival has already made one.
+    pub fn proposal_threshold(&self, company: usize) -> i64 {
+        if self.companies[company].suitor.is_some() {
+            crate::rivals::COUNTER_AT
+        } else {
+            PROPOSAL_AT
+        }
     }
 
     fn approach_block(&self, company: usize) -> Option<Block> {
@@ -153,7 +164,7 @@ impl World {
         if target.process.is_some() {
             return Err(CommandError::AlreadyForSale);
         }
-        if target.relationship < PROPOSAL_AT {
+        if target.relationship < self.proposal_threshold(company) {
             return Err(CommandError::NeedsRelationship);
         }
         match self.approach_block(company) {
@@ -176,6 +187,7 @@ impl World {
             self.post(MessageKind::OwnerDeclined, Some(company));
             return Ok(());
         }
+        self.companies[company].suitor = None;
         self.companies[company].process = Some(Process {
             reason,
             stage: Stage::Exclusive,
@@ -255,7 +267,7 @@ impl World {
             };
             return (Step::SignNda, block);
         }
-        if target.relationship >= PROPOSAL_AT && target.process.is_none() {
+        if target.relationship >= self.proposal_threshold(company) && target.process.is_none() {
             return (Step::Approach, self.approach_block(company).or(tired(1)));
         }
         (Step::Meet, tired(if target.is_abroad() { 2 } else { 1 }))

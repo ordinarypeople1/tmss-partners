@@ -396,6 +396,7 @@ impl World {
         }
         if kind == InitiativeKind::HeadcountReduction {
             self.trust(5, -3);
+            self.adjust_street(-3);
         }
         self.post(MessageKind::InitiativeDone { kind }, Some(company));
         if lost_customer {

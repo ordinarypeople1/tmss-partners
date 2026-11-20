@@ -471,7 +471,7 @@ function MapHubView() {
       return;
     }
     const shown = new Set(visible.map((row) => row.i));
-    const wanted = new Map<string, { row: CompanyRow; kind: "sale" | "held" | "ping"; tone?: string }>();
+    const wanted = new Map<string, { row: CompanyRow; kind: "sale" | "held" | "ping" | "suitor" | "taken"; tone?: string }>();
     for (const row of view.companies) {
       if (!shown.has(row.i)) {
         continue;
@@ -481,6 +481,12 @@ function MapHubView() {
       } else if (row.sale && (layer === "deals" || row.in_deal)) {
         const sale = row.sale;
         wanted.set(`sale-${row.i}-${sale.stage}-${sale.months_left}-${sale.rivals.length}-${row.in_deal}-${sale.bid_in}`, { row, kind: "sale" });
+      } else if (row.suitor) {
+        // A rival is at this owner's door.
+        wanted.set(`suitor-${row.i}-${row.suitor.months_left}`, { row, kind: "suitor" });
+      } else if (row.owner.kind === "sponsor" && row.owner.months_held <= 1) {
+        // A house planted its flag here last month.
+        wanted.set(`taken-${row.i}`, { row, kind: "taken" });
       }
     }
     for (const message of view.messages) {
@@ -523,6 +529,17 @@ function MapHubView() {
           flags.textContent = String(row.sale.rivals.length);
           pin.append(flags);
         }
+      }
+      if (kind === "suitor" && row.suitor) {
+        pin.style.setProperty("--house", HOUSES[row.suitor.house % HOUSES.length]);
+        pin.title = `${view.rivals[row.suitor.house] ?? ""} · ${t("map.legend.suitor")}`;
+        const count = document.createElement("b");
+        count.textContent = String(row.suitor.months_left);
+        pin.append(count);
+      }
+      if (kind === "taken" && row.owner.kind === "sponsor") {
+        pin.style.setProperty("--house", HOUSES[row.owner.house % HOUSES.length]);
+        pin.title = `${view.rivals[row.owner.house] ?? ""} · ${t("map.legend.taken")}`;
       }
       if (kind === "held") {
         pin.dataset.alert = String(row.alert);
@@ -656,6 +673,10 @@ function MapHubView() {
               <span>
                 <i data-shape="ring" />
                 {t("map.legend.inDeal")}
+              </span>
+              <span>
+                <i data-shape="flag" />
+                {t("map.legend.suitor")}
               </span>
               <span title={t("map.legend.rivals")}>
                 <Icon name="flag" size={12} />
@@ -797,6 +818,7 @@ function MapHubView() {
                             <span className="clip">{row.short}</span>
                             {row.held ? <i className="mark" data-kind="held" title={t("map.legend.held")} /> : null}
                             {row.in_deal ? <i className="mark" data-kind="deal" title={t("map.legend.inDeal")} /> : null}
+                            {row.suitor ? <i className="mark" data-kind="suitor" title={`${view.rivals[row.suitor.house] ?? ""} · ${t("map.legend.suitor")}`} /> : null}
                           </span>
                         </td>
                         <td className="c-next">{row.held ? null : <StepChip row={row} />}</td>

@@ -73,6 +73,13 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
             label={t("shell.reputation")}
             text={String(view.career.reputation)}
           />
+          <div className="street tip" tabIndex={0} data-tip={t("shell.tip.street")} data-tone={view.career.street > 0 ? "good" : view.career.street < 0 ? "bad" : undefined}>
+            <span>{t("shell.street")}</span>
+            <span className="street-bar" aria-hidden>
+              <i style={{ left: `${50 + Math.min(view.career.street, 0) * 1.25}%`, width: `${Math.abs(view.career.street) * 1.25}%` }} />
+            </span>
+            <b>{view.career.street > 0 ? `+${view.career.street}` : view.career.street}</b>
+          </div>
         </div>
         <div className="attention" title={t("shell.attentionLeft", view.attention)}>
           <span>{t("shell.attention")}</span>
@@ -268,7 +275,8 @@ function Wire() {
   const t = useT();
   const f = useFormat();
   const { view } = game;
-  const news = view.messages.filter((message) => message.news).slice(-8).reverse();
+  // The fund's own quarterly report is filed as news; the wire is for what others do.
+  const news = view.messages.filter((message) => message.news && message.type !== "quarter_report").slice(-8).reverse();
   const [index, setIndex] = useState(0);
   useEffect(() => {
     if (news.length < 2) {

@@ -111,6 +111,35 @@ pub enum MessageKind {
         reason: SaleReason,
     },
     OwnerDeclined,
+    /// A rival house has proposed to an owner the player knows.
+    RivalApproach {
+        house: u8,
+    },
+    LostToRival {
+        house: u8,
+        ev: i64,
+    },
+    RivalRebuffed {
+        house: u8,
+    },
+    HouseFundraised {
+        house: u8,
+        size: i64,
+    },
+    HousePartnerLeft {
+        house: u8,
+    },
+    HouseDistress {
+        house: u8,
+    },
+    OwnerSucceeded {
+        from: String,
+        to: String,
+    },
+    CeoMoved {
+        name: String,
+        from: String,
+    },
     SaleStarted {
         reason: SaleReason,
     },
@@ -421,6 +450,9 @@ pub struct World {
     pub achievements: Vec<Unlocked>,
     pub records: Records,
     pub fund_started_month: u32,
+    /// What owners say about the player to each other, −40 to 40.
+    #[serde(default)]
+    pub street: i64,
     next_message_id: u64,
     pub(crate) rng: Rng,
 }
@@ -478,6 +510,7 @@ impl World {
             achievements: Vec::new(),
             records: Records::default(),
             fund_started_month: 0,
+            street: 0,
             next_message_id: 0,
             rng,
         };
@@ -796,6 +829,7 @@ impl World {
         self.portfolio_step(closes_quarter);
         self.refinance_maturities();
         self.market_step();
+        self.rivals_step();
         if closes_quarter {
             self.close_quarter();
             self.update_lps();
@@ -1248,10 +1282,18 @@ pub mod tests {
     #[test]
     fn figures_are_ranges_until_an_nda() {
         let mut world = world(5);
-        run(&mut world, 12);
-        let index = (0..world.companies.len())
-            .find(|index| world.process_visible(*index))
-            .expect("something is for sale");
+        // Play on until something at home is for sale: deals abroad are a principal's.
+        let mut index = None;
+        for _ in 0..36 {
+            index = (0..world.companies.len()).find(|index| {
+                world.process_visible(*index) && !world.companies[*index].is_abroad()
+            });
+            if index.is_some() {
+                break;
+            }
+            run(&mut world, 1);
+        }
+        let index = index.expect("something at home is for sale");
         let before = world.company_view(index);
         assert!(before["revenue"][0].as_i64() < before["revenue"][1].as_i64());
         assert!(before.get("financials").is_none());
@@ -1584,5 +1626,52 @@ pub mod tests {
                 (Step::SignNda, Some(Block::CrossBorderLocked))
             );
         }
+    }
+
+    #[test]
+    fn the_market_moves_without_the_player() {
+        let mut world = world(11);
+        for _ in 0..96 {
+            let _ = world.apply(Command::AdvanceMonth);
+        }
+        let kinds: Vec<&MessageKind> = world.messages.iter().map(|message| &message.kind).collect();
+        assert!(kinds
+            .iter()
+            .any(|kind| matches!(kind, MessageKind::HouseFundraised { .. })));
+        assert!(kinds
+            .iter()
+            .any(|kind| matches!(kind, MessageKind::HousePartnerLeft { .. })));
+        // Houses buy from owners who never ran a process.
+        assert!(world.houses.iter().map(|house| house.deals).sum::<u32>() > 0);
+        assert!(world.street.abs() <= 40);
+    }
+
+    #[test]
+    fn a_rival_at_the_door_lets_a_trusted_player_counter() {
+        let mut world = world(5);
+        let company = world
+            .companies
+            .iter()
+            .position(|company| {
+                matches!(company.owner, crate::company::Owner::Founder { .. })
+                    && company.process.is_none()
+                    && !company.is_abroad()
+            })
+            .expect("a founder company at home");
+        world.companies[company].relationship = 45;
+        assert_eq!(world.next_step(company).0, crate::sourcing::Step::Meet);
+        world.companies[company].suitor = Some(crate::rivals::Suitor {
+            house: 0,
+            months_left: 3,
+        });
+        assert_eq!(world.proposal_threshold(company), crate::rivals::COUNTER_AT);
+        if world.sale_motive(company).is_some() {
+            assert_eq!(world.next_step(company).0, crate::sourcing::Step::Approach);
+        }
+        // Left alone, the owner answers the rival within three months.
+        for _ in 0..3 {
+            let _ = world.apply(Command::AdvanceMonth);
+        }
+        assert!(world.companies[company].suitor.is_none());
     }
 }

@@ -597,5 +597,14 @@
   "talk.meet.eager.2": "我在找能尽快成交的对象。",
   "talk.meet.sale": "流程由顾问推进。不过熟悉的买方看起来总是不一样。",
   "talk.yes": "好。给您四个月，看看数字能不能对上。",
-  "talk.no": "谢谢，但现在不行。这件事先放一放吧。"
+  "talk.no": "谢谢，但现在不行。这件事先放一放吧。",
+  "shell.street": "业内口碑",
+  "shell.tip.street": "所有者之间对你的评价。按约定价格成交会上升；撕毁独家谈判或裁员会下降。影响会面效果和提议接受率。",
+  "journey.suitor": "{house} 已提出收购 · {months, plural, other {#个月}}内答复",
+  "journey.counter": "反提议",
+  "talk.meet.suitor": "{house} 给了我一个方案，条件不差。三个月内我得答复。",
+  "talk.street.good": "我听说你们口碑不错，说到做到。",
+  "talk.street.bad": "坦白说，业内对你们的评价不全是好话。",
+  "map.legend.suitor": "对手提议",
+  "map.legend.taken": "刚被收购"
 }

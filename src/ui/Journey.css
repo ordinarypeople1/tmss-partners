@@ -405,3 +405,22 @@
     min-height: 46px;
   }
 }
+
+.action-suitor {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  animation: rise 0.4s var(--ease) backwards;
+}
+.talk-lines {
+  display: grid;
+  gap: 8px;
+}
