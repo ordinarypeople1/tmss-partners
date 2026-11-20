@@ -1,6 +1,6 @@
 {
   "msg.welcome.title": "입사를 환영합니다",
-  "msg.welcome.body": "Fund III가 오늘 운용을 시작합니다. 약정 $7.5억, 포트폴리오는 비어 있습니다. 지도에서 매물을 찾고, NDA를 맺고, 실사를 돌려 IC에 올리세요.",
+  "msg.welcome.body": "Fund III가 오늘 운용을 시작합니다. 약정 $750M, 포트폴리오는 비어 있습니다. 지도에서 매물을 찾고, NDA를 맺고, 실사를 돌려 IC에 올리세요.",
   "msg.rate_changed.title": "기준금리 {to}",
   "msg.rate_changed.body": "{from}에서 {to}로 움직였습니다.",
   "msg.phase_changed.title": "경기 국면: {to}",
@@ -153,7 +153,7 @@
   "achievement.recession_buyer": "역발상",
   "achievement.recession_buyer.detail": "침체기에 인수했습니다.",
   "achievement.big_game": "큰 사냥",
-  "achievement.big_game.detail": "기업가치 $3억 이상의 딜을 닫았습니다.",
+  "achievement.big_game.detail": "기업가치 $300M 이상의 딜을 닫았습니다.",
   "achievement.dealmaker": "딜메이커",
   "achievement.dealmaker.detail": "딜 10건을 닫았습니다.",
   "achievement.networker": "인맥",

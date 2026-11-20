@@ -90,5 +90,15 @@
   "fundscreen.gp.wealth": "Personal wealth available",
   "fundscreen.gp.amount": "Amount to commit",
   "fundscreen.gp.commit": "Commit",
-  "fundscreen.gp.note": "Your own money alongside the investors'. It comes back at the fund's final multiple at the end of the term. Only during the investment period, and investors like it."
+  "fundscreen.gp.note": "Your own money alongside the investors'. It comes back at the fund's final multiple at the end of the term. Only during the investment period, and investors like it.",
+  "money.usd.zero": "$0",
+  "money.usd.t": "${value, number, ::.##}T",
+  "money.usd.b": "${value, number, ::.##}B",
+  "money.usd.m": "${value, number, ::.#}M",
+  "money.usd.k": "${value, number, ::integer}K",
+  "money.short.zero": "0",
+  "money.short.t": "{value, number, ::.##}T",
+  "money.short.b": "{value, number, ::.##}B",
+  "money.short.m": "{value, number, ::.#}M",
+  "money.short.k": "{value, number, ::integer}K"
 }
