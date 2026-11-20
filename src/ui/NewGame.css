@@ -6,7 +6,7 @@
   place-items: center;
   padding: 16px;
   overflow: auto;
-  background: rgb(31 41 37 / 55%);
+  background: var(--scrim);
 }
 .newgame {
   width: min(560px, 100%);
@@ -102,7 +102,7 @@
   padding: 8px 10px;
   border-radius: 8px;
   background: var(--warn-soft);
-  color: #7a5200;
+  color: var(--warn-ink);
   font-size: 0.86rem;
 }
 .newgame-actions {

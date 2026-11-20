@@ -92,7 +92,7 @@
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgb(255 253 247 / 92%);
+  background: color-mix(in srgb, var(--raised) 92%, transparent);
   font-size: 0.78rem;
 }
 .map-legend span,
@@ -252,15 +252,15 @@
 }
 @keyframes pin-pulse {
   50% {
-    box-shadow: 0 0 0 7px rgb(196 85 45 / 25%);
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 }
 @keyframes pin-ping {
   from {
-    box-shadow: 0 0 0 0 rgb(36 48 44 / 45%);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 45%, transparent);
   }
   to {
-    box-shadow: 0 0 0 14px rgb(36 48 44 / 0%);
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--ink) 0%, transparent);
   }
 }
 

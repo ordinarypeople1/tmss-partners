@@ -41,7 +41,7 @@
 .dr-steps li[data-state="now"] {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: #8f3a1b;
+  color: var(--accent-ink);
 }
 .dr-steps li[data-state="now"] i {
   background: var(--accent);
@@ -135,7 +135,7 @@
   color: var(--good);
 }
 .dr [data-tone="warn"]:is(b, p) {
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .dr [data-tone="bad"]:is(b, p) {
   color: var(--bad);
@@ -292,7 +292,7 @@
 }
 .dr-outcome[data-tone="warn"] {
   background: var(--warn-soft);
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .dr-outcome[data-tone="bad"] {
   background: var(--bad-soft);
@@ -454,7 +454,7 @@
   color: var(--good);
 }
 .dr-note[data-tone="warn"] {
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .dr-note[data-tone="bad"] {
   color: var(--bad);
@@ -463,7 +463,7 @@
   padding: 6px 9px;
   border-radius: 8px;
   background: var(--accent-soft);
-  color: #8f3a1b;
+  color: var(--accent-ink);
 }
 .card[data-final] {
   border-color: var(--bad);
@@ -521,7 +521,7 @@
   color: var(--good);
 }
 .dr-rival small[data-tone="warn"] {
-  color: #7a5200;
+  color: var(--warn-ink);
   font-weight: 700;
 }
 .dr-round {

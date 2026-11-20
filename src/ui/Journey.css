@@ -247,34 +247,34 @@
 }
 
 /* Relationship in a table cell: three pips and an intent dot. */
-.pips {
+.rel-pips {
   display: inline-flex;
   gap: 3px;
   align-items: center;
 }
-.pips i {
+.rel-pips i {
   width: 9px;
   height: 9px;
   border: 1.5px solid var(--line);
   border-radius: 2px;
 }
-.pips i[data-on="true"] {
+.rel-pips i[data-on="true"] {
   border-color: var(--good);
   background: var(--good);
 }
-.pips b {
+.rel-pips b {
   width: 9px;
   height: 9px;
   margin-left: 4px;
   border-radius: 50%;
   background: var(--line);
 }
-.pips b[data-intent="thinking"] {
+.rel-pips b[data-intent="thinking"] {
   background: var(--warn);
 }
-.pips b[data-intent="open"] {
+.rel-pips b[data-intent="open"] {
   background: var(--accent);
 }
-.pips b[data-intent="eager"] {
+.rel-pips b[data-intent="eager"] {
   background: var(--good);
 }

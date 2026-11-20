@@ -567,5 +567,8 @@
   "term.evShort": "EV",
   "journey.mark.intent": "Intent",
   "journey.mark.early": "Early notice",
-  "journey.mark.propose": "Propose"
+  "journey.mark.propose": "Propose",
+  "shell.theme.light": "Light",
+  "shell.theme.dark": "Dark",
+  "shell.theme.label": "Theme"
 }

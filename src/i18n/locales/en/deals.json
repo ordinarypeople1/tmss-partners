@@ -77,5 +77,7 @@
   "deals.next.raise_bid": "Raise bid",
   "deals.unit": "Amounts in {unit}",
   "deals.courting.title": "Owners you are courting",
-  "deals.courting.empty": "You have met no owners yet. Pick a company on the map and meet its owner. At relationship 60 you can propose a deal even when nothing is for sale."
+  "deals.courting.empty": "You have met no owners yet. Pick a company on the map and meet its owner. At relationship 60 you can propose a deal even when nothing is for sale.",
+  "deals.view.cards": "Cards",
+  "deals.view.table": "Table"
 }

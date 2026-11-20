@@ -567,5 +567,8 @@
   "term.evShort": "EV",
   "journey.mark.intent": "意向",
   "journey.mark.early": "先行通知",
-  "journey.mark.propose": "直接提案"
+  "journey.mark.propose": "直接提案",
+  "shell.theme.light": "ライト",
+  "shell.theme.dark": "ダーク",
+  "shell.theme.label": "テーマ"
 }

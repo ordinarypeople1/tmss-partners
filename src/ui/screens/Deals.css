@@ -77,7 +77,7 @@
   background: var(--line);
 }
 .deals-pips[data-kind="attention"] i[data-on] {
-  background: #f0b23a;
+  background: var(--amber);
 }
 
 .deals-board {
@@ -188,7 +188,7 @@
   border-color: var(--warn);
   border-style: dashed;
   background: var(--warn-soft);
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .deals-streams i[data-state="done"] {
   border-color: var(--good);
@@ -284,7 +284,7 @@
 .deals-chip[aria-pressed="true"] {
   border-color: var(--ink);
   background: var(--ink);
-  color: #fff;
+  color: var(--panel);
 }
 .deals-chip[aria-pressed="true"] small {
   color: var(--line);
@@ -419,7 +419,7 @@
 .deals-country[data-locked] {
   border-color: var(--warn);
   background: var(--warn-soft);
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .deals-table tr[data-locked] .name {
   color: var(--ink-soft);
@@ -857,5 +857,156 @@
   .deals-lock-note {
     align-items: flex-start;
     line-height: 1.4;
+  }
+}
+
+.deals-card-art {
+  flex: none;
+  order: 3;
+  margin: -8px -6px -8px 0;
+}
+.deals-card-name {
+  flex: 1;
+  min-width: 0;
+}
+.rel-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+.rel-head .building {
+  margin: -8px -4px -8px 0;
+}
+.deals-view {
+  display: inline-flex;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.deals-view button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.deals-view button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--panel);
+}
+
+/* Companies for sale as cards. */
+.sale-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+.sale-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--tone, var(--muted)) 9%, var(--raised)), var(--raised) 55%);
+  box-shadow: var(--shadow);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.sale-card[data-tone="bad"] {
+  --tone: var(--bad);
+}
+.sale-card[data-tone="warn"] {
+  --tone: var(--warn);
+}
+.sale-card[data-tone="good"] {
+  --tone: var(--good);
+}
+.sale-card:hover,
+.sale-card[aria-pressed="true"] {
+  border-color: var(--tone, var(--ink));
+  transform: translateY(-2px);
+}
+.sale-card[data-locked="true"] {
+  opacity: 0.7;
+}
+.sale-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: -22px;
+}
+.sale-card-status {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.sale-card-status i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tone, var(--muted));
+}
+.sale-card-top .building {
+  margin: -12px -8px 0 0;
+}
+.sale-card-name {
+  display: grid;
+  min-width: 0;
+}
+.sale-card-name b {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.sale-card-name small {
+  color: var(--muted);
+}
+.sale-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  min-height: 24px;
+}
+.sale-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.sale-card-stats span {
+  display: grid;
+  min-width: 0;
+}
+.sale-card-stats small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.sale-card-stats b {
+  font-size: 0.92rem;
+}
+.sale-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+@media (max-width: 760px) {
+  .sale-cards {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

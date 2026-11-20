@@ -77,7 +77,7 @@ export function AccessPips({ row }: { row: CompanyRow }) {
   const t = useT();
   const level = ACCESS_ORDER.indexOf(row.access);
   return (
-    <span className="pips" title={`${t(`access.${row.access}`)} · ${row.relationship}`}>
+    <span className="rel-pips" title={`${t(`access.${row.access}`)} · ${row.relationship}`}>
       {[1, 2, 3].map((step) => (
         <i key={step} data-on={level >= step} />
       ))}

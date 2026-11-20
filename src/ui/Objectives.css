@@ -46,7 +46,7 @@
   width: calc(100% + 12px);
 }
 .objective:hover {
-  background: rgb(255 255 255 / 7%);
+  background: color-mix(in srgb, var(--side-ink) 7%, transparent);
 }
 .objective-text {
   display: grid;
@@ -61,10 +61,10 @@
   font-variant-numeric: tabular-nums;
 }
 .objective .ring circle:first-child {
-  stroke: rgb(255 255 255 / 22%);
+  stroke: color-mix(in srgb, var(--side-ink) 22%, transparent);
 }
 .objective .ring circle + circle {
-  stroke: #f0b23a;
+  stroke: var(--amber);
 }
 .objective-mark {
   display: inline-grid;
@@ -73,7 +73,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #4fa37d;
+  background: var(--good);
   color: var(--side);
 }
 .objective[data-state="met"] .objective-text > span {
@@ -82,17 +82,17 @@
 }
 .objective[data-state="kept"] .objective-mark {
   background: transparent;
-  box-shadow: inset 0 0 0 1.5px #4fa37d;
-  color: #6fc49b;
+  box-shadow: inset 0 0 0 1.5px var(--good);
+  color: var(--good);
 }
 .objective[data-state="kept"] small {
-  color: #6fc49b;
+  color: var(--good);
 }
 .objective[data-state="broken"] .objective-mark {
-  background: #d9695c;
+  background: var(--bad);
 }
 .objective[data-state="broken"] small {
-  color: #f0938a;
+  color: var(--bad);
 }
 
 /* In the phone menu sheet: thumb-sized rows, larger type. */

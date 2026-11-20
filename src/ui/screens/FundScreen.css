@@ -34,7 +34,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: rgb(36 48 44 / 14%);
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
 }
 .fundscreen .clock-now {
   position: absolute;

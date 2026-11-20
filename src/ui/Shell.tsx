@@ -1,3 +1,4 @@
+import { applyTheme, currentTheme, type Theme } from "./theme";
 import { useState, type ReactNode } from "react";
 import { LOCALES, type Locale } from "../i18n/config";
 import { useLocale } from "../i18n/LocaleProvider";
@@ -93,6 +94,7 @@ function Settings({ onNewGame }: { onNewGame: () => void }) {
   const t = useT();
   const [muted, setMutedState] = useState(isMuted);
   const { locale, setLocale } = useLocale();
+  const [theme, setTheme] = useState<Theme>(currentTheme);
   return (
     <>
       <select className="language" value={locale} aria-label={t("language.label")} onChange={(event) => setLocale(event.target.value as Locale)}>
@@ -116,6 +118,18 @@ function Settings({ onNewGame }: { onNewGame: () => void }) {
           }}
         >
           {muted ? t("shell.sound.off") : t("shell.sound.on")}
+        </button>
+        <button
+          type="button"
+          className="btn ghost small"
+          aria-label={t("shell.theme.label")}
+          onClick={() => {
+            const next = theme === "dark" ? "light" : "dark";
+            applyTheme(next, true);
+            setTheme(next);
+          }}
+        >
+          {t(`shell.theme.${theme}`)}
         </button>
       </div>
     </>

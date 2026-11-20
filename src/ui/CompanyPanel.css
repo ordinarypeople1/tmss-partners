@@ -572,7 +572,7 @@
     text-align: center;
   }
   .cp-dock-note[data-tone="warn"] {
-    color: #7a5200;
+    color: var(--warn-ink);
   }
   .cp-dock-note[data-tone="bad"] {
     color: var(--bad);
@@ -583,4 +583,9 @@
   .cp-three .sparkline {
     zoom: 0.86;
   }
+}
+
+.cp-art {
+  flex: none;
+  margin: -8px 0 -6px -6px;
 }

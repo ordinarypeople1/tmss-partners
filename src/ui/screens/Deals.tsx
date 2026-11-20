@@ -1,10 +1,11 @@
+import { Building } from "../Building";
 import { useMemo, useState } from "react";
 import { useT, type Translate } from "../../i18n/useT";
 import { DD_STREAMS, type CompanyRow, type DealView, type Stage, type View } from "../../sim/types";
 import { Funnel, Meter, Ring, Stat, Tag } from "../charts";
 import { mid, monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
-import { IntentTag, StepChip } from "../Journey";
+import { AccessPips, IntentTag, StepChip } from "../Journey";
 import { Icon } from "../icons";
 import { bidderName } from "../messages";
 import "./Deals.css";
@@ -113,6 +114,7 @@ export function Deals() {
   const [reach, setReach] = useState(false);
   const [country, setCountry] = useState<CountryFilter>("");
   const [finalOnly, setFinalOnly] = useState(false);
+  const [board, setBoard] = useState<"cards" | "table">("cards");
   /** Deals abroad open at the rank of principal. */
   const abroadLocked = view.career.rank === "vice_president";
   const insightOf = (id: string) => view.insight[view.economy.sectors.findIndex((item) => item.id === id)] ?? 0;
@@ -315,7 +317,10 @@ export function Deals() {
           <div className="rel-list">
             {courting.map((row) => (
               <button key={row.i} type="button" className="rel-item" onClick={() => game.select(row.i)}>
-                <strong className="clip" title={row.name}>{row.short}</strong>
+                <span className="rel-head">
+                  <strong className="clip" title={row.name}>{row.short}</strong>
+                  <Building sector={row.sector} seed={row.i} size={60} />
+                </span>
                 <Meter value={row.relationship} max={100} markers={[20, 40, 60]} tone={row.relationship >= 60 ? "good" : row.relationship >= 40 ? "accent" : "ink"} label={t(`access.${row.access}`)} text={f.integer(row.relationship)} />
                 <span className="row">
                   <IntentTag intent={row.intent} />
@@ -365,6 +370,14 @@ export function Deals() {
           <Icon name="table" size={15} />
           {t("deals.board.title")}
           <small className="muted">{filtered ? `${shown.length}/${forSale.length}` : f.integer(forSale.length)}</small>
+          <span className="deals-view" role="group">
+            <button type="button" aria-pressed={board === "cards"} aria-label={t("deals.view.cards")} title={t("deals.view.cards")} onClick={() => setBoard("cards")}>
+              <Icon name="layers" size={14} />
+            </button>
+            <button type="button" aria-pressed={board === "table"} aria-label={t("deals.view.table")} title={t("deals.view.table")} onClick={() => setBoard("table")}>
+              <Icon name="table" size={14} />
+            </button>
+          </span>
         </h2>
         <div className="deals-filters">
           <label className="deals-search">
@@ -439,6 +452,12 @@ export function Deals() {
         ) : shown.length === 0 ? (
           <div className="empty">
             <p>{t("deals.board.noMatch")}</p>
+          </div>
+        ) : board === "cards" ? (
+          <div className="sale-cards">
+            {shown.map((row) => (
+              <SaleCard key={row.i} row={row} locked={row.country !== HOME && abroadLocked} reach={withinReach(row)} />
+            ))}
           </div>
         ) : (
           <div className="deals-table">
@@ -605,6 +624,65 @@ export function Deals() {
   );
 }
 
+/** A company for sale as a card: the building, the clock, three figures and the step to take. */
+function SaleCard({ row, locked, reach }: { row: CompanyRow; locked: boolean; reach: boolean }) {
+  const game = useGame();
+  const t = useT();
+  const f = useFormat();
+  const sale = row.sale;
+  if (!sale) {
+    return null;
+  }
+  const tone = sale.months_left <= 1 ? "bad" : sale.stage === "bidding" ? "warn" : sale.stage === "exclusive" ? "good" : "muted";
+  return (
+    <button type="button" className="sale-card" data-tone={tone} data-locked={locked ? "true" : undefined} aria-pressed={game.selected === row.i} onClick={() => game.select(row.i)}>
+      <span className="sale-card-top">
+        <span className="sale-card-status">
+          <i />
+          {t(`stage.${sale.stage}`)}
+          <Ring fraction={sale.months_left / STAGE_MONTHS} size={24} tone={monthsTone(sale.months_left)}>
+            {String(sale.months_left)}
+          </Ring>
+        </span>
+        <Building sector={row.sector} seed={row.i} size={112} />
+      </span>
+      <span className="sale-card-name">
+        <b className="clip" title={row.name}>{row.short}</b>
+        <small className="clip">{`${t(`sector.${row.sector}`)} · ${placeText(t, row)}`}</small>
+      </span>
+      <span className="sale-card-tags">
+        <Tag tone="muted">{t(`reason.${sale.reason}`)}</Tag>
+        {sale.final_round ? (
+          <Tag tone="bad" icon={<Icon name="gavel" size={12} />}>
+            {t("deals.final.tag")}
+          </Tag>
+        ) : null}
+        {locked ? <Tag tone="warn" icon={<Lock size={11} />}>{t("deals.lockedShort")}</Tag> : null}
+        {reach ? null : <Tag tone="muted">{t("deals.outOfReach")}</Tag>}
+        <Rivals row={row} />
+      </span>
+      <span className="sale-card-stats">
+        <span>
+          <small>{t("term.revenue")}</small>
+          <b>{f.shortFigure(row.revenue)}</b>
+        </span>
+        <span>
+          <small>{t("term.ebitda")}</small>
+          <b>{f.shortFigure(row.ebitda)}</b>
+        </span>
+        <span>
+          <small>{t("term.evShort")}</small>
+          <b>{f.shortFigure(row.ev)}</b>
+        </span>
+      </span>
+      <span className="sale-card-foot">
+        <AccessPips row={row} />
+        <StepChip row={row} />
+      </span>
+    </button>
+  );
+}
+
 /** One flag per rival: houses, then strategic buyers. */
 function Rivals({ row }: { row: CompanyRow }) {
   const { view } = useGame();
@@ -646,8 +724,8 @@ function DealCard({ item }: { item: MyDeal }) {
       onClick={() => game.select(row.i)}
     >
       <span className="deals-card-head">
-        <span className="deals-card-icon">
-          <Icon name={row.sector} size={16} />
+        <span className="deals-card-art">
+          <Building sector={row.sector} seed={row.i} size={64} />
         </span>
         <span className="deals-card-name">
           <b className="clip" title={row.name}>{row.short}</b>

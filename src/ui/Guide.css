@@ -6,7 +6,7 @@
   width: min(270px, calc(100% - 24px));
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgb(255 253 247 / 95%);
+  background: color-mix(in srgb, var(--raised) 95%, transparent);
   box-shadow: var(--shadow);
 }
 .guide-head {

@@ -567,5 +567,8 @@
   "term.evShort": "EV",
   "journey.mark.intent": "의향",
   "journey.mark.early": "선통보",
-  "journey.mark.propose": "직접 제안"
+  "journey.mark.propose": "직접 제안",
+  "shell.theme.light": "라이트",
+  "shell.theme.dark": "다크",
+  "shell.theme.label": "화면 테마"
 }

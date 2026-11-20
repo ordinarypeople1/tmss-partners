@@ -1,3 +1,4 @@
+import { Building } from "../Building";
 import { useState, type KeyboardEvent } from "react";
 import "./Portfolio.css";
 import { useT, type Translate } from "../../i18n/useT";
@@ -121,11 +122,11 @@ function HoldingCard({ item, active, onOpen }: { item: Item; active: boolean; on
       onKeyDown={onKeyDown}
     >
       <header className="pf-card-head">
-        <span className="pf-sector">
-          <Icon name={company.sector} size={20} />
+        <span className="pf-art">
+          <Building sector={company.sector} seed={company.i} size={104} />
         </span>
         <div className="pf-card-name">
-          <strong>{company.name}</strong>
+          <strong className="clip" title={company.name}>{company.short}</strong>
           <span className="muted">
             {t(`sector.${company.sector}`)} · {t(`admin1.${company.admin1}`)}
           </span>

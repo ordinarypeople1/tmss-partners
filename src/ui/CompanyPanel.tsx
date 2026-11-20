@@ -12,6 +12,7 @@ import {
   Tag,
   SERIES,
 } from "./charts";
+import { Building } from "./Building";
 import { DealRoom, dealNeedsAction } from "./DealRoom";
 import { useFormat, type Format } from "./format";
 import { useGame, type Game } from "./game";
@@ -97,8 +98,8 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
     <div className="cp">
       <header className="cp-head">
         <div className="cp-title">
-          <span className="cp-sector" data-sector={company.sector}>
-            <Icon name={company.sector} size={22} />
+          <span className="cp-art">
+            <Building sector={company.sector} seed={company.i} size={76} />
           </span>
           <div className="cp-name">
             <h2>{company.name}</h2>

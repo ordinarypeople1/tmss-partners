@@ -1,3 +1,4 @@
+import { currentTheme, onTheme, token, type Theme } from "./theme";
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -22,30 +23,45 @@ const LAYERS: { id: Layer; icon: string }[] = [
   { id: "economy", icon: "market" },
 ];
 
-/** Hex copies of the tokens in styles.css: MapLibre paint cannot read CSS variables. */
-const C = {
-  sea: "#dfe8e4",
-  land: "#efe9dc",
-  home: "#f7f2e6",
-  locked: "#e6dfd0",
-  border: "#cdbfa3",
-  ink: "#24302c",
-  muted: "#8a958d",
-  accent: "#c4552d",
-  good: "#2f7d5b",
-  bad: "#b3382c",
-  warn: "#c08a1e",
-  held: "#1f2925",
+/** MapLibre paint cannot read CSS variables, so the tokens are copied here each time the theme changes. */
+const C = { sea: "", land: "", home: "", locked: "", border: "", ink: "", muted: "", accent: "", good: "", bad: "", warn: "", held: "" };
+const SERIES: string[] = [];
+const HOUSES = ["#5b78c8", "#a56bb0", "#3d9aa0", "#6fa04a", "#c07a45", "#4a86c0", "#c0608a", "#6a8f72"];
+const HEAT: string[] = [];
+const HEAT_BY_THEME: Record<Theme, string[]> = {
+  light: ["#f3f5f9", "#dbe5fb", "#bccffa", "#93b0f6", "#638bf0", "#2f62e8"],
+  dark: ["#232a35", "#263a66", "#2a4a90", "#325cb8", "#3f6ddc", "#4d7df5"],
 };
-const SERIES = ["#2f6f73", "#c4552d", "#c08a1e", "#5b6aa8", "#8a5a83", "#6f8f3f"];
-const HOUSES = ["#5b6aa8", "#8a5a83", "#2f6f73", "#6f8f3f", "#a8683a", "#3f6f9a", "#9a4f6a", "#58705a"];
-const HEAT = ["#f1ead9", "#ecd9b9", "#e6c191", "#dda06a", "#d07c47", "#c4552d"];
-const STAGE_COLOR: Record<Stage, string> = {
-  preparing: C.good,
-  marketing: C.warn,
-  bidding: C.accent,
-  exclusive: C.good,
-};
+const STAGE_COLOR: Record<Stage, string> = { preparing: "", marketing: "", bidding: "", exclusive: "" };
+
+function readPalette(theme: Theme) {
+  Object.assign(C, {
+    sea: token("--map-sea"),
+    land: token("--map-land"),
+    home: token("--map-home"),
+    locked: token("--map-locked"),
+    border: token("--map-border"),
+    ink: token("--ink"),
+    muted: token("--muted"),
+    accent: token("--accent"),
+    good: token("--good"),
+    bad: token("--bad"),
+    warn: token("--warn"),
+    held: token("--ink"),
+  });
+  SERIES.splice(0, SERIES.length, ...["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(token));
+  HEAT.splice(0, HEAT.length, ...HEAT_BY_THEME[theme]);
+  Object.assign(STAGE_COLOR, { preparing: C.good, marketing: C.warn, bidding: C.bad, exclusive: C.good });
+}
+
+/** The map is rebuilt when the theme changes: its paint is set once, from the tokens of that theme. */
+export function MapHub() {
+  const [theme, setTheme] = useState<Theme>(currentTheme);
+  useEffect(() => onTheme(setTheme), []);
+  readPalette(theme);
+  return <MapHubView key={theme} />;
+}
+
 const HOME_BOUNDS: [[number, number], [number, number]] = [
   [-125, 24.5],
   [-66.5, 49.5],
@@ -132,7 +148,7 @@ const OWNER_ICON: Record<string, string> = {
 
 type SortKey = "name" | "sector" | "admin1" | "sale" | "revenue" | "ebitda" | "ev" | "relationship";
 
-export function MapHub() {
+function MapHubView() {
   const game = useGame();
   const t = useT();
   const f = useFormat();

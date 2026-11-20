@@ -1,37 +1,81 @@
-/* Deal Atlas — warm paper, dark ink, one terracotta accent.
+/* Deal Atlas — monochrome surfaces in a light and a dark theme, one blue accent, and
+   colour kept for meaning (good, bad, warning) and for the illustrations.
    Tokens first, then the shell, then shared parts (cards, tables, buttons,
    tags, stats, tabs), then the chart kit. Screen files add their own rules
    in src/ui/screens/*.css and never redefine a token. */
 
 :root {
-  --paper: #f3ecdf;
-  --panel: #fbf7ee;
-  --raised: #fffdf7;
-  --ink: #24302c;
-  --ink-soft: #3d4a45;
-  --muted: #6b776f;
-  --line: #d9d0bd;
-  --line-soft: #e8e0cf;
-  --accent: #c4552d;
-  --accent-soft: #f4dccf;
-  --good: #2f7d5b;
-  --good-soft: #dcebe1;
-  --bad: #b3382c;
-  --bad-soft: #f3d9d4;
-  --warn: #b97f14;
-  --warn-soft: #f4e6c4;
-  --s1: #2f6f73;
-  --s2: #c4552d;
-  --s3: #c08a1e;
-  --s4: #5b6aa8;
-  --s5: #8a5a83;
-  --s6: #6f8f3f;
-  --side: #1f2925;
-  --side-ink: #e9e2d2;
-  --side-muted: #9aa69e;
+  --paper: #f2f3f5;
+  --panel: #ffffff;
+  --raised: #ffffff;
+  --ink: #14171c;
+  --ink-soft: #2d323b;
+  --muted: #6c7380;
+  --line: #dcdfe5;
+  --line-soft: #ebedf1;
+  --accent: #2f62e8;
+  --accent-ink: #1d3fae;
+  --good: #1f9d68;
+  --bad: #d64538;
+  --warn: #c98a12;
+  --warn-ink: #7a5200;
+  --amber: #f0b23a;
+  --s1: #3d7fe0;
+  --s2: #e2703a;
+  --s3: #d6a31f;
+  --s4: #7a69d6;
+  --s5: #c75c9c;
+  --s6: #46a868;
+  --side: #fafafb;
+  --side-ink: #2d323b;
+  --side-strong: #14171c;
+  --side-muted: #7b828e;
+  --map-sea: #e4e7ec;
+  --map-land: #f7f8fa;
+  --map-home: #ffffff;
+  --map-locked: #eceef2;
+  --map-border: #c5cad3;
+  --scrim: rgb(20 23 28 / 55%);
+  --shadow: 0 1px 2px rgb(20 23 28 / 7%), 0 6px 18px rgb(20 23 28 / 6%);
+  --soft: 13%;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: #0b0e13;
+  --panel: #141920;
+  --raised: #1a2029;
+  --ink: #eceff4;
+  --ink-soft: #c5cad3;
+  --muted: #8a92a0;
+  --line: #2a313c;
+  --line-soft: #202630;
+  --accent: #4d7df5;
+  --accent-ink: #a9c1ff;
+  --good: #35c285;
+  --bad: #f0665a;
+  --warn: #e3aa3c;
+  --warn-ink: #f2c871;
+  --side: #0f1319;
+  --side-ink: #c5cad3;
+  --side-strong: #ffffff;
+  --side-muted: #7f8794;
+  --map-sea: #0b0e13;
+  --map-land: #1a2029;
+  --map-home: #232a35;
+  --map-locked: #151a21;
+  --map-border: #3a4350;
+  --scrim: rgb(0 0 0 / 65%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 22px rgb(0 0 0 / 35%);
+  --soft: 20%;
+  color-scheme: dark;
+}
+:root {
+  --accent-soft: color-mix(in srgb, var(--accent) var(--soft), var(--panel));
+  --good-soft: color-mix(in srgb, var(--good) var(--soft), var(--panel));
+  --bad-soft: color-mix(in srgb, var(--bad) var(--soft), var(--panel));
+  --warn-soft: color-mix(in srgb, var(--warn) var(--soft), var(--panel));
   --radius: 12px;
   --gap: 12px;
-  --shadow: 0 1px 2px rgb(36 48 44 / 8%), 0 6px 18px rgb(36 48 44 / 6%);
 
   color: var(--ink);
   background: var(--paper);
@@ -118,6 +162,7 @@ th,
   flex-direction: column;
   gap: 14px;
   padding: 16px 10px 12px;
+  border-right: 1px solid var(--line);
   background: var(--side);
   color: var(--side-ink);
 }
@@ -127,6 +172,7 @@ th,
   padding: 0 8px 8px;
 }
 .brand strong {
+  color: var(--side-strong);
   font-size: 1.25rem;
   letter-spacing: -0.01em;
 }
@@ -153,11 +199,12 @@ th,
   cursor: pointer;
 }
 .nav-item:hover {
-  background: rgb(255 255 255 / 7%);
+  background: color-mix(in srgb, var(--side-ink) 7%, transparent);
 }
 .nav-item[aria-current="page"] {
-  background: var(--accent);
-  color: #fff;
+  background: color-mix(in srgb, var(--side-ink) 12%, transparent);
+  color: var(--side-strong);
+  font-weight: 700;
 }
 .nav-item span {
   flex: 1;
@@ -166,12 +213,12 @@ th,
   min-width: 20px;
   padding: 1px 6px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 16%);
+  background: color-mix(in srgb, var(--side-ink) 16%, transparent);
   font-size: 0.75rem;
   text-align: center;
 }
 .badge[data-urgent] {
-  background: #f0b23a;
+  background: var(--amber);
   color: #2a1d00;
 }
 .sidebar-foot {
@@ -179,7 +226,7 @@ th,
   gap: 10px;
   margin-top: auto;
   padding: 10px 8px 0;
-  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-top: 1px solid color-mix(in srgb, var(--side-ink) 10%, transparent);
 }
 .sidebar-foot .me {
   display: grid;
@@ -196,11 +243,11 @@ th,
   color: var(--side-ink);
 }
 .sidebar .meter-track {
-  background: rgb(255 255 255 / 14%);
+  background: color-mix(in srgb, var(--side-ink) 14%, transparent);
 }
 .sidebar .language {
   height: 28px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid color-mix(in srgb, var(--side-ink) 18%, transparent);
   border-radius: 8px;
   background: transparent;
   color: var(--side-ink);
@@ -223,10 +270,10 @@ th,
   width: 9px;
   height: 14px;
   border-radius: 3px;
-  background: rgb(255 255 255 / 14%);
+  background: color-mix(in srgb, var(--side-ink) 14%, transparent);
 }
 .pips i[data-on="true"] {
-  background: #f0b23a;
+  background: var(--amber);
 }
 
 .main {
@@ -265,7 +312,7 @@ th,
   background: var(--line);
 }
 .turn .pips i[data-on="true"] {
-  background: #e0a021;
+  background: var(--amber);
 }
 .turn .next {
   min-height: 34px;
@@ -434,7 +481,7 @@ th,
   z-index: 50;
   display: grid;
   place-items: center;
-  background: rgb(31 41 37 / 55%);
+  background: var(--scrim);
 }
 .overlay .card {
   display: grid;
@@ -527,7 +574,7 @@ th,
   cursor: pointer;
 }
 .btn:hover:not(:disabled) {
-  background: rgb(36 48 44 / 6%);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .btn.primary {
   border-color: var(--accent);
@@ -536,7 +583,7 @@ th,
   font-weight: 700;
 }
 .btn.primary:hover:not(:disabled) {
-  background: #ad4824;
+  background: color-mix(in srgb, var(--accent) 86%, #000);
 }
 .btn.ghost {
   border-color: transparent;
@@ -561,7 +608,7 @@ th,
   width: 6px;
   height: 10px;
   border-radius: 2px;
-  background: #f0b23a;
+  background: var(--amber);
 }
 
 .tag {
@@ -585,11 +632,11 @@ th,
 }
 .tag[data-tone="warn"] {
   background: var(--warn-soft);
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .tag[data-tone="accent"] {
   background: var(--accent-soft);
-  color: #8f3a1b;
+  color: var(--accent-ink);
 }
 .tag[data-tone="muted"] {
   color: var(--muted);
@@ -719,7 +766,7 @@ th,
   cursor: pointer;
 }
 .table tbody tr:hover {
-  background: rgb(196 85 45 / 6%);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 .table tbody tr[aria-selected="true"] {
   background: var(--accent-soft);
@@ -1267,7 +1314,7 @@ th,
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     padding-bottom: env(safe-area-inset-bottom);
-    border-top: 1px solid rgb(255 255 255 / 10%);
+    border-top: 1px solid color-mix(in srgb, var(--side-ink) 10%, transparent);
     background: var(--side);
   }
   .tabbar button {
@@ -1284,10 +1331,10 @@ th,
     cursor: pointer;
   }
   .tabbar button[aria-current="page"] {
-    color: #fff;
+    color: var(--side-strong);
   }
   .tabbar button[aria-current="page"] .icon {
-    color: #f0b23a;
+    color: var(--amber);
   }
   .tabbar .badge {
     position: absolute;
@@ -1307,7 +1354,7 @@ th,
     position: absolute;
     inset: 0;
     border: 0;
-    background: rgb(31 41 37 / 50%);
+    background: var(--scrim);
   }
   .more-card {
     position: relative;
@@ -1334,7 +1381,7 @@ th,
     padding: 10px 4px;
     border: 0;
     border-radius: 12px;
-    background: rgb(255 255 255 / 7%);
+    background: color-mix(in srgb, var(--side-ink) 7%, transparent);
     color: var(--side-ink);
     font-size: 0.8rem;
     cursor: pointer;
@@ -1358,7 +1405,7 @@ th,
     color: var(--side-ink);
   }
   .more-card .meter-track {
-    background: rgb(255 255 255 / 14%);
+    background: color-mix(in srgb, var(--side-ink) 14%, transparent);
   }
   .more-card .tag[data-tone="accent"] {
     background: var(--accent);
@@ -1366,7 +1413,7 @@ th,
   }
   .more-card .language {
     height: 40px;
-    border: 1px solid rgb(255 255 255 / 18%);
+    border: 1px solid color-mix(in srgb, var(--side-ink) 18%, transparent);
     border-radius: 8px;
     background: transparent;
     color: var(--side-ink);
@@ -1377,4 +1424,12 @@ th,
   .more-card .btn.ghost {
     color: var(--side-muted);
   }
+}
+
+.building {
+  display: block;
+  flex: none;
+}
+.building-ground {
+  fill: color-mix(in srgb, var(--ink) 7%, transparent);
 }

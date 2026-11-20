@@ -45,7 +45,7 @@
   background: var(--line);
 }
 .inbox-pips i[data-on] {
-  background: #f0b23a;
+  background: var(--amber);
 }
 
 .inbox-bar {
@@ -104,7 +104,7 @@
   cursor: pointer;
 }
 .inbox-item:hover {
-  background: rgb(196 85 45 / 6%);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 .inbox-item[aria-current="true"] {
   background: var(--accent-soft);
@@ -325,7 +325,7 @@
   color: var(--accent);
 }
 .inbox-choice[data-tone="warn"] strong {
-  color: #7a5200;
+  color: var(--warn-ink);
 }
 .inbox-choice[data-tone="bad"] strong {
   color: var(--bad);
