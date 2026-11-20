@@ -2,6 +2,8 @@
 
 .map-hub {
   display: grid;
+  /* One column that never grows past the screen, whatever a scrolling row inside it would like. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   height: 100%;
 }
@@ -396,7 +398,7 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--line-soft);
   }
-  .drawer-table td {
+  .drawer-table .table td {
     padding: 0;
     border: 0;
   }
