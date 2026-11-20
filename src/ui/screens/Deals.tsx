@@ -1,4 +1,5 @@
 import { Banks } from "../Process";
+import { gate } from "../Gate";
 import { Building } from "../Building";
 import { useMemo, useState } from "react";
 import { useT, type Translate } from "../../i18n/useT";
@@ -592,18 +593,17 @@ export function Deals() {
                           <Tag tone="accent">{t(`deals.column.${mineStage}`)}</Tag>
                         ) : locked ? (
                           <span className="deals-locked">
-                            <button type="button" className="btn small" disabled title={t("country.locked")}>
+                            <button {...gate(t("country.locked"))} type="button" className="btn small" disabled>
                               <Lock size={12} />
                               {t("deals.nda")}
                             </button>
                             <span className="sub">{t("deals.lockedShort")}</span>
                           </span>
                         ) : (
-                          <button
+                          <button {...gate(slotsFull ? t("error.too_many_deals") : !sale.invited ? t("block.not_invited") : sale.first_round_closed ? t("block.first_round_closed") : null)}
                             type="button"
                             className="btn small"
                             disabled={slotsFull || !sale.invited || sale.first_round_closed}
-                            title={slotsFull ? t("error.too_many_deals") : !sale.invited ? t("block.not_invited") : sale.first_round_closed ? t("block.first_round_closed") : undefined}
                             onClick={(event) => {
                               event.stopPropagation();
                               if (game.act({ type: "sign_nda", company: row.i })) {

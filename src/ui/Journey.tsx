@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { gate } from "./Gate";
 import { useT } from "../i18n/useT";
 import type { Access, CompanyRow, CompanyView, Intent, Step } from "../sim/types";
 import { Meter, Tag } from "./charts";
@@ -119,9 +120,16 @@ export function Journey({ company }: { company: CompanyView }) {
           const earned = index === 0 ? company.relationship > 0 : index === 1 ? company.relationship >= approach.proposal_at : true;
           const state = index === at ? "now" : index < at ? (earned ? "done" : "skipped") : "later";
           return (
-            <li key={node} data-state={state}>
+            <li
+              key={node}
+              className={state === "now" ? undefined : "tip"}
+              tabIndex={state === "now" ? undefined : 0}
+              data-tip={state === "now" ? undefined : t(`journey.${node}`)}
+              aria-label={t(`journey.${node}`)}
+              data-state={state}
+            >
               <i>{state === "done" ? <Icon name="check" size={10} /> : null}</i>
-              <span>{t(`journey.${node}`)}</span>
+              {state === "now" ? <span>{t(`journey.${node}`)}</span> : null}
             </li>
           );
         })}
@@ -232,7 +240,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
         </div>
         <div className="journey-buttons">
           {canAlsoMeet ? (
-            <button type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={meet}>
+            <button {...gate(view.attention.left < (abroad ? 2 : 1) && t("gate.attention", { need: abroad ? 2 : 1, left: view.attention.left }))} type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={meet}>
               <Icon name="handshake" size={15} />
               {t("step.meet")}
               <span className="journey-cost">
@@ -241,7 +249,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
               </span>
             </button>
           ) : null}
-          <button type="button" className="btn primary" disabled={disabled} onClick={run}>
+          <button {...gate(disabled && block ? t(`block.${block}`, { months: approach.cooldown }) : null)} type="button" className="btn primary" disabled={disabled} onClick={run}>
             <Icon name={disabled ? "lock" : STEP_ICON[step]} size={16} />
             {step === "approach" && company.suitor ? t("journey.counter") : t(`step.${step}`)}
             {cost > 0 ? (

@@ -5,7 +5,6 @@
   "dealroom.step.bid": "报价",
   "dealroom.diligence": "尽职调查",
   "dealroom.diligence.spent": "交易费用累计 {amount}",
-  "dealroom.stream.idle": "未启动",
   "dealroom.stream.running": "进行中",
   "dealroom.stream.done": "完成",
   "dealroom.stream.arrives": "报告月底送达",

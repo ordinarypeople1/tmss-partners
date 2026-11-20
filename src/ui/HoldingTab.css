@@ -126,7 +126,7 @@
   font-size: 0.82rem;
 }
 .hd-cash .donut-center small {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 .hd-cash-side {
   display: grid;
@@ -169,7 +169,7 @@
   gap: 6px;
 }
 .hd-item .ring b {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 
 .hd-scroll {
@@ -439,7 +439,7 @@
     content: attr(data-label);
     display: block;
     color: var(--muted);
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     font-weight: 400;
   }
   .hd-row-actions {

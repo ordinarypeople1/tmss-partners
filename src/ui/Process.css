@@ -27,7 +27,8 @@
   justify-items: center;
   gap: 3px;
   color: var(--muted);
-  font-size: 0.66rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -147,9 +148,6 @@
   justify-self: start;
 }
 @media (max-width: 760px) {
-  .process-steps li span {
-    font-size: 0.58rem;
-  }
   .banks-list {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -158,4 +156,10 @@
     justify-self: stretch;
     min-height: 44px;
   }
+}
+
+/* Only the current step is named; the others name themselves on hover. */
+.process-steps li.tip:nth-last-child(-n + 3)::after {
+  right: 0;
+  left: auto;
 }

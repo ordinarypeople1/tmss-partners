@@ -5,7 +5,6 @@
   "dealroom.step.bid": "입찰",
   "dealroom.diligence": "실사",
   "dealroom.diligence.spent": "딜 비용 누계 {amount}",
-  "dealroom.stream.idle": "미착수",
   "dealroom.stream.running": "진행 중",
   "dealroom.stream.done": "완료",
   "dealroom.stream.arrives": "월말에 보고서 도착",

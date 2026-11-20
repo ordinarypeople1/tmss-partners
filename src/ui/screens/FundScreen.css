@@ -444,7 +444,7 @@
   .fundscreen .deal-moic::before {
     content: attr(data-label);
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 400;
   }
   .fundscreen .deal-moic {

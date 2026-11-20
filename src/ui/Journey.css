@@ -17,7 +17,8 @@
   justify-items: center;
   gap: 4px;
   color: var(--ink-soft);
-  font-size: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
   text-align: center;
   overflow-wrap: anywhere;
 }
@@ -104,7 +105,7 @@
 }
 .journey-kicker {
   color: var(--accent);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -146,7 +147,7 @@
   padding: 0 5px;
   border-radius: 9px;
   background: rgb(0 0 0 / 14%);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -203,9 +204,6 @@
 }
 
 @media (max-width: 760px) {
-  .journey-track li span {
-    font-size: 0.62rem;
-  }
   .journey-owner {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -226,7 +224,7 @@
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 .journey-marks li {
   display: inline-flex;
@@ -423,4 +421,9 @@
 .talk-lines {
   display: grid;
   gap: 8px;
+}
+
+.journey-track li.tip:nth-last-child(-n + 3)::after {
+  right: 0;
+  left: auto;
 }

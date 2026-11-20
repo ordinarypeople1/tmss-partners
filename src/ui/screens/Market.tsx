@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { gate } from "../Gate";
 import { useT } from "../../i18n/useT";
 import type { CompanyRow, GameDate, Message, Owner } from "../../sim/types";
 import { CycleClock, LineChart, Ring, Stat, StackBar, Tag } from "../charts";
@@ -324,10 +325,10 @@ export function Market() {
               {t("market.lenders")}
             </h3>
             <div className="grid cols-4">
-              <Stat label={t("market.maxSenior")} value={f.multiple(economy.max_senior_millis)} hint={t("market.turns")} />
-              <Stat label={t("market.seniorRate")} value={f.pct(economy.senior_rate_bps, 2)} hint={t("market.allIn")} />
-              <Stat label={t("market.maxMezz")} value={f.multiple(economy.max_mezz_millis)} hint={t("market.turns")} />
-              <Stat label={t("market.mezzRate")} value={f.pct(economy.mezz_rate_bps, 2)} hint={t("market.allIn")} />
+              <Stat label={t("market.maxSenior")} value={f.multiple(economy.max_senior_millis)} tip={t("market.turns")} />
+              <Stat label={t("market.seniorRate")} value={f.pct(economy.senior_rate_bps, 2)} tip={t("market.allIn")} />
+              <Stat label={t("market.maxMezz")} value={f.multiple(economy.max_mezz_millis)} tip={t("market.turns")} />
+              <Stat label={t("market.mezzRate")} value={f.pct(economy.mezz_rate_bps, 2)} tip={t("market.allIn")} />
             </div>
           </div>
         </div>
@@ -380,16 +381,12 @@ export function Market() {
                     <strong>{t(`sector.${sector.id}`)}</strong>
                     {sector.for_sale > 0 ? <Tag tone="accent">{t("shell.forSale", { count: sector.for_sale })}</Tag> : null}
                   </span>
-                  <span className="sector-cycle">
+                  <span className="sector-cycle" title={`${f.signedPct(-sector.amplitude_bps, 0)} – ${f.signedPct(sector.amplitude_bps, 0)}`}>
                     <span className="row between">
                       <span className="muted">{t("market.sectorCycle")}</span>
                       <b data-tone={sector.cycle_bps >= 0 ? "good" : "bad"}>{f.signedPct(sector.cycle_bps)}</b>
                     </span>
                     <SignedBar value={sector.cycle_bps} span={sector.amplitude_bps} />
-                    <span className="row between muted cycle-range">
-                      <span>{f.signedPct(-sector.amplitude_bps, 0)}</span>
-                      <span>{f.signedPct(sector.amplitude_bps, 0)}</span>
-                    </span>
                   </span>
                   <span className="sector-stats">
                     <span>
@@ -412,21 +409,17 @@ export function Market() {
                       <Ring fraction={insight / INSIGHT_MONTHS} size={30} tone="good">
                         {String(insight)}
                       </Ring>
-                      <span className="sector-research-text">
+                      <span className="sector-research-text tip" tabIndex={0} data-tip={t("market.research.effect")}>
                         <b>{t("market.research.left", { months: insight })}</b>
-                        <small>{t("market.research.effect")}</small>
                       </span>
                     </>
                   ) : (
                     <>
-                      <span className="sector-research-text">
-                        <small>{t("market.research.effect")}</small>
-                      </span>
-                      <button
+                      <button {...gate(view.attention.left < 1 && t("gate.attention", { need: 1, left: view.attention.left }))}
                         type="button"
                         className="btn small"
                         disabled={view.attention.left < 1}
-                        title={view.attention.left < 1 ? t("error.no_attention") : undefined}
+                        title={view.attention.left < 1 ? undefined : t("market.research.effect")}
                         onClick={() => game.act({ type: "research_sector", sector: index })}
                       >
                         <Icon name="search" size={13} />

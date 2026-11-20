@@ -81,9 +81,6 @@
 .market .sector-cycle b[data-tone="bad"] {
   color: var(--bad);
 }
-.market .cycle-range {
-  font-size: 0.72rem;
-}
 .market .signed-bar {
   position: relative;
   height: 10px;
@@ -121,7 +118,7 @@
 }
 .market .sector-stats small {
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 
 .market .owner-legend {
@@ -235,7 +232,7 @@
 }
 .market .share-map button {
   padding: 3px 5px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1.2;
 }
 .market .rivals-table th.num,
@@ -294,7 +291,7 @@
 }
 .market .sector-research-text small {
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 .market .country-grid {
   display: grid;
@@ -339,7 +336,7 @@
 }
 .market .country-stats small {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 .market .country-stats b[data-tone="accent"] {
   color: var(--accent);
@@ -358,7 +355,7 @@
   color: var(--bad);
 }
 .market .state-rank li > span small {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 
 /* ---------- phone ---------- */
@@ -477,7 +474,7 @@
   }
   .market .share-map button {
     padding: 2px 3px;
-    font-size: 0.66rem;
+    font-size: 0.75rem;
     line-height: 1.15;
   }
   /* Only boxes with room keep their label on a phone; the list below names the rest. */
@@ -598,7 +595,7 @@
     content: attr(data-label);
     display: block;
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 400;
   }
   .market .rival-last:has(.muted) {
@@ -623,4 +620,7 @@
   .market .grid.auto {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+.market .sector-research:not([data-on]) {
+  justify-content: flex-end;
 }

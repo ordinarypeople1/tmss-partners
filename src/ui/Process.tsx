@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { gate } from "./Gate";
 import { useT } from "../i18n/useT";
 import type { CompanyView, SaleView } from "../sim/types";
 import { Meter, Tag } from "./charts";
@@ -65,9 +66,17 @@ export function ProcessCard({ company }: { company: CompanyView }) {
       </div>
       <ol className="process-steps">
         {ROUND_STEPS.map((step, index) => (
-          <li key={step} data-state={index === now ? "now" : index < now ? "done" : "later"} data-round={index < 4 ? 1 : 2}>
+          <li
+            key={step}
+            className={index === now ? undefined : "tip"}
+            tabIndex={index === now ? undefined : 0}
+            data-tip={index === now ? undefined : t(`process.step.${step}`)}
+            aria-label={t(`process.step.${step}`)}
+            data-state={index === now ? "now" : index < now ? "done" : "later"}
+            data-round={index < 4 ? 1 : 2}
+          >
             <i />
-            <span>{t(`process.step.${step}`)}</span>
+            {index === now ? <span>{t(`process.step.${step}`)}</span> : null}
           </li>
         ))}
       </ol>
@@ -110,7 +119,7 @@ export function Indication({ company }: { company: CompanyView }) {
       </div>
       <StepRange id={`ioi-${company.i}`} label={t("indication.title")} min={Math.round(model * 0.7)} max={Math.round(model * 1.4)} step={step} value={value} onChange={setValue} />
       <p className="muted indication-note">{t("indication.note", { seats: sale.seats })}</p>
-      <button type="button" className="btn primary" disabled={saved} onClick={() => game.act({ type: "submit_indication", company: company.i, ev: value })}>
+      <button {...gate(saved && t("gate.unchanged"))} type="button" className="btn primary" disabled={saved} onClick={() => game.act({ type: "submit_indication", company: company.i, ev: value })}>
         <Icon name="flag" size={15} />
         {t(deal.indication === null ? "indication.submit" : "indication.revise")}
       </button>
@@ -158,7 +167,7 @@ export function Banks() {
               ) : null}
             </div>
             <Meter value={adviser.coverage} max={100} markers={[list, favour, headsUp]} tone={adviser.coverage >= headsUp ? "good" : adviser.coverage >= list ? "accent" : "ink"} text={String(adviser.coverage)} label={t("banks.coverage")} />
-            <button type="button" className="btn small" disabled={view.attention.left < 1} onClick={() => game.act({ type: "cover_bank", adviser: index })}>
+            <button {...gate(view.attention.left < 1 && t("gate.attention", { need: 1, left: view.attention.left }))} type="button" className="btn small" disabled={view.attention.left < 1} onClick={() => game.act({ type: "cover_bank", adviser: index })}>
               <Icon name="handshake" size={13} />
               {t("banks.call")}
               <span className="journey-cost">

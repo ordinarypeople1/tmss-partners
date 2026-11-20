@@ -1,0 +1,17 @@
+{
+  "gate.attention": "행동력 {need} 필요 · 남은 {left}",
+  "gate.unchanged": "바뀐 내용이 없습니다.",
+  "gate.needsSave": "오퍼를 먼저 저장하세요.",
+  "gate.inCommittee": "이미 IC에 올렸습니다.",
+  "gate.raiseAbove": "현재 입찰가보다 높여야 합니다.",
+  "gate.atCeiling": "IC 한도입니다.",
+  "gate.planFull": "100일 계획은 {max}개까지입니다.",
+  "gate.amount": "금액을 입력하세요.",
+  "gate.initFull": "동시에 진행할 수 있는 과제는 {limit}개입니다.",
+  "gate.wealth": "개인 자산 {amount} 필요",
+  "gate.noWealth": "개인 자산이 없습니다.",
+  "gate.teamFull": "팀은 {max}명까지입니다.",
+  "gate.teamEmpty": "내보낼 팀원이 없습니다.",
+  "gate.noUnread": "읽지 않은 메시지가 없습니다.",
+  "gate.decided": "이미 결정했거나 기한이 지났습니다."
+}

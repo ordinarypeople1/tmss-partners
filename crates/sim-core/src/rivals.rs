@@ -209,7 +209,9 @@ impl World {
                     }
                     let known = self.knows_owner(index);
                     let from = self.companies[index].ceo.name.clone();
-                    let mut heir = Ceo::hired(&mut self.rng);
+                    let country = self.companies[index].country.clone();
+                    let mut heir = Ceo::hired(&mut self.rng, &country);
+                    heir.name = crate::people::heir(&heir.name, &from, &country);
                     heir.founder = true;
                     heir.age = self.rng.range(34, 48) as u8;
                     heir.tenure = 0;
@@ -228,12 +230,14 @@ impl World {
                         continue;
                     }
                     let sector = company.sector;
+                    let country = company.country.clone();
                     let Some(to) = (0..12)
                         .map(|_| self.rng.below(self.companies.len() as u64) as usize)
                         .find(|&other| {
                             let target = &self.companies[other];
                             other != index
                                 && target.sector == sector
+                                && target.country == country
                                 && target.is_active()
                                 && !target.is_player_owned()
                                 && !target.ceo.founder

@@ -1122,7 +1122,7 @@ th,
 }
 .ring b {
   position: relative;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 .cycle-clock path {
   fill: var(--line-soft);
@@ -1163,7 +1163,7 @@ th,
   padding: 4px 6px;
   border: 1px solid var(--raised);
   color: #fff;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
 }
@@ -1391,7 +1391,7 @@ th,
     border: 0;
     background: none;
     color: var(--side-muted);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     cursor: pointer;
   }
   .tabbar button[aria-current="page"] {
@@ -1555,7 +1555,7 @@ th,
   gap: 5px;
   align-items: center;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -1794,4 +1794,46 @@ th,
 .sidebar .street.tip::after {
   top: auto;
   bottom: calc(100% + 8px);
+}
+
+/* A disabled control and the condition that would turn it on (see Gate.tsx). */
+[data-gate] {
+  position: relative;
+}
+/* Opacity would fade the tip with the button, so a gated button dims by color. */
+/* Doubled to outrank screen rules such as .dr-plan button:disabled. */
+[data-gate][data-gate]:disabled {
+  border-color: var(--line);
+  background: var(--line-soft);
+  box-shadow: none;
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+[data-gate]::after {
+  content: attr(data-gate);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 40;
+  width: max-content;
+  max-width: min(280px, 80vw);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  color: var(--panel);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+[data-gate]:hover::after {
+  opacity: 1;
+  transform: none;
 }

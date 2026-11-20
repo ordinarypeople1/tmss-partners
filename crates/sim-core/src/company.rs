@@ -314,8 +314,8 @@ fn monthly_ebitda(
 
 impl Ceo {
     /// A professional manager brought in from outside.
-    pub fn hired(rng: &mut Rng) -> Ceo {
-        let (name, feminine) = crate::people::name(rng);
+    pub fn hired(rng: &mut Rng, country: &str) -> Ceo {
+        let (name, feminine) = crate::people::name(rng, country);
         Ceo {
             name,
             feminine,
@@ -339,7 +339,7 @@ impl Company {
 
     /// The founder steps back; an outsider takes the chair.
     pub fn replace_ceo(&mut self, rng: &mut Rng) {
-        self.ceo = Ceo::hired(rng);
+        self.ceo = Ceo::hired(rng, &self.country);
         self.ceo.tenure = 0;
     }
 
@@ -460,7 +460,7 @@ impl Company {
         }
         let ceo = match owner {
             Owner::Founder { age } => {
-                let (name, feminine) = crate::people::name(rng);
+                let (name, feminine) = crate::people::name(rng, &seed.country);
                 Ceo {
                     name,
                     feminine,
@@ -475,7 +475,7 @@ impl Company {
                     founder: true,
                 }
             }
-            _ => Ceo::hired(rng),
+            _ => Ceo::hired(rng, &seed.country),
         };
         let stance = match (owner, rng.below(100)) {
             (Owner::Founder { .. }, 0..=34) => Stance::Sentimental,

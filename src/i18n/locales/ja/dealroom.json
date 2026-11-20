@@ -5,7 +5,6 @@
   "dealroom.step.bid": "入札",
   "dealroom.diligence": "デューデリジェンス",
   "dealroom.diligence.spent": "ディール費用累計 {amount}",
-  "dealroom.stream.idle": "未着手",
   "dealroom.stream.running": "進行中",
   "dealroom.stream.done": "完了",
   "dealroom.stream.arrives": "月末に報告書到着",

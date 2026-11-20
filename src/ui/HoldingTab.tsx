@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { gate } from "./Gate";
 import "./HoldingTab.css";
 import { useT } from "../i18n/useT";
 import type { Budget, CompanyView, ExitRoute, Financials, HoldingView, InitiativeKind, Trait } from "../sim/types";
@@ -59,6 +60,7 @@ function ConfirmButton({
   confirmText,
   cost = 0,
   disabled = false,
+  why,
   primary = false,
   onConfirm,
 }: {
@@ -67,6 +69,8 @@ function ConfirmButton({
   confirmText?: string;
   cost?: number;
   disabled?: boolean;
+  /** What would turn the button on, shown on hover while it is disabled. */
+  why?: string;
   primary?: boolean;
   onConfirm: () => void;
 }) {
@@ -94,7 +98,7 @@ function ConfirmButton({
     );
   }
   return (
-    <button type="button" className={primary ? "btn primary small" : "btn small"} disabled={disabled} onClick={() => setArmed(true)}>
+    <button {...gate(disabled && why)} type="button" className={primary ? "btn primary small" : "btn small"} disabled={disabled} onClick={() => setArmed(true)}>
       {label}
       <Cost points={cost} />
     </button>
@@ -352,6 +356,7 @@ function CovenantCard({ company, holding, financials }: SectionProps) {
             label={t("holding.cure.submit")}
             confirmText={f.money(amount)}
             disabled={amount <= 0}
+            why={t("gate.amount")}
             onConfirm={() => {
               if (act({ type: "equity_cure", company: company.i, amount })) {
                 setTyped(null);
@@ -539,7 +544,7 @@ function InitiativesCard({ company, holding }: SectionProps) {
                   <LeverMark company={company} kind={item.kind} />
                 </span>
               </div>
-              <button type="button" className="btn small" disabled={full} onClick={() => act({ type: "start_initiative", company: company.i, kind: item.kind })}>
+              <button {...gate(full && t("gate.initFull", { limit }))} type="button" className="btn small" disabled={full} onClick={() => act({ type: "start_initiative", company: company.i, kind: item.kind })}>
                 {t("holding.init.start")}
                 <Cost points={item.planned ? 0 : 1} />
               </button>
@@ -679,6 +684,7 @@ function RecapCard({ company, holding, financials }: SectionProps) {
           confirmText={f.money(amount)}
           cost={2}
           disabled={amount <= 0}
+          why={t("gate.amount")}
           onConfirm={() => act({ type: "dividend_recap", company: company.i, amount })}
         />
       </div>

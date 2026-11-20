@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from "react";
+import { gate } from "../Gate";
 import { useT } from "../../i18n/useT";
 import { ACHIEVEMENTS, type Achievement, type Difficulty, type GameDate, type Perk, type Rank } from "../../sim/types";
 import { Gauge, Meter, Stat, StackBar, Tag } from "../charts";
@@ -551,7 +552,7 @@ export function Career() {
                       {t("career.spend.owned")}
                     </Tag>
                   ) : (
-                    <button
+                    <button {...gate(career.wealth < item.cost && t("gate.wealth", { amount: f.money(item.cost) }))}
                       type="button"
                       className="btn small"
                       disabled={career.wealth < item.cost}
@@ -601,7 +602,7 @@ export function Career() {
             />
           </div>
           <div className="row">
-            <button
+            <button {...gate(!founder ? t("career.team.locked") : career.associates >= TEAM.max ? t("gate.teamFull", { max: TEAM.max }) : null)}
               type="button"
               className="btn small"
               disabled={!founder || career.associates >= TEAM.max}
@@ -609,7 +610,7 @@ export function Career() {
             >
               {t("career.team.hire")}
             </button>
-            <button
+            <button {...gate(!founder ? t("career.team.locked") : career.associates <= 0 ? t("gate.teamEmpty") : null)}
               type="button"
               className="btn small"
               disabled={!founder || career.associates <= 0}

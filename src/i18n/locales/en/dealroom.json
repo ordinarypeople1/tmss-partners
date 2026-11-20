@@ -5,7 +5,6 @@
   "dealroom.step.bid": "Bid",
   "dealroom.diligence": "Due diligence",
   "dealroom.diligence.spent": "Deal costs to date {amount}",
-  "dealroom.stream.idle": "Not started",
   "dealroom.stream.running": "In progress",
   "dealroom.stream.done": "Done",
   "dealroom.stream.arrives": "Report arrives at month-end",

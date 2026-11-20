@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from "react";
+import { gate } from "../Gate";
 import { useT, type Translate } from "../../i18n/useT";
 import type { Choice, Message, SaleView, View } from "../../sim/types";
 import { Meter, Ring, Stat, Tag } from "../charts";
@@ -273,7 +274,7 @@ export function Inbox() {
             </button>
           ))}
         </div>
-        <button type="button" className="btn small" disabled={unread === 0} onClick={() => act({ type: "mark_all_read" })}>
+        <button {...gate(unread === 0 && t("gate.noUnread"))} type="button" className="btn small" disabled={unread === 0} onClick={() => act({ type: "mark_all_read" })}>
           <Icon name="check" size={14} />
           {t("inbox.markAllRead")}
         </button>
@@ -440,8 +441,7 @@ function Reading({ message }: { message: Message }) {
                     : null;
               const chosen = decision.chosen === option;
               return (
-                <button
-                  key={option}
+                <button key={option} {...gate(!open && t("gate.decided"))}
                   type="button"
                   className="inbox-choice"
                   data-tone={CHOICE_TONE[option]}

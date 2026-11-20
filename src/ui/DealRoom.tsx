@@ -1,4 +1,5 @@
 import { Indication, ProcessCard } from "./Process";
+import { gate } from "./Gate";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
 import {
@@ -390,6 +391,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
     label: string;
     cost?: number;
     disabled: boolean;
+    /** What would turn the button on. */
+    why?: string | null;
     note: string | null;
     tone?: Tone;
     run: () => void;
@@ -399,6 +402,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
     dock = {
       label: t("dealroom.raise.submit"),
       disabled: raiseEv <= (myBid ?? 0),
+      why: t("gate.raiseAbove"),
       note: t("dealroom.raise.ceiling", { amount: f.money(ceiling) }),
       run: sendRaise,
     };
@@ -408,6 +412,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
     dock = {
       label: t("dealroom.offer.save"),
       disabled: !preview,
+      why: t("dealroom.previewNone"),
       note: !preview
         ? t("dealroom.previewNone")
         : committee
@@ -428,6 +433,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
     dock = {
       label: t("dealroom.bid.submit"),
       disabled: bidBlock !== null,
+      why: bidBlock ? t(bidBlock) : null,
       note: bidBlock ? t(bidBlock) : null,
       tone: "warn",
       run: () => game.act({ type: "submit_bid", company: company.i }),
@@ -490,9 +496,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
                     <Tag tone="accent" icon={<Icon name="clock" size={12} />}>
                       {t("dealroom.stream.running")}
                     </Tag>
-                  ) : (
-                    <Tag tone="muted">{t("dealroom.stream.idle")}</Tag>
-                  )}
+                  ) : null}
                 </div>
                 {done ? (
                   <div className="dr-found">
@@ -515,9 +519,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 ) : running ? (
                   <span className="muted">{t("dealroom.stream.arrives")}</span>
                 ) : !deal.open_streams.includes(stream) ? (
-                  <Tag tone="muted" icon={<Icon name="lock" size={11} />}>
-                    {t("dealroom.stream.round2")}
-                  </Tag>
+                  <span className="dr-stream-lock tip" tabIndex={0} data-tip={t("dealroom.stream.round2")} aria-label={t("dealroom.stream.round2")}>
+                    <Icon name="lock" size={16} />
+                  </span>
                 ) : (
                   <button
                     type="button"
@@ -667,7 +671,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
               const on = offer.plan.includes(kind);
               return (
                 <li key={kind}>
-                  <button
+                  <button {...gate(locked ? t("block.bid_in") : !on && offer.plan.length >= MAX_PLAN ? t("gate.planFull", { max: MAX_PLAN }) : null)}
                     type="button"
                     aria-pressed={on}
                     disabled={locked || (!on && offer.plan.length >= MAX_PLAN)}
@@ -1025,7 +1029,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
         {locked ? null : (
           <>
             <div className="dr-actions">
-              <button
+              <button {...gate(saved ? t("gate.unchanged") : !preview ? t("dealroom.previewNone") : null)}
                 type="button"
                 className={saved ? "btn" : "btn primary"}
                 disabled={saved || !preview}
@@ -1035,7 +1039,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
               >
                 {t("dealroom.offer.save")}
               </button>
-              <button
+              <button {...gate(!saved ? t("gate.needsSave") : committee ? t("gate.inCommittee") : null)}
                 type="button"
                 className={saved && !committee ? "btn primary" : "btn"}
                 disabled={!saved || Boolean(committee)}
@@ -1237,7 +1241,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
                     {t("dealroom.raise.ceiling", { amount: f.money(ceiling) })}
                   </small>
                 </div>
-                <button
+                <button {...gate(raiseEv <= myBid && t("gate.raiseAbove"))}
                   type="button"
                   className="btn primary"
                   disabled={raiseEv <= myBid}
@@ -1262,7 +1266,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
         ) : null}
         <div className="dr-actions">
           {locked ? null : (
-            <button
+            <button {...gate(bidBlock && t(bidBlock))}
               type="button"
               className="btn primary"
               disabled={bidBlock !== null}
@@ -1346,7 +1350,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             {dock.note}
           </span>
         ) : null}
-        <button
+        <button {...gate(dock.disabled && dock.why)}
           type="button"
           className="btn primary"
           disabled={dock.disabled}

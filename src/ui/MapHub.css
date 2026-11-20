@@ -167,7 +167,7 @@
   border-radius: 50%;
   background: var(--warn);
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   box-shadow: var(--shadow);
   cursor: pointer;
@@ -204,7 +204,7 @@
   border: 1px solid var(--raised);
   border-radius: 3px 8px 8px 3px;
   background: var(--ink);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-style: normal;
   line-height: 14px;
 }

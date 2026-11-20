@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 6px;
   color: var(--side-muted);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -57,7 +57,7 @@
 }
 .objective-text small {
   color: var(--side-muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 .objective .ring circle:first-child {

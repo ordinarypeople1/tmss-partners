@@ -519,9 +519,10 @@ export function Funnel({ stages, onSelect, active }: { stages: { id: string; lab
 }
 
 /** A number with a label and an optional direction. The basic stat tile. */
-export function Stat({ label, value, delta, tone, hint, children }: { label: string; value: string; delta?: string; tone?: "good" | "bad" | "warn"; hint?: string; children?: ReactNode }) {
+/** `tip` explains the figure on hover instead of a line of small print under it. */
+export function Stat({ label, value, delta, tone, hint, tip, children }: { label: string; value: string; delta?: string; tone?: "good" | "bad" | "warn"; hint?: string; tip?: string; children?: ReactNode }) {
   return (
-    <div className="stat" data-tone={tone}>
+    <div className={tip ? "stat tip" : "stat"} data-tone={tone} data-tip={tip} tabIndex={tip ? 0 : undefined}>
       <span className="stat-label">{label}</span>
       <strong className="stat-value">{value}</strong>
       {delta ? <span className="stat-delta">{delta}</span> : null}

@@ -49,7 +49,7 @@ export function Objectives() {
               });
           return (
             <li key={item.kind}>
-              <button type="button" className="objective" data-state={state} onClick={() => game.go(WHERE[item.kind])}>
+              <button type="button" className="objective" data-state={state} title={sub} aria-description={sub} onClick={() => game.go(WHERE[item.kind])}>
                 {state === "open" ? (
                   <Ring fraction={item.target > 0 ? item.progress / item.target : 0} size={20} tone="warn" />
                 ) : (
@@ -59,7 +59,6 @@ export function Objectives() {
                 )}
                 <span className="objective-text">
                   <span>{t(`objective.${item.kind}`, { target: item.target, amount: f.money(item.target) })}</span>
-                  <small>{sub}</small>
                 </span>
               </button>
             </li>

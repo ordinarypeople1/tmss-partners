@@ -116,7 +116,7 @@
   min-width: 0;
 }
 .pf-bridge span {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 .pf-bridge b {
   font-size: 0.86rem;
@@ -213,7 +213,7 @@
   border-radius: 999px;
   background: var(--panel);
   color: var(--ink-soft);
-  font-size: 0.74rem;
+  font-size: 0.75rem;
 }
 .pf-trait[data-more] {
   border-style: dashed;
@@ -358,7 +358,7 @@
     content: attr(data-label);
     display: block;
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 400;
   }
 }

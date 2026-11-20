@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { gate } from "../Gate";
 import { useT } from "../../i18n/useT";
 import type { CompanyView, HoldingView } from "../../sim/types";
 import { LineChart, Meter, Stat, StackBar, Tag } from "../charts";
@@ -335,8 +336,7 @@ export function FundScreen() {
           </div>
           <div className="row gp-picks">
             {COMMIT_PICKS.map((pct) => (
-              <button
-                key={pct}
+              <button key={pct} {...gate(!fund.investing ? t("block.investment_period_over") : career.wealth <= 0 ? t("gate.noWealth") : null)}
                 type="button"
                 className="btn small"
                 disabled={!fund.investing || career.wealth <= 0}
@@ -345,7 +345,7 @@ export function FundScreen() {
                 {`${pct}%`}
               </button>
             ))}
-            <button
+            <button {...gate(!fund.investing ? t("block.investment_period_over") : commitAmount <= 0 ? t("gate.amount") : null)}
               type="button"
               className="btn primary"
               disabled={!fund.investing || commitAmount <= 0}
