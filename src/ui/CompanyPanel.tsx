@@ -18,7 +18,7 @@ import { useFormat, type Format } from "./format";
 import { useGame, type Game } from "./game";
 import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
-import { Journey } from "./Journey";
+import { ActionBar, Journey } from "./Journey";
 import { bidderName } from "./messages";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
@@ -93,6 +93,8 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
   }
   const current = tabs.some((item) => item.key === tab) ? tab : "overview";
   const sale = company.sale;
+  /** Companies the fund could still buy show the road to a deal and the step to take. */
+  const sourcing = !company.held && company.owner.kind !== "merged" && company.owner.kind !== "lender";
 
   return (
     <div className="cp">
@@ -212,9 +214,6 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
             count: company.employees,
           })}
         </p>
-        {company.held || company.owner.kind === "merged" || company.owner.kind === "lender" ? null : (
-          <Journey company={company} onOpenDeal={() => setTab("deal")} />
-        )}
         {current === "overview" ? (
           <Overview game={game} company={company} />
         ) : null}
@@ -227,7 +226,9 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         {current === "operations" && company.holding ? (
           <HoldingTab company={company} />
         ) : null}
+        {current === "overview" && sourcing ? <Journey company={company} /> : null}
       </div>
+      {sourcing ? <ActionBar company={company} onOpenDeal={() => setTab("deal")} /> : null}
     </div>
   );
 }

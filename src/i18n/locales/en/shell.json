@@ -47,5 +47,6 @@
   "shell.tip.valuation": "Valuation index. 100 is the long-run average. Higher means you buy dear and sell dear.",
   "shell.tip.credit": "Credit spread: what lenders add to the policy rate. When it widens they cut how much they lend.",
   "shell.tip.forSale": "Sales you can see now. A sale being prepared shows only at relationship 40 or while you research the sector.",
-  "shell.tip.uncalled": "Uncalled commitments: fund money not yet invested. After the investment period it cannot go into new deals."
+  "shell.tip.uncalled": "Uncalled commitments: fund money not yet invested. After the investment period it cannot go into new deals.",
+  "shell.wire": "MARKET WIRE"
 }

@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useT } from "../i18n/useT";
 import type { Access, CompanyRow, CompanyView, Intent, Step } from "../sim/types";
 import { Meter, Tag } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { Portrait } from "./Portrait";
 import "./Journey.css";
 
 /** The road from a first meeting to owning the company. */
@@ -95,50 +97,17 @@ export function IntentTag({ intent }: { intent: Intent | null }) {
   return <Tag tone={INTENT_TONE[intent]}>{t(`intent.${intent}`)}</Tag>;
 }
 
-/**
- * One card that answers three questions about a company the fund does not own: how well the owner
- * knows us, whether they would sell, and the one thing to do now. The sim decides all three.
- */
-export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenDeal: () => void }) {
-  const game = useGame();
+/** Where the company stands on the road, and how the owner feels: the last card of the profile. */
+export function Journey({ company }: { company: CompanyView }) {
   const t = useT();
   const f = useFormat();
-  const { view } = game;
-  const { step, block } = company.next;
   const at = position(company);
-  const abroad = company.country !== "US";
   const { approach } = company;
   const level = ACCESS_ORDER.indexOf(company.access);
   const marks = [approach.known_at, approach.early_notice_at, approach.proposal_at];
-
-  const run = () => {
-    switch (step) {
-      case "meet":
-        game.act({ type: "meet_owner", company: company.i });
-        break;
-      case "approach":
-        game.act({ type: "approach_owner", company: company.i });
-        break;
-      case "propose_exclusive":
-        game.act({ type: "propose_exclusive", company: company.i });
-        break;
-      case "sign_nda":
-        game.act({ type: "sign_nda", company: company.i });
-        break;
-      case "wait":
-        game.nextMonth();
-        break;
-      default:
-        onOpenDeal();
-    }
-  };
-  const cost = step === "meet" ? (abroad ? 2 : 1) : step === "approach" || step === "propose_exclusive" ? 1 : 0;
-  // Waiting is never blocked: the block is the reason for the wait.
-  const disabled = Boolean(block) && step !== "wait";
-  const canAlsoMeet = step !== "meet" && step !== "wait" && company.owner.kind !== "public";
-
   return (
     <section className="card journey">
+      <h3>{t("journey.title")}</h3>
       <ol className="journey-track" aria-label={t("journey.title")}>
         {NODES.map((node, index) => {
           // A sale in the open lets a stranger sign the NDA: the earlier steps were skipped, not done.
@@ -152,7 +121,6 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
           );
         })}
       </ol>
-
       <div className="journey-owner">
         <div className="journey-rel">
           <Meter
@@ -188,31 +156,72 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
           ) : null}
         </div>
       </div>
+    </section>
+  );
+}
 
-      <div className="journey-next" data-blocked={disabled ? "true" : undefined}>
-        <div className="journey-next-text">
+interface Talk {
+  kind: "meet" | "yes" | "no";
+  before: number;
+}
+
+/** The step to take, always in reach at the foot of the company panel. */
+export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpenDeal: () => void }) {
+  const game = useGame();
+  const t = useT();
+  const { view } = game;
+  const { step, block } = company.next;
+  const abroad = company.country !== "US";
+  const { approach } = company;
+  const [talk, setTalk] = useState<Talk | null>(null);
+
+  const meet = () => {
+    const before = company.relationship;
+    if (game.act({ type: "meet_owner", company: company.i })) {
+      setTalk({ kind: "meet", before });
+    }
+  };
+  const run = () => {
+    switch (step) {
+      case "meet":
+        meet();
+        break;
+      case "approach": {
+        const before = company.relationship;
+        if (game.act({ type: "approach_owner", company: company.i })) {
+          // The sim answered inside the command: a deal file means yes.
+          setTalk({ kind: game.peek(company.i)?.in_deal ? "yes" : "no", before });
+        }
+        break;
+      }
+      case "propose_exclusive":
+        game.act({ type: "propose_exclusive", company: company.i });
+        break;
+      case "sign_nda":
+        game.act({ type: "sign_nda", company: company.i });
+        break;
+      case "wait":
+        game.nextMonth();
+        break;
+      default:
+        onOpenDeal();
+    }
+  };
+  const cost = step === "meet" ? (abroad ? 2 : 1) : step === "approach" || step === "propose_exclusive" ? 1 : 0;
+  // Waiting is never blocked: the block is the reason for the wait.
+  const disabled = Boolean(block) && step !== "wait";
+  const canAlsoMeet = step !== "meet" && step !== "wait" && company.owner.kind !== "public";
+
+  return (
+    <>
+      <footer className="action-bar" data-blocked={disabled ? "true" : undefined}>
+        <div className="action-text">
           <span className="journey-kicker">{t("journey.next")}</span>
-          <p>{t(`step.${step}.why`)}</p>
-          {block ? (
-            <p className="journey-block" role="note">
-              <Icon name={step === "wait" ? "clock" : "lock"} size={13} />
-              {t(`block.${block}`, { months: approach.cooldown })}
-            </p>
-          ) : null}
+          <p>{block ? t(`block.${block}`, { months: approach.cooldown }) : t(`step.${step}.why`)}</p>
         </div>
         <div className="journey-buttons">
-          <button type="button" className="btn primary" disabled={disabled} onClick={run}>
-            <Icon name={STEP_ICON[step]} size={16} />
-            {t(`step.${step}`)}
-            {cost > 0 ? (
-              <span className="journey-cost" title={t("company.attentionLeft", { left: view.attention.left, max: view.attention.max })}>
-                <Icon name="bolt" size={11} />
-                {cost}
-              </span>
-            ) : null}
-          </button>
           {canAlsoMeet ? (
-            <button type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={() => game.act({ type: "meet_owner", company: company.i })}>
+            <button type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={meet}>
               <Icon name="handshake" size={15} />
               {t("step.meet")}
               <span className="journey-cost">
@@ -221,8 +230,78 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
               </span>
             </button>
           ) : null}
+          <button type="button" className="btn primary" disabled={disabled} onClick={run}>
+            <Icon name={disabled ? "lock" : STEP_ICON[step]} size={16} />
+            {t(`step.${step}`)}
+            {cost > 0 ? (
+              <span className="journey-cost" title={t("company.attentionLeft", { left: view.attention.left, max: view.attention.max })}>
+                <Icon name="bolt" size={11} />
+                {cost}
+              </span>
+            ) : null}
+          </button>
         </div>
+      </footer>
+      {talk ? <OwnerTalk company={company} talk={talk} onClose={() => setTalk(null)} /> : null}
+    </>
+  );
+}
+
+/** What was said across the table: who it was, one line, and what the meeting changed. */
+function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Talk; onClose: () => void }) {
+  const game = useGame();
+  const t = useT();
+  const { approach } = company;
+  const after = company.relationship;
+  const founder = company.owner.kind === "founder";
+  const house = company.owner.kind === "sponsor" ? (game.view.rivals[company.owner.house] ?? "") : "";
+  const marks = [approach.known_at, approach.early_notice_at, approach.proposal_at];
+  const unlocked = MARKS.filter((_, index) => talk.before < marks[index] && after >= marks[index]);
+  const variant = ((company.i + talk.before) % 2) + 1;
+  const line =
+    talk.kind === "yes"
+      ? "talk.yes"
+      : talk.kind === "no"
+        ? "talk.no"
+        : company.sale
+          ? "talk.meet.sale"
+          : talk.before === 0
+            ? `talk.meet.first.${variant}`
+            : company.intent
+              ? `talk.meet.${company.intent}.${variant}`
+              : "talk.meet.unknown";
+  return (
+    <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t(`talk.title.${talk.kind}`)} onClick={onClose}>
+      <div className="talk" data-kind={talk.kind} onClick={(event) => event.stopPropagation()}>
+        <header>
+          <span className="talk-kicker">{t(`talk.title.${talk.kind}`)}</span>
+          <span className="muted clip">{company.short}</span>
+        </header>
+        <div className="talk-body">
+          <div className="talk-who">
+            <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} size={104} />
+            <b>{founder ? company.ceo.name : t(`talk.role.${company.owner.kind}`, { house })}</b>
+            {founder ? <small className="muted">{t("talk.role.founder")}</small> : null}
+          </div>
+          <blockquote className="talk-line">{t(line)}</blockquote>
+        </div>
+        <div className="talk-result">
+          <Meter label={t(`access.${company.access}`)} text={t("talk.gain", { before: talk.before, after })} value={after} max={100} markers={marks} tone={after >= approach.proposal_at ? "good" : "accent"} />
+          <div className="talk-tags">
+            {unlocked.map(([key, icon]) => (
+              <Tag key={key} tone="good" icon={<Icon name={icon} size={12} />}>
+                {t("talk.unlocked", { what: t(`journey.mark.${key}`) })}
+              </Tag>
+            ))}
+            {company.sale || talk.kind !== "meet" ? null : <IntentTag intent={company.intent} />}
+            {talk.kind === "yes" ? <Tag tone="good">{t("stage.exclusive")}</Tag> : null}
+            {talk.kind === "no" ? <Tag tone="bad">{t("block.owner_not_ready", { months: approach.cooldown })}</Tag> : null}
+          </div>
+        </div>
+        <button type="button" className="btn primary" autoFocus onClick={onClose}>
+          {t("talk.close")}
+        </button>
       </div>
-    </section>
+    </div>
   );
 }

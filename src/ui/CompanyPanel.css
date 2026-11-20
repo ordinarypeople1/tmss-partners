@@ -589,3 +589,7 @@
   flex: none;
   margin: -8px 0 -6px -6px;
 }
+
+.cp-body > .journey {
+  margin-top: 12px;
+}

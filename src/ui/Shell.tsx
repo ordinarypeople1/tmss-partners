@@ -1,5 +1,5 @@
 import { applyTheme, currentTheme, type Theme } from "./theme";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { LOCALES, type Locale } from "../i18n/config";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useT } from "../i18n/useT";
@@ -262,6 +262,40 @@ function TurnSummary() {
   );
 }
 
+/** One line of market news, turning over: other houses buy, sell and stumble whether or not the player acts. */
+function Wire() {
+  const game = useGame();
+  const t = useT();
+  const f = useFormat();
+  const { view } = game;
+  const news = view.messages.filter((message) => message.news).slice(-8).reverse();
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (news.length < 2) {
+      return;
+    }
+    const timer = window.setInterval(() => setIndex((value) => value + 1), 4500);
+    return () => window.clearInterval(timer);
+  }, [news.length]);
+  if (news.length === 0) {
+    return null;
+  }
+  const message = news[index % news.length];
+  const text = describeMessage(t, f, view, message);
+  return (
+    <button type="button" className="wire" onClick={() => game.go("inbox")} aria-label={t("shell.wire")}>
+      <span className="wire-tag">
+        <i />
+        {t("shell.wire")}
+      </span>
+      <span key={message.id} className="wire-line clip">
+        <small>{f.date(message.date)}</small>
+        {text.title}
+      </span>
+    </button>
+  );
+}
+
 function Topbar() {
   const game = useGame();
   const t = useT();
@@ -303,6 +337,7 @@ function Topbar() {
           {fund.investing ? t("shell.investing", { months: monthsLeft }) : t("shell.harvest")}
         </Tag>
       </div>
+      <Wire />
       <TurnSummary />
     </header>
   );

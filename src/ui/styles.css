@@ -82,6 +82,7 @@
   --good-soft: color-mix(in srgb, var(--good) var(--soft), var(--panel));
   --bad-soft: color-mix(in srgb, var(--bad) var(--soft), var(--panel));
   --warn-soft: color-mix(in srgb, var(--warn) var(--soft), var(--panel));
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --radius: 12px;
   --gap: 12px;
 
@@ -1532,4 +1533,163 @@ th,
 .fund-strip.tip::after {
   right: 0;
   left: auto;
+}
+
+.wire {
+  display: flex;
+  flex: 1 1 100%;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+.wire-tag {
+  display: inline-flex;
+  flex: none;
+  gap: 5px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.wire-tag i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.wire-line {
+  animation: rise 0.5s var(--ease) backwards;
+}
+.wire-line small {
+  margin-right: 8px;
+  color: var(--muted);
+}
+
+/* ---- Motion: things rise into place, controls answer the hand. ---- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes rise-big {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+.screen .card,
+.cp-body .card,
+.sale-card,
+.rel-item,
+.deals-card,
+.pf-card {
+  animation: rise 0.45s var(--ease) backwards;
+}
+.screen .card:nth-child(2),
+.cp-body .card:nth-child(2),
+.sale-card:nth-child(2),
+.rel-item:nth-child(2) {
+  animation-delay: 50ms;
+}
+.screen .card:nth-child(3),
+.cp-body .card:nth-child(3),
+.sale-card:nth-child(3),
+.rel-item:nth-child(3) {
+  animation-delay: 100ms;
+}
+.screen .card:nth-child(n + 4),
+.cp-body .card:nth-child(n + 4),
+.sale-card:nth-child(n + 4),
+.rel-item:nth-child(n + 4) {
+  animation-delay: 150ms;
+}
+.cp {
+  animation: fade 0.25s ease backwards;
+}
+.btn,
+.icon-btn,
+.chip,
+.nav-item,
+.deals-chip,
+.tabs button,
+.step-chip,
+.tabbar button,
+.map-layers button {
+  transition:
+    transform 0.2s var(--ease),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.btn:hover:not(:disabled),
+.icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.btn:active:not(:disabled),
+.icon-btn:active,
+.deals-chip:active,
+.nav-item:active,
+.tabbar button:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
+  transition-duration: 0.06s;
+}
+.btn.primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+.nav-item:hover {
+  transform: translateX(2px);
+}
+/* The underline of a tab grows from its middle instead of appearing. */
+.tabs button::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: -1px;
+  left: 8px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.3s var(--ease);
+}
+.tabs button[aria-selected="true"]::after {
+  transform: scaleX(1);
+}
+.meter-track span,
+.meter-fill {
+  transition: width 0.5s var(--ease);
+}
+.toast {
+  animation: rise 0.35s var(--ease) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
