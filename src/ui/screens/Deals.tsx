@@ -310,7 +310,7 @@ export function Deals() {
               const cards = mine.filter((item) => item.stage === stage);
               const dim = funnel !== null && funnel !== stage;
               return (
-                <div key={stage} className="deals-column" data-dim={dim ? "true" : undefined}>
+                <div key={stage} className="deals-column" data-dim={dim ? "true" : undefined} data-empty={cards.length === 0 ? "true" : undefined}>
                   <h3>
                     {t(`deals.column.${stage}`)}
                     <b>{cards.length}</b>
@@ -343,49 +343,51 @@ export function Deals() {
               aria-label={t("deals.filter.search")}
             />
           </label>
-          <select value={sector} onChange={(event) => setSector(event.target.value)} aria-label={t("term.sector")}>
-            <option value="">{t("deals.filter.allSectors")}</option>
-            {view.economy.sectors.map((item) => (
-              <option key={item.id} value={item.id}>
-                {t(`sector.${item.id}`)}
-              </option>
-            ))}
-          </select>
-          <div className="deals-chips" role="group" aria-label={t("deals.col.stage")}>
-            {SALE_STAGES.map((stage) => {
-              const on = stages.includes(stage);
-              return (
-                <button
-                  key={stage}
-                  type="button"
-                  className="deals-chip"
-                  aria-pressed={on}
-                  onClick={() => setStages(on ? stages.filter((item) => item !== stage) : [...stages, stage])}
-                >
-                  {t(`stage.${stage}`)}
-                  <small>{forSale.filter((row) => row.sale?.stage === stage).length}</small>
+          <div className="deals-filter-row">
+            <select value={sector} onChange={(event) => setSector(event.target.value)} aria-label={t("term.sector")}>
+              <option value="">{t("deals.filter.allSectors")}</option>
+              {view.economy.sectors.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {t(`sector.${item.id}`)}
+                </option>
+              ))}
+            </select>
+            <div className="deals-chips" role="group" aria-label={t("deals.col.stage")}>
+              {SALE_STAGES.map((stage) => {
+                const on = stages.includes(stage);
+                return (
+                  <button
+                    key={stage}
+                    type="button"
+                    className="deals-chip"
+                    aria-pressed={on}
+                    onClick={() => setStages(on ? stages.filter((item) => item !== stage) : [...stages, stage])}
+                  >
+                    {t(`stage.${stage}`)}
+                    <small>{forSale.filter((row) => row.sale?.stage === stage).length}</small>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="deals-chips" role="group" aria-label={t("deals.filter.country")}>
+              {COUNTRY_FILTERS.map((item) => (
+                <button key={item || "all"} type="button" className="deals-chip" aria-pressed={country === item} onClick={() => setCountry(item)}>
+                  {item === "abroad" && abroadLocked ? <Lock size={12} /> : null}
+                  {t(`deals.filter.country.${item || "all"}`)}
+                  <small>{item === "" ? forSale.length : item === "home" ? forSale.length - abroadCount : abroadCount}</small>
                 </button>
-              );
-            })}
+              ))}
+            </div>
+            <button type="button" className="deals-chip" data-kind="final" aria-pressed={finalOnly} onClick={() => setFinalOnly(!finalOnly)}>
+              <Icon name="gavel" size={13} />
+              {t("deals.final.tag")}
+              <small>{finalCount}</small>
+            </button>
+            <button type="button" className="deals-chip" aria-pressed={reach} onClick={() => setReach(!reach)} title={t("deals.filter.reachHint")}>
+              <Icon name="fund" size={13} />
+              {t("deals.filter.reach")}
+            </button>
           </div>
-          <div className="deals-chips" role="group" aria-label={t("deals.filter.country")}>
-            {COUNTRY_FILTERS.map((item) => (
-              <button key={item || "all"} type="button" className="deals-chip" aria-pressed={country === item} onClick={() => setCountry(item)}>
-                {item === "abroad" && abroadLocked ? <Lock size={12} /> : null}
-                {t(`deals.filter.country.${item || "all"}`)}
-                <small>{item === "" ? forSale.length : item === "home" ? forSale.length - abroadCount : abroadCount}</small>
-              </button>
-            ))}
-          </div>
-          <button type="button" className="deals-chip" data-kind="final" aria-pressed={finalOnly} onClick={() => setFinalOnly(!finalOnly)}>
-            <Icon name="gavel" size={13} />
-            {t("deals.final.tag")}
-            <small>{finalCount}</small>
-          </button>
-          <button type="button" className="deals-chip" aria-pressed={reach} onClick={() => setReach(!reach)} title={t("deals.filter.reachHint")}>
-            <Icon name="fund" size={13} />
-            {t("deals.filter.reach")}
-          </button>
           <small className="muted">{t("deals.filter.reachHint")}</small>
           <small className="muted">{t("deals.unit", { unit: t("term.usd") })}</small>
         </div>
@@ -439,7 +441,7 @@ export function Deals() {
                   const listed = sale.reason === "strategic_review";
                   return (
                     <tr key={row.i} aria-selected={game.selected === row.i} data-locked={locked ? "true" : undefined} onClick={() => game.select(row.i)}>
-                      <td>
+                      <td className="deals-cell-watch">
                         <button
                           type="button"
                           className="deals-watch"
@@ -458,7 +460,7 @@ export function Deals() {
                         {row.name}
                         <span className="sub">{t(`admin1.${row.admin1}`)}</span>
                       </td>
-                      <td>
+                      <td className="deals-cell-country" data-home={abroad ? undefined : "true"}>
                         {abroad ? (
                           <span className="deals-country" data-locked={locked ? "true" : undefined} title={locked ? t("country.locked") : undefined}>
                             {locked ? <Lock size={12} /> : null}
@@ -468,7 +470,7 @@ export function Deals() {
                           <span className="muted">{t(`country.${row.country}`)}</span>
                         )}
                       </td>
-                      <td>
+                      <td className="deals-cell-sector">
                         <span className="deals-sector">
                           <Icon name={row.sector} size={14} />
                           {t(`sector.${row.sector}`)}
@@ -480,8 +482,8 @@ export function Deals() {
                           ) : null}
                         </span>
                       </td>
-                      <td>{ownerText(t, view, row)}</td>
-                      <td>
+                      <td className="deals-cell-owner">{ownerText(t, view, row)}</td>
+                      <td className="deals-cell-reason">
                         {listed ? (
                           <span className="deals-reason">
                             <Tag tone="warn">{t("reason.strategic_review")}</Tag>
@@ -491,7 +493,7 @@ export function Deals() {
                           <Tag tone={sale.reason === "distress" ? "bad" : "muted"}>{t(`reason.${sale.reason}`)}</Tag>
                         )}
                       </td>
-                      <td>
+                      <td className="deals-cell-stage">
                         <span className="deals-stage">
                           <Ring fraction={sale.months_left / STAGE_MONTHS} size={24} tone={monthsTone(sale.months_left)}>
                             {String(sale.months_left)}
@@ -508,16 +510,20 @@ export function Deals() {
                           </span>
                         </span>
                       </td>
-                      <td>
+                      <td className="deals-cell-rivals" data-label={t("deals.col.rivals")}>
                         <Rivals row={row} />
                       </td>
-                      <td className="num">{f.shortFigure(row.revenue)}</td>
-                      <td className="num">{f.shortFigure(row.ebitda)}</td>
-                      <td className="num">
+                      <td className="num deals-cell-figure" data-label={t("term.revenue")}>
+                        {f.shortFigure(row.revenue)}
+                      </td>
+                      <td className="num deals-cell-figure" data-label={t("term.ebitda")}>
+                        {f.shortFigure(row.ebitda)}
+                      </td>
+                      <td className="num deals-cell-figure" data-label={t("term.ev")}>
                         {f.shortFigure(row.ev)}
                         {withinReach(row) ? null : <span className="sub">{t("deals.outOfReach")}</span>}
                       </td>
-                      <td className="deals-rel">
+                      <td className="deals-rel" data-label={t("term.relationship")}>
                         <Meter
                           value={row.relationship}
                           max={100}
@@ -525,7 +531,7 @@ export function Deals() {
                           text={f.integer(row.relationship)}
                         />
                       </td>
-                      <td className="num">
+                      <td className="num deals-cell-action">
                         {mineStage ? (
                           <Tag tone="accent">{t(`deals.column.${mineStage}`)}</Tag>
                         ) : locked ? (

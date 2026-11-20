@@ -3,6 +3,8 @@
   "career.lead": "직급, 평판, 실적, 그리고 내 돈.",
   "career.fired": "해고",
   "career.ladder": "직급 사다리",
+  "career.ladder.all": "직급 모두 보기",
+  "career.ladder.fewer": "접기",
   "career.atRank": "현재 · {months, plural, other {#개월째}}",
   "career.perk.attention": "월 주의",
   "career.perk.deals": "동시 딜",

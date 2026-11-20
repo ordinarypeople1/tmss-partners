@@ -372,17 +372,19 @@ function RealizedTable({ f, t }: { f: Format; t: Translate }) {
               {realized.map((exit, index) => (
                 <tr key={`${exit.company}-${index}`}>
                   <td className="name">{exit.company}</td>
-                  <td>{f.shortDate(exit.acquired)}</td>
-                  <td>{f.shortDate(exit.exited)}</td>
-                  <td>{exit.route ? <Tag>{t(`route.${exit.route}`)}</Tag> : <Tag tone="bad">{t("portfolio.realized.lender")}</Tag>}</td>
-                  <td className="num">{f.money(exit.cost)}</td>
-                  <td className="num">
+                  <td data-label={t("portfolio.realized.acquired")}>{f.shortDate(exit.acquired)}</td>
+                  <td data-label={t("portfolio.realized.exited")}>{f.shortDate(exit.exited)}</td>
+                  <td className="pf-route">{exit.route ? <Tag>{t(`route.${exit.route}`)}</Tag> : <Tag tone="bad">{t("portfolio.realized.lender")}</Tag>}</td>
+                  <td className="num" data-label={t("portfolio.col.cost")}>
+                    {f.money(exit.cost)}
+                  </td>
+                  <td className="num" data-label={t("portfolio.realized.proceeds")}>
                     <b>{f.money(exit.proceeds)}</b>
                   </td>
-                  <td className="num">
+                  <td className="num" data-label={t("term.moic")}>
                     <Tag tone={moicTone(exit.moic_millis)}>{f.multiple(exit.moic_millis, 2)}</Tag>
                   </td>
-                  <td className="num" data-tone={exit.irr_bps === null ? undefined : signTone(exit.irr_bps)}>
+                  <td className="num" data-label={t("term.irr")} data-tone={exit.irr_bps === null ? undefined : signTone(exit.irr_bps)}>
                     {exit.irr_bps === null ? "–" : f.pct(exit.irr_bps)}
                   </td>
                 </tr>
@@ -523,15 +525,13 @@ export function Portfolio() {
               }))}
             />
           </section>
-          {mode === "cards" ? (
-            <div className="pf-cards">
-              {items.map((item) => (
-                <HoldingCard key={item.company.i} item={item} active={game.selected === item.company.i} onOpen={() => game.select(item.company.i)} />
-              ))}
-            </div>
-          ) : (
-            <HoldingsTable items={items} selected={game.selected} onOpen={game.select} />
-          )}
+          {/* A phone always shows the cards: the toggle and the wide table are hidden there (Portfolio.css). */}
+          <div className="pf-cards" data-mode={mode}>
+            {items.map((item) => (
+              <HoldingCard key={item.company.i} item={item} active={game.selected === item.company.i} onOpen={() => game.select(item.company.i)} />
+            ))}
+          </div>
+          {mode === "table" ? <HoldingsTable items={items} selected={game.selected} onOpen={game.select} /> : null}
         </>
       )}
 

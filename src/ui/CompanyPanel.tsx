@@ -298,7 +298,11 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
   const founderLeaves =
     !company.held && sale?.reason === "retirement" && company.ceo.founder;
 
+  const nda = () => game.act({ type: "sign_nda", company: company.i });
+  const meet = () => game.act({ type: "meet_owner", company: company.i });
+
   return (
+    <>
     <div className="stack">
       <section className="card">
         <h3>
@@ -310,7 +314,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             </Tag>
           ) : null}
         </h3>
-        <div className="cp-figures">
+        <div className={fogged ? "cp-figures cp-three cp-fogged" : "cp-figures cp-three"}>
           <Stat label={t("term.revenue")} value={f.figure(company.revenue)}>
             {fin ? (
               <Sparkline
@@ -660,9 +664,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             <button
               type="button"
               className="btn"
-              onClick={() =>
-                game.act({ type: "meet_owner", company: company.i })
-              }
+              onClick={meet}
             >
               <Icon name="handshake" size={16} />
               {t("company.act.meet")}
@@ -673,9 +675,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
                 type="button"
                 className="btn primary"
                 disabled={borderLocked}
-                onClick={() =>
-                  game.act({ type: "sign_nda", company: company.i })
-                }
+                onClick={nda}
               >
                 <Icon name="search" size={16} />
                 {t("company.act.nda")}
@@ -717,6 +717,34 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
         </section>
       ) : null}
     </div>
+    {/* On a phone the step that moves this company forward stays in reach. */}
+    {canNda ? (
+      <div className="cp-dock">
+        {borderLocked ? (
+          <span className="cp-dock-note" data-tone="bad">
+            {t("country.locked")}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className="btn primary"
+          disabled={borderLocked}
+          onClick={nda}
+        >
+          <Icon name="search" size={16} />
+          {t("company.act.nda")}
+        </button>
+      </div>
+    ) : canAct && !company.in_deal ? (
+      <div className="cp-dock">
+        <button type="button" className="btn" onClick={meet}>
+          <Icon name="handshake" size={16} />
+          {t("company.act.meet")}
+          <Cost points={abroad ? 2 : 1} />
+        </button>
+      </div>
+    ) : null}
+    </>
   );
 }
 

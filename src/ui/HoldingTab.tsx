@@ -6,6 +6,7 @@ import { Bridge, Donut, Gauge, LineChart, Meter, Rating, Ring, SERIES, Stat, Tag
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { StepRange } from "./DealRoom";
 import { describeMessage } from "./messages";
 import { Portrait } from "./Portrait";
 
@@ -437,19 +438,7 @@ function BudgetCard({ company, holding, financials }: SectionProps) {
                   ? t("holding.budget.ofRevenue", { pct: f.pct(value, 2), amount: f.money(Math.round((last.revenue * value) / 10000)) })
                   : t("holding.budget.share", { pct: value })}
               </output>
-              <input
-                id={id}
-                type="range"
-                min={0}
-                max={slider.max}
-                step={slider.step}
-                value={value}
-                onChange={(event) => change(slider.key, Number(event.target.value))}
-                onMouseUp={commit}
-                onTouchEnd={commit}
-                onKeyUp={commit}
-                onBlur={commit}
-              />
+              <StepRange id={id} label={t(slider.label)} min={0} max={slider.max} step={slider.step} value={value} onChange={(next) => change(slider.key, next)} onRelease={commit} />
               <small>{t(`${slider.label}.hint`)}</small>
             </div>
           );
@@ -612,7 +601,7 @@ function AddOnCard({ company, holding }: SectionProps) {
                 {targets.map((row) => (
                   <tr key={row.i}>
                     <td className="name">
-                      {row.name}
+                      <span className="hd-target">{row.name}</span>
                       <span className="sub">
                         {row.country === HOME ? t(`admin1.${row.admin1}`) : `${t(`admin1.${row.admin1}`)} · ${t(`country.${row.country}`)}`}
                       </span>
@@ -629,8 +618,12 @@ function AddOnCard({ company, holding }: SectionProps) {
                         />
                       </span>
                     </td>
-                    <td className="num">{f.figure(row.ebitda)}</td>
-                    <td className="num">{f.figure(row.ev)}</td>
+                    <td className="num" data-label={t("term.ebitda")}>
+                      {f.figure(row.ebitda)}
+                    </td>
+                    <td className="num" data-label={t("term.ev")}>
+                      {f.figure(row.ev)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -734,7 +727,7 @@ function ExitCard({ company, holding }: SectionProps) {
           ) : null}
         </div>
       ) : (
-        <ul className="hd-list">
+        <ul className="hd-list hd-routes">
           {ROUTES.map((route) => (
             <li key={route} className="hd-item">
               <div className="hd-item-main">

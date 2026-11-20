@@ -3,6 +3,8 @@
   "career.lead": "職位、評判、実績、そして自分の資産。",
   "career.fired": "解雇",
   "career.ladder": "職位のはしご",
+  "career.ladder.all": "すべての職位を見る",
+  "career.ladder.fewer": "閉じる",
   "career.atRank": "現職 · {months, plural, other {#か月目}}",
   "career.perk.attention": "月間工数",
   "career.perk.deals": "同時ディール",

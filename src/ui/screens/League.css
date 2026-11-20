@@ -233,3 +233,121 @@
   border-color: var(--good);
   background: var(--good-soft);
 }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .league .page-head {
+    align-items: center;
+  }
+  .league .league-standing {
+    padding: 6px 12px;
+  }
+  .league .league-standing strong {
+    font-size: 1.3rem;
+  }
+
+  /* The table becomes one row card per house. */
+  .league .league-table,
+  .league .league-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+  .league .league-table thead {
+    display: none;
+  }
+  .league .league-table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  .league .league-table tr[data-band="top"] {
+    border-color: transparent;
+    background: var(--good-soft);
+  }
+  .league .league-table tr[data-band="bottom"] {
+    border-color: transparent;
+    background: var(--bad-soft);
+  }
+  .league .league-table tr[data-me="true"] {
+    border: 2px solid var(--accent);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
+  .league .league-table tr td,
+  .league .league-table tr[data-band] td,
+  .league .league-table tr[data-me="true"] td,
+  .league .league-table tr[data-me="true"] td:first-child {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .league .league-rank {
+    flex: none;
+  }
+  .league .medal {
+    width: 30px;
+    height: 30px;
+    background: rgb(36 48 44 / 8%);
+  }
+  .league .league-table .name {
+    flex: 1 1 0;
+    max-width: none;
+    font-size: 1rem;
+  }
+  .league .league-table td.league-multiple {
+    flex: 1 1 100%;
+    width: auto;
+  }
+  .league .league-table .meter-track {
+    height: 12px;
+  }
+  .league .league-figure {
+    display: grid;
+    flex: 1 1 28%;
+    gap: 1px;
+    text-align: left !important;
+    font-size: 0.92rem;
+  }
+  .league .league-figure::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 400;
+  }
+  .league .league-count {
+    flex: none;
+    padding: 2px 8px !important;
+    border-radius: 999px;
+    background: rgb(36 48 44 / 8%) !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .league .league-count::before {
+    content: attr(data-label) " ";
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  .league .h2h,
+  .league .league-houses {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .league .house-style {
+    min-height: 0;
+  }
+  .league .house-card .grid.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .league .deal-chip {
+    min-height: 44px;
+  }
+  .league .deal-chip b {
+    overflow-wrap: anywhere;
+  }
+}

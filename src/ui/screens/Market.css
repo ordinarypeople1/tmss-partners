@@ -360,3 +360,267 @@
 .market .state-rank li > span small {
   font-size: 0.74rem;
 }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .market .page-head .row {
+    flex-wrap: wrap;
+  }
+  /* Economy: clock and phase, the key numbers 2x2, lender terms 2x2, charts full width. */
+  .market .market-economy {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .market .economy-clock {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 12px;
+  }
+  .market .economy-clock .row {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .market .market-economy .grid.cols-3,
+  .market .market-economy .grid.cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+  .market .market-economy .grid.cols-3 > :nth-child(3) {
+    grid-column: 1 / -1;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .market .economy-charts {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sectors: one per row, research button full width. */
+  .market .sector-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .market .sector-pick {
+    min-height: 44px;
+  }
+  .market .sector-research {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .market .sector-research[data-on] {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .market .sector-research .btn {
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+  }
+  .market .research-hint {
+    align-items: flex-start;
+  }
+
+  /* Countries: compact rows. */
+  .market .country-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .market .country-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
+    min-height: 56px;
+    padding: 8px 10px;
+  }
+  .market .country-head {
+    justify-content: flex-start;
+    gap: 4px 8px;
+  }
+  .market .country-card > .share-bar {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+  .market .country-stats {
+    grid-template-columns: repeat(3, auto);
+    gap: 12px;
+    text-align: right;
+  }
+
+  /* Who holds the market: filters in one scrolling row, treemap, then compact rows. */
+  .market .holders-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .market .country-filter {
+    min-height: 40px;
+    max-width: 46vw;
+  }
+  .market .owner-legend {
+    grid-column: 1 / -1;
+    flex-flow: row;
+    gap: 12px;
+    margin-bottom: 0;
+    padding-bottom: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .market .owner-legend li {
+    flex: none;
+  }
+  .market .holders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .market .share-map {
+    aspect-ratio: 100 / 92;
+    min-height: 180px;
+  }
+  .market .share-map button {
+    padding: 2px 3px;
+    font-size: 0.66rem;
+    line-height: 1.15;
+  }
+  /* Only boxes with room keep their label on a phone; the list below names the rest. */
+  .market .share-map button:not([data-big]) > * {
+    display: none;
+  }
+  .market .share-map button span {
+    overflow-wrap: anywhere;
+  }
+  .market .holders-table {
+    max-height: 62vh;
+  }
+  .market .holders-table .table,
+  .market .holders-table tbody,
+  .market .rivals-table,
+  .market .rivals-table tbody {
+    display: block;
+  }
+  .market .holders-table thead,
+  .market .rivals-table thead {
+    display: none;
+  }
+  .market .holders-table tr {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) minmax(96px, 34%);
+    grid-template-areas:
+      "rank name sale"
+      "rank owner share";
+    gap: 2px 8px;
+    align-items: center;
+    padding: 8px 10px 8px 6px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .market .holders-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+  .market .holder-rank {
+    grid-area: rank;
+    align-self: start;
+    padding-top: 5px !important;
+    text-align: center !important;
+  }
+  .market .holders-table .name {
+    grid-area: name;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+  .market .holder-sale {
+    grid-area: sale;
+    justify-self: end;
+    align-self: start;
+  }
+  .market .holder-owner {
+    grid-area: owner;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
+  .market .holder-share {
+    grid-area: share;
+  }
+  .market .holder-revenue {
+    display: none;
+  }
+  .market .holders-table .share-cell {
+    min-width: 0;
+  }
+  .market .row-link {
+    min-height: 26px;
+  }
+
+  /* Rival houses: one card-row each. */
+  .market .rivals-table tr {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank name name multiple"
+      "rank holdings ev ev"
+      "rank last last last";
+    gap: 4px 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .market .rivals-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+  .market .rivals-table td.num {
+    min-width: 0;
+  }
+  .market .rival-rank {
+    grid-area: rank;
+    align-self: start;
+    text-align: center !important;
+  }
+  .market .rivals-table .name {
+    grid-area: name;
+    max-width: none;
+  }
+  .market .rival-multiple {
+    grid-area: multiple;
+  }
+  .market .rival-holdings {
+    grid-area: holdings;
+  }
+  .market .rival-ev {
+    grid-area: ev;
+  }
+  .market .rival-last {
+    grid-area: last;
+  }
+  .market .rival-holdings::before,
+  .market .rival-ev::before,
+  .market .rival-multiple::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 400;
+  }
+  .market .rival-last:has(.muted) {
+    display: none;
+  }
+  .market .rivals-table .share-cell {
+    min-width: 0;
+  }
+  .market .deal-chip {
+    width: 100%;
+    min-height: 40px;
+  }
+  .market .deal-chip span {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .market .state-rank li {
+    grid-template-columns: 16px minmax(72px, 1fr) minmax(36px, 1fr) 24px minmax(58px, auto);
+    gap: 6px;
+  }
+  .market .grid.auto {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -115,6 +115,7 @@ function ShareMap({ boxes, onSelect }: { boxes: Box[]; onSelect(id: number): voi
           key={box.id}
           type="button"
           data-active={box.active ? "true" : undefined}
+          data-big={w > 15 && h > 11 ? "true" : undefined}
           style={{
             left: `${(x / MAP_WIDTH) * 100}%`,
             top: `${(y / MAP_HEIGHT) * 100}%`,
@@ -502,7 +503,7 @@ export function Market() {
       </section>
 
       <section className="card stack">
-        <div className="row between">
+        <div className="row between holders-head">
           <h2 className="card-title">
             <Icon name={sectorId} size={16} />
             {t("market.holders", { sector: t(`sector.${sectorId}`) })}
@@ -564,7 +565,7 @@ export function Market() {
                       data-own={row.held ? "true" : undefined}
                       onClick={() => game.select(row.i)}
                     >
-                      <td className="num muted">{index + 1}</td>
+                      <td className="num muted holder-rank">{index + 1}</td>
                       <td className="name">
                         <button type="button" className="row-link" onClick={() => game.select(row.i)}>
                           {row.name}
@@ -573,14 +574,14 @@ export function Market() {
                           {row.country === HOME ? t(`admin1.${row.admin1}`) : `${t(`admin1.${row.admin1}`)} · ${t(`country.${row.country}`)}`}
                         </span>
                       </td>
-                      <td>
+                      <td className="holder-owner">
                         <span className="owner-cell">
                           <i style={{ background: OWNER_COLOR[row.owner.kind] }} />
                           {ownerLabel(row)}
                         </span>
                       </td>
-                      <td className="num">{f.figure(row.revenue)}</td>
-                      <td>
+                      <td className="num holder-revenue">{f.figure(row.revenue)}</td>
+                      <td className="holder-share">
                         <span className="share-cell">
                           <span className="share-bar">
                             <span
@@ -590,7 +591,7 @@ export function Market() {
                           <b>{f.pct(Math.round(share * 10000))}</b>
                         </span>
                       </td>
-                      <td>
+                      <td className="holder-sale">
                         {row.sale ? (
                           <Tag tone={STAGE_TONE[row.sale.stage]}>{t(`stage.${row.sale.stage}`)}</Tag>
                         ) : row.exiting ? (
@@ -635,9 +636,9 @@ export function Market() {
               const last = rival.deals[0];
               return (
                 <tr key={rival.house}>
-                  <td className="num muted">{rival.standing ? f.integer(rival.standing.rank) : "–"}</td>
+                  <td className="num muted rival-rank">{rival.standing ? f.integer(rival.standing.rank) : "–"}</td>
                   <td className="name">{rival.name}</td>
-                  <td>
+                  <td className="rival-holdings" data-label={t("market.holdings")}>
                     <span className="share-cell">
                       <span className="share-bar">
                         <span style={{ width: `${(rival.owned.length / mostOwned) * 100}%`, background: OWNER_COLOR.sponsor }} />
@@ -645,15 +646,15 @@ export function Market() {
                       <b>{f.integer(rival.owned.length)}</b>
                     </span>
                   </td>
-                  <td className="num">{rival.owned.length ? f.money(Math.round(rival.ev)) : t("term.none")}</td>
-                  <td className="num">
+                  <td className="num rival-ev" data-label={t("market.holdingsEv")}>{rival.owned.length ? f.money(Math.round(rival.ev)) : t("term.none")}</td>
+                  <td className="num rival-multiple" data-label={t("market.grossMultiple")}>
                     {rival.standing && rival.standing.invested > 0 ? (
                       <b data-tone={rival.standing.multiple_millis >= 1000 ? "good" : "bad"}>{f.multiple(rival.standing.multiple_millis, 2)}</b>
                     ) : (
                       "–"
                     )}
                   </td>
-                  <td>
+                  <td className="rival-last" data-label={t("market.lastDeal")}>
                     {last ? (
                       <button type="button" className="deal-chip" onClick={() => last.company !== null && game.select(last.company)}>
                         <Icon name={last.type === "auction_lost" ? "alert" : "gavel"} size={13} />

@@ -1147,9 +1147,17 @@ th,
     gap: 6px 10px;
     padding: max(8px, env(safe-area-inset-top)) 10px 8px;
   }
+  .topbar > * {
+    min-width: 0;
+  }
   .clock {
     flex: 1 1 100%;
+    flex-wrap: wrap;
     justify-content: space-between;
+  }
+  .turn {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .clock strong {
     font-size: 1.05rem;
@@ -1176,7 +1184,10 @@ th,
     flex: none;
   }
   .fund-strip {
-    flex: none;
+    flex: 0 1 auto;
+  }
+  .fund-strip .meter-head span {
+    display: none;
   }
   .fund-strip .meter {
     width: 108px;
@@ -1198,8 +1209,10 @@ th,
     width: 100vw;
     border-left: 0;
   }
+  /* Refusals show under the top bar, clear of the badges that rise above the tab bar. */
   .toasts {
-    bottom: calc(var(--tabbar) + 10px);
+    top: 112px;
+    bottom: auto;
     width: calc(100vw - 24px);
   }
   .grid.cols-2,

@@ -177,7 +177,7 @@ export function League() {
               const style = row.house === null ? null : HOUSE_STYLES[row.house];
               return (
                 <tr key={row.house ?? "me"} data-band={bandOf(row.rank, houses)} data-me={me}>
-                  <td>
+                  <td className="league-rank">
                     <span className="medal" data-rank={row.rank <= 3 ? row.rank : undefined}>
                       {f.integer(row.rank)}
                     </span>
@@ -205,11 +205,11 @@ export function League() {
                       <span className="muted">{t("league.noCapital")}</span>
                     )}
                   </td>
-                  <td className="num">{f.money(row.invested)}</td>
-                  <td className="num">{f.money(row.returned)}</td>
-                  <td className="num">{f.money(row.held)}</td>
-                  <td className="num">{f.integer(row.deals)}</td>
-                  <td className="num">{f.integer(row.exits)}</td>
+                  <td className="num league-figure" data-label={t("league.col.invested")}>{f.money(row.invested)}</td>
+                  <td className="num league-figure" data-label={t("league.col.returned")}>{f.money(row.returned)}</td>
+                  <td className="num league-figure" data-label={t("league.col.held")}>{f.money(row.held)}</td>
+                  <td className="num league-count" data-label={t("league.col.deals")}>{f.integer(row.deals)}</td>
+                  <td className="num league-count" data-label={t("league.col.exits")}>{f.integer(row.exits)}</td>
                 </tr>
               );
             })}

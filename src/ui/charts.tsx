@@ -433,7 +433,14 @@ export function CycleClock({ phases, current, progress = 0.5, size = 120 }: { ph
         return (
           <g key={phase.id} data-phase={phase.id} data-on={at === index}>
             <path d={`M${p(from, 46)}A46,46 0 0 1 ${p(to, 46)}L${p(to, 30)}A30,30 0 0 0 ${p(from, 30)}Z`} />
-            <text x={50 + Math.cos(middle) * 38} y={50 + Math.sin(middle) * 38} textAnchor="middle" dominantBaseline="middle">
+            <text
+              x={50 + Math.cos(middle) * 38}
+              y={50 + Math.sin(middle) * 38}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              // A long label ("Expansion") shrinks to stay inside its quadrant.
+              style={phase.label.length > 6 ? { fontSize: `${Math.max(42 / phase.label.length, 4.2)}px` } : undefined}
+            >
               {phase.label}
             </text>
           </g>

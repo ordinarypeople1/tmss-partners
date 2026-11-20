@@ -427,3 +427,160 @@
   font-size: 0.82rem;
   font-weight: 600;
 }
+
+/* The pinned next step. A phone only. */
+.cp-dock {
+  display: none;
+}
+
+/* ---------- phone: a full-screen sheet above the tab bar ---------- */
+@media (max-width: 760px) {
+  .cp-head {
+    gap: 4px;
+    padding: max(8px, env(safe-area-inset-top)) 10px 0;
+  }
+  .cp-sector {
+    width: 36px;
+    height: 36px;
+  }
+  .cp-name h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .cp-name span {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .cp-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+  /* Tags and tabs: one row each, scrolled sideways. */
+  .cp-head > .cp-tags,
+  .cp-head .tabs {
+    flex-flow: row;
+    overflow-x: auto;
+    margin: 0 -10px;
+    scrollbar-width: none;
+  }
+  .cp-head > .cp-tags {
+    padding: 2px 28px 2px 10px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+  .cp-head > .cp-tags::-webkit-scrollbar,
+  .cp-head .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .cp-head > .cp-tags .tag {
+    flex: none;
+  }
+  .cp-head .tabs {
+    padding: 0 2px;
+  }
+  .cp-head .tabs button {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  .cp-body {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+  .cp-body > * {
+    flex: none;
+  }
+  .cp-story {
+    font-size: 0.84rem;
+  }
+
+  /* Revenue, EBITDA and model value side by side. */
+  .cp-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cp-figures.cp-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .cp-three .stat-value {
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+  }
+  /* Ranges are too wide for a third of a phone: one figure per row, label left. */
+  .cp-figures.cp-fogged {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .cp-fogged .stat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 12px;
+  }
+  .cp-fogged .stat-value {
+    font-size: 1.1rem;
+  }
+  .cp-ceo .cp-tags .tag,
+  .cp-rivals .chip {
+    min-height: 26px;
+  }
+  .cp-actions {
+    display: grid;
+  }
+  .cp-actions .btn {
+    min-height: 44px;
+  }
+  .cp-statement th,
+  .cp-statement td {
+    padding: 7px 6px;
+    overflow-wrap: anywhere;
+  }
+
+  .cp-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    display: grid;
+    gap: 6px;
+    margin: auto -10px -10px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: 0 -6px 14px rgb(31 41 37 / 8%);
+  }
+  .cp-body > .stack {
+    margin-bottom: 10px;
+  }
+  .cp-dock > .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  .cp-dock-note {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  .cp-dock-note[data-tone="warn"] {
+    color: #7a5200;
+  }
+  .cp-dock-note[data-tone="bad"] {
+    color: var(--bad);
+  }
+}
+/* Below 390 the three sparklines are a few pixels wider than their column. */
+@media (max-width: 389px) {
+  .cp-three .sparkline {
+    zoom: 0.86;
+  }
+}

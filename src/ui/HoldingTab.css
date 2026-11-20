@@ -273,3 +273,184 @@
 .hd-item-meta:empty {
   display: none;
 }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  /* The sheet body already has its own gutter. */
+  .holding-tab {
+    padding: 0;
+  }
+  .hd-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hd-cash-side .hd-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .hd-gauges {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .hd-gauges .gauge {
+    width: 100%;
+  }
+  .hd-tags .tag,
+  .hd-ceo-tags .tag {
+    min-height: 26px;
+  }
+
+  /* Every button that sends a command is a full thumb tall. */
+  .holding-tab .btn.small {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+  .hd-pending > .btn {
+    flex: 1 1 100%;
+  }
+
+  /* Amounts: the field takes the row, the button the next one. */
+  .hd-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 10px;
+  }
+  .hd-card > p.muted,
+  .hd-action > p.muted {
+    font-size: 0.84rem;
+  }
+  .hd-amount-input input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    min-height: 44px;
+    /* 16px keeps a phone from zooming into the field. */
+    font-size: 16px;
+  }
+  .hd-action-row > .btn,
+  .hd-action-row > .hd-confirm {
+    width: 100%;
+  }
+  .hd-confirm {
+    display: flex;
+    justify-content: stretch;
+  }
+  .hd-confirm > .muted {
+    flex: 1 1 100%;
+  }
+  .hd-confirm > .btn {
+    flex: 1;
+  }
+  .hd-picks {
+    flex-flow: row;
+  }
+  .hd-picks .btn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Initiatives: full-width rows, the start button at the right edge. */
+  .hd-item {
+    padding: 10px 0;
+  }
+  .hd-item-main {
+    flex-basis: 160px;
+  }
+  .hd-item-main > b,
+  .hd-item-name b {
+    font-size: 0.95rem;
+  }
+  .hd-item > .btn {
+    min-width: 76px;
+  }
+  .hd-item > .hd-confirm {
+    flex: 1 1 100%;
+  }
+
+  /* Exit routes: three option rows. */
+  .hd-routes {
+    gap: 8px;
+  }
+  .hd-routes .hd-item {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  .hd-list.hd-routes .hd-item + .hd-item {
+    border-top: 1px solid var(--line);
+  }
+
+  /* Bolt-on targets: one card each instead of a table row. */
+  .hd-scroll {
+    overflow: visible;
+  }
+  .hd-table,
+  .hd-table tbody {
+    display: block;
+  }
+  .hd-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .hd-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+  .hd-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  .hd-table tbody tr:hover {
+    background: var(--panel);
+  }
+  .hd-table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .hd-table tbody td.name {
+    display: contents;
+  }
+  .hd-target {
+    grid-column: 1 / -1;
+    font-size: 0.98rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .hd-table td.name .sub {
+    grid-column: 1 / -1;
+  }
+  .hd-table td.num {
+    order: 1;
+    margin-top: 4px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .hd-table td.num::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 400;
+  }
+  .hd-row-actions {
+    grid-column: 1 / -1;
+    order: 2;
+    margin-top: 6px;
+  }
+  .hd-row-actions > .btn {
+    flex: 1;
+  }
+  .hd-row-actions > .hd-confirm {
+    flex: 1 1 100%;
+  }
+}

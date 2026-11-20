@@ -548,3 +548,291 @@
   border-radius: 9px;
   background: var(--panel);
 }
+
+/* ---------- a slider with step buttons ---------- */
+/* On a desk the wrapper and its buttons do not exist for the layout. */
+.sr {
+  display: contents;
+}
+.sr-btn {
+  display: none;
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .dr-steps li {
+    gap: 2px 5px;
+    min-height: 40px;
+    padding: 4px;
+    font-size: 0.8rem;
+  }
+
+  .dr-streams .btn.small {
+    justify-self: stretch;
+    min-height: 44px;
+    padding: 0 6px;
+  }
+
+  /* Sliders: the value large on top, then − [ track ] +. */
+  :is(.dr, .holding-tab) .slider {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    align-items: end;
+  }
+  :is(.dr, .holding-tab) .slider output {
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+  .holding-tab .slider output {
+    font-size: 1.1rem;
+  }
+  :is(.dr, .holding-tab) .slider output small {
+    font-size: 0.85rem;
+  }
+  .dr-sliders,
+  .hd-sliders {
+    gap: 18px;
+  }
+  .sr {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 8px;
+  }
+  .sr-btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0 0 3px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--raised);
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .sr-btn:active:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .sr-btn:disabled {
+    opacity: 0.35;
+  }
+  .slider .sr input[type="range"] {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .sr input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--accent) var(--fill, 0%),
+      var(--line) var(--fill, 0%)
+    );
+  }
+  .sr input[type="range"]::-webkit-slider-thumb {
+    width: 30px;
+    height: 30px;
+    margin-top: -11px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 5px rgb(31 41 37 / 35%);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .sr input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .sr input[type="range"]::-moz-range-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .sr input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 5px rgb(31 41 37 / 35%);
+  }
+  .dr-sliders:disabled .sr input[type="range"]::-webkit-slider-thumb {
+    background: var(--muted);
+  }
+  .dr-sliders:disabled .sr input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--line);
+  }
+  .dr-link {
+    min-height: 40px;
+    padding: 0 6px;
+    font-size: 0.85rem;
+  }
+
+  /* The plan: one initiative per row, its effect underneath. */
+  .dr-plan ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dr-plan button {
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 8px 10px;
+  }
+  .dr-plan button > i {
+    width: 22px;
+    height: 22px;
+    margin-top: 0;
+    border-radius: 6px;
+  }
+  .dr-plan button b {
+    font-size: 0.92rem;
+  }
+  .dr-plan button small {
+    font-size: 0.8rem;
+  }
+
+  /* The preview: one block per row, figures two across. */
+  .dr-structure {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dr-structure .tower {
+    min-height: 132px;
+  }
+  .dr-structure .tower-layer {
+    padding: 0 10px;
+    font-size: 0.8rem;
+  }
+  .dr-stats,
+  .dr-returns,
+  .dr-round-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dr-returns .stat:last-child {
+    grid-column: 1 / -1;
+  }
+  .dr-returns .stat:last-child .stat-value {
+    line-height: 1.3;
+  }
+
+  /* Committee: two seats per row, each a small card. */
+  .dr-seats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dr-seats > li {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-areas:
+      "pic who"
+      "pic vote"
+      "trust trust"
+      "say say";
+    align-content: start;
+    align-items: start;
+    gap: 4px 8px;
+    padding: 8px;
+  }
+  .dr-seat-side,
+  .dr-seat-main,
+  .dr-seat-head {
+    display: contents;
+  }
+  .dr-portrait {
+    grid-area: pic;
+  }
+  .dr-seat-head > span:first-child {
+    grid-area: who;
+    overflow-wrap: anywhere;
+  }
+  .dr-seat-head > span:first-child b {
+    font-size: 0.88rem;
+    line-height: 1.2;
+  }
+  .dr-seat-head .tag {
+    grid-area: vote;
+    justify-self: start;
+  }
+  .dr-trust {
+    grid-area: trust;
+  }
+  .dr-trust .meter-head {
+    font-size: 0.74rem;
+  }
+  .dr-trust .meter-track {
+    height: 6px;
+  }
+  .dr-says,
+  .dr-say-for {
+    grid-area: say;
+  }
+  .dr-says q,
+  .dr-say-for {
+    flex-basis: 100%;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .dr-actions .btn,
+  .dr-confirm .btn.small,
+  .dr-raise > .btn {
+    min-height: 44px;
+  }
+  .dr-actions > .btn:not(.ghost) {
+    flex-basis: 132px;
+  }
+  .dr-rival {
+    min-height: 30px;
+  }
+
+  /* The final round in the pinned bar: the note, then − amount + over the button. */
+  .dr-dock:has(.dr-dock-raise) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .dr-dock:has(.dr-dock-raise) > .btn {
+    width: auto;
+    min-width: 96px;
+    padding: 0 12px;
+  }
+  .dr-dock-raise {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-areas:
+      "less amount more"
+      "less note more";
+    align-items: center;
+    gap: 0 6px;
+  }
+  .dr-dock-raise > .sr-btn:first-of-type {
+    grid-area: less;
+  }
+  .dr-dock-raise > .sr-btn:last-of-type {
+    grid-area: more;
+  }
+  .dr-dock-raise > .muted {
+    grid-area: note;
+    font-size: 0.74rem;
+    text-align: center;
+  }
+  .dr-dock-raise output {
+    grid-area: amount;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+  }
+}

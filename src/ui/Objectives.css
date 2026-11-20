@@ -94,3 +94,20 @@
 .objective[data-state="broken"] small {
   color: #f0938a;
 }
+
+/* In the phone menu sheet: thumb-sized rows, larger type. */
+@media (max-width: 760px) {
+  .objectives h3 {
+    font-size: 0.8rem;
+  }
+  .objective {
+    gap: 10px;
+    min-height: 44px;
+  }
+  .objective-text {
+    font-size: 0.9rem;
+  }
+  .objective-text small {
+    font-size: 0.78rem;
+  }
+}

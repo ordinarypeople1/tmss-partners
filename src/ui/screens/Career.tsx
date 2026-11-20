@@ -1,5 +1,6 @@
+import { useState, type CSSProperties } from "react";
 import { useT } from "../../i18n/useT";
-import { ACHIEVEMENTS, type Difficulty, type GameDate, type Perk, type Rank } from "../../sim/types";
+import { ACHIEVEMENTS, type Achievement, type Difficulty, type GameDate, type Perk, type Rank } from "../../sim/types";
 import { Gauge, Meter, Stat, StackBar, Tag } from "../charts";
 import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
@@ -70,6 +71,10 @@ export function Career() {
   const { view } = game;
   const { career, fund } = view;
   const survival = SURVIVAL_MILLIS[view.options.difficulty];
+  /** Phone only: every rank's perks instead of the current and the next. */
+  const [allRanks, setAllRanks] = useState(false);
+  /** Phone only: the badge whose requirement is shown. */
+  const [badge, setBadge] = useState<Achievement | null>(null);
 
   const at = Math.max(RANKS.findIndex((item) => item.rank === career.rank), 0);
   const next = RANKS[at + 1]?.rank ?? null;
@@ -204,6 +209,7 @@ export function Career() {
     return { year: Math.floor(total / 12), month: (total % 12) + 1 };
   };
   const earned = new Map(view.achievements.map((item) => [item.achievement, item.month]));
+  const shownBadge = badge ?? view.achievements[view.achievements.length - 1]?.achievement ?? ACHIEVEMENTS[0];
   const objectivesMet = view.objectives.filter((item) => item.met).length;
   const records = view.records;
   const founder = career.rank === "founder";
@@ -235,15 +241,15 @@ export function Career() {
           <Icon name="flag" size={16} />
           {t("career.ladder")}
         </h2>
-        <ol className="ladder">
+        <ol className="ladder" data-all={allRanks} style={{ "--ladder-done": at / (RANKS.length - 1) } as CSSProperties}>
           {RANKS.map((item, index) => (
-            <li key={item.rank} data-state={index < at ? "past" : index === at ? "now" : "ahead"}>
+            <li key={item.rank} data-state={index < at ? "past" : index === at ? "now" : "ahead"} data-next={index === at + 1}>
               <span className="ladder-node">{index < at ? <Icon name="check" size={14} /> : index + 1}</span>
               <span className="row">
                 <strong>{t(`rank.${item.rank}`)}</strong>
                 {index === at ? <Tag tone="accent">{t("career.atRank", { months: career.months_at_rank })}</Tag> : null}
               </span>
-              <dl className="ladder-perks">
+              <dl className="ladder-perks" data-rank={t(`rank.${item.rank}`)}>
                 <div>
                   <dt>{t("career.perk.attention")}</dt>
                   <dd>{f.integer(item.attention)}</dd>
@@ -278,6 +284,10 @@ export function Career() {
             </li>
           ))}
         </ol>
+        <button type="button" className="btn small ladder-toggle" aria-expanded={allRanks} onClick={() => setAllRanks(!allRanks)}>
+          <Icon name={allRanks ? "up" : "down"} size={14} />
+          {t(allRanks ? "career.ladder.fewer" : "career.ladder.all")}
+        </button>
         {view.attention.max !== RANKS[at].attention ? (
           <p className="muted">{t("career.attentionNote", { max: view.attention.max })}</p>
         ) : null}
@@ -627,12 +637,20 @@ export function Career() {
             <Meter value={earned.size} max={ACHIEVEMENTS.length} tone="good" />
           </div>
         </div>
+        <div className="badge-detail" data-done={earned.has(shownBadge)} aria-live="polite">
+          <span className="achievement-mark">
+            <Icon name={earned.has(shownBadge) ? "check" : "flag"} size={14} />
+          </span>
+          <strong>{t(`achievement.${shownBadge}`)}</strong>
+          {earned.has(shownBadge) ? <b>{f.shortDate(dateOf(earned.get(shownBadge) ?? 0))}</b> : null}
+          <small>{t(`achievement.${shownBadge}.detail`)}</small>
+        </div>
         <ul className="achievements">
           {ACHIEVEMENTS.map((id) => {
             const month = earned.get(id);
             const done = month !== undefined;
             return (
-              <li key={id} data-done={done}>
+              <li key={id} data-done={done} data-picked={id === shownBadge} onClick={() => setBadge(id)}>
                 <span className="achievement-mark">
                   <Icon name={done ? "check" : "flag"} size={14} />
                 </span>

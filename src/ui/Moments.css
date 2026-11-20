@@ -354,3 +354,115 @@
     transform: translateX(24px);
   }
 }
+
+/* Phone: the card never outgrows the screen; its body scrolls and the buttons stay at the bottom. */
+@media (max-width: 760px) {
+  .moment-backdrop {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .moment {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: 100%;
+    padding: 0;
+    overflow: hidden;
+  }
+  .moment > :first-child {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 16px 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .moment-foot,
+  .moment[data-kind="deal"] .moment-foot {
+    flex: none;
+    padding: 10px 12px;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .moment-foot .btn {
+    flex: 1 1 0;
+    min-height: 48px;
+    justify-content: center;
+  }
+  .moment-more {
+    flex: 0 0 100%;
+    margin-right: 0;
+    text-align: center;
+  }
+  .moment[data-kind="deal"] {
+    padding: 0;
+  }
+  .tombstone {
+    gap: 8px;
+    margin: 8px 8px 0;
+    padding: 18px 14px 14px;
+  }
+  .moment[data-kind="deal"] > .tombstone {
+    flex: 0 1 auto;
+    margin-bottom: 8px;
+  }
+  .tombstone-company {
+    font-size: 1.5rem;
+    overflow-wrap: anywhere;
+  }
+  .tombstone-value b {
+    font-size: 1.4rem;
+  }
+  .moment-head {
+    gap: 10px;
+  }
+  .moment-head h2 {
+    font-size: 1.25rem;
+    overflow-wrap: anywhere;
+  }
+  .promotion-rank {
+    font-size: 1.7rem !important;
+  }
+  .scorecard,
+  .promotion,
+  .fund-report,
+  .loss {
+    gap: 12px;
+  }
+  .scorecard-main {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+  .scorecard-moic {
+    padding: 12px;
+  }
+  .scorecard-moic b {
+    font-size: 2.3rem;
+  }
+  .moment-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  }
+  .moment-verdict {
+    font-size: 0.95rem;
+  }
+  .promotion-perks li {
+    grid-template-columns: minmax(0, 1fr) 48px 16px 48px;
+    min-height: 40px;
+    padding-inline: 10px;
+  }
+
+  /* Badges sit above the tab bar, clear of the top bar's next-month button. */
+  .moment-badges {
+    top: auto;
+    right: 10px;
+    bottom: calc(var(--tabbar) + 10px);
+    left: 10px;
+    width: auto;
+  }
+  .moment-badge {
+    min-height: 56px;
+  }
+  /* While a card is up the top bar is covered anyway; keep the card's buttons clear instead. */
+  .moment-badges:has(+ .moment-backdrop) {
+    top: max(10px, env(safe-area-inset-top));
+    bottom: auto;
+  }
+}

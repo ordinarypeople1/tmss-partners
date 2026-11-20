@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
 import {
   DD_STREAMS,
@@ -134,6 +134,78 @@ function Cost({ points }: { points: number }) {
       {Array.from({ length: points }, (_, index) => (
         <i key={index} />
       ))}
+    </span>
+  );
+}
+
+/**
+ * A range input with a − and a + button at its ends. The buttons show on a
+ * phone only (DealRoom.css); each tap moves one step.
+ */
+export function StepRange({
+  id,
+  label,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+  onRelease,
+}: {
+  id: string;
+  /** What the slider sets, for the buttons' accessible names. */
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+  /** Called when the thumb is let go, and after each button tap. */
+  onRelease?: () => void;
+}) {
+  const span = max - min;
+  const fill = span > 0 ? ((value - min) / span) * 100 : 0;
+  const nudge = (direction: number) => {
+    const next = Math.min(max, Math.max(min, value + direction * step));
+    if (next !== value) {
+      onChange(next);
+      onRelease?.();
+    }
+  };
+  return (
+    <span className="sr">
+      <button
+        type="button"
+        className="sr-btn"
+        aria-label={`${label} −`}
+        disabled={value <= min}
+        onClick={() => nudge(-1)}
+      >
+        −
+      </button>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        style={{ "--fill": `${fill}%` } as CSSProperties}
+        onChange={(event) => onChange(Number(event.target.value))}
+        onMouseUp={onRelease}
+        onTouchEnd={onRelease}
+        onKeyUp={onRelease}
+        onBlur={onRelease}
+      />
+      <button
+        type="button"
+        className="sr-btn"
+        aria-label={`${label} +`}
+        disabled={value >= max}
+        onClick={() => nudge(1)}
+      >
+        +
+      </button>
     </span>
   );
 }
@@ -303,7 +375,66 @@ export function DealRoom({ company }: { company: CompanyView }) {
             ? "dealroom.bid.unsaved"
             : null;
 
+  const sendRaise = () => {
+    if (game.act({ type: "raise_bid", company: company.i, ev: raiseEv })) {
+      setRaise(0);
+    }
+  };
+
+  /**
+   * The one next step, pinned at the bottom of the sheet on a phone. The same
+   * buttons stay in their cards; this only saves the scroll.
+   */
+  let dock: {
+    label: string;
+    cost?: number;
+    disabled: boolean;
+    note: string | null;
+    tone?: Tone;
+    run: () => void;
+  } | null = null;
+  const raising = locked && finalRound && myBid !== null && canRaise;
+  if (raising) {
+    dock = {
+      label: t("dealroom.raise.submit"),
+      disabled: raiseEv <= (myBid ?? 0),
+      note: t("dealroom.raise.ceiling", { amount: f.money(ceiling) }),
+      run: sendRaise,
+    };
+  } else if (locked) {
+    dock = null;
+  } else if (!saved) {
+    dock = {
+      label: t("dealroom.offer.save"),
+      disabled: !preview,
+      note: !preview
+        ? t("dealroom.previewNone")
+        : committee
+          ? t("dealroom.committee.willReset")
+          : null,
+      tone: "warn",
+      run: () => game.act({ type: "set_offer", company: company.i, offer }),
+    };
+  } else if (!committee) {
+    dock = {
+      label: t("dealroom.committee.submit"),
+      cost: 1,
+      disabled: false,
+      note: null,
+      run: () => game.act({ type: "submit_ic", company: company.i }),
+    };
+  } else {
+    dock = {
+      label: t("dealroom.bid.submit"),
+      disabled: bidBlock !== null,
+      note: bidBlock ? t(bidBlock) : null,
+      tone: "warn",
+      run: () => game.act({ type: "submit_bid", company: company.i }),
+    };
+  }
+
   return (
+    <>
     <div className="stack dr">
       <ol className="dr-steps">
         {steps.map((step, index) => (
@@ -419,14 +550,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
           <div className="slider">
             <label htmlFor="dr-ev">{t("dealroom.offer.ev")}</label>
             <output>{f.money(offer.ev)}</output>
-            <input
+            <StepRange
               id="dr-ev"
-              type="range"
+              label={t("dealroom.offer.ev")}
               min={evMin}
               max={evMax}
               step={evStep}
               value={offer.ev}
-              onChange={(event) => change({ ev: Number(event.target.value) })}
+              onChange={(ev) => change({ ev })}
             />
             <small className="dr-slider-notes">
               <span>
@@ -454,16 +585,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
               {f.multiple(offer.senior_millis)}
               {financing ? <small> · {f.money(financing.senior)}</small> : null}
             </output>
-            <input
+            <StepRange
               id="dr-senior"
-              type="range"
+              label={t("dealroom.offer.senior")}
               min={0}
               max={maxSenior}
               step={TURN_STEP}
               value={offer.senior_millis}
-              onChange={(event) =>
-                change({ senior_millis: Number(event.target.value) })
-              }
+              onChange={(senior_millis) => change({ senior_millis })}
             />
             <small>
               {t("dealroom.offer.lenderMax", {
@@ -478,16 +607,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
               {f.multiple(offer.mezz_millis)}
               {financing ? <small> · {f.money(financing.mezz)}</small> : null}
             </output>
-            <input
+            <StepRange
               id="dr-mezz"
-              type="range"
+              label={t("dealroom.offer.mezz")}
               min={0}
               max={maxMezz}
               step={TURN_STEP}
               value={offer.mezz_millis}
-              onChange={(event) =>
-                change({ mezz_millis: Number(event.target.value) })
-              }
+              onChange={(mezz_millis) => change({ mezz_millis })}
             />
             <small>
               {t("dealroom.offer.lenderMax", {
@@ -505,16 +632,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
                   <small> · {f.money(financing.rollover)}</small>
                 ) : null}
               </output>
-              <input
+              <StepRange
                 id="dr-roll"
-                type="range"
+                label={t("dealroom.offer.rollover")}
                 min={0}
                 max={MAX_ROLLOVER_BPS}
                 step={100}
                 value={offer.rollover_bps}
-                onChange={(event) =>
-                  change({ rollover_bps: Number(event.target.value) })
-                }
+                onChange={(rollover_bps) => change({ rollover_bps })}
               />
               <small>{t("dealroom.offer.rolloverHint")}</small>
             </div>
@@ -1063,14 +1188,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 <div className="slider">
                   <label htmlFor="dr-raise">{t("dealroom.raise")}</label>
                   <output>{f.money(raiseEv)}</output>
-                  <input
+                  <StepRange
                     id="dr-raise"
-                    type="range"
+                    label={t("dealroom.raise")}
                     min={myBid}
                     max={ceiling}
                     step={raiseStep}
                     value={raiseEv}
-                    onChange={(event) => setRaise(Number(event.target.value))}
+                    onChange={setRaise}
                   />
                   <small className="dr-slider-notes">
                     <b
@@ -1105,17 +1230,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
                   type="button"
                   className="btn primary"
                   disabled={raiseEv <= myBid}
-                  onClick={() => {
-                    if (
-                      game.act({
-                        type: "raise_bid",
-                        company: company.i,
-                        ev: raiseEv,
-                      })
-                    ) {
-                      setRaise(0);
-                    }
-                  }}
+                  onClick={sendRaise}
                 >
                   <Icon name="up" size={16} />
                   {t("dealroom.raise.submit")}
@@ -1190,5 +1305,48 @@ export function DealRoom({ company }: { company: CompanyView }) {
         ) : null}
       </section>
     </div>
+    {dock ? (
+      <div className="cp-dock dr-dock">
+        {raising && myBid !== null ? (
+          <div className="dr-dock-raise">
+            <span className="muted">{dock.note}</span>
+            <button
+              type="button"
+              className="sr-btn"
+              aria-label={`${t("dealroom.raise")} −`}
+              disabled={raiseEv <= myBid}
+              onClick={() => setRaise(Math.max(myBid, raiseEv - raiseStep))}
+            >
+              −
+            </button>
+            <output htmlFor="dr-raise">{f.money(raiseEv)}</output>
+            <button
+              type="button"
+              className="sr-btn"
+              aria-label={`${t("dealroom.raise")} +`}
+              disabled={raiseEv >= ceiling}
+              onClick={() => setRaise(Math.min(ceiling, raiseEv + raiseStep))}
+            >
+              +
+            </button>
+          </div>
+        ) : dock.note ? (
+          <span className="cp-dock-note" data-tone={dock.tone}>
+            {dock.note}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className="btn primary"
+          disabled={dock.disabled}
+          onClick={dock.run}
+        >
+          {raising ? <Icon name="up" size={16} /> : null}
+          {dock.label}
+          {dock.cost ? <Cost points={dock.cost} /> : null}
+        </button>
+      </div>
+    ) : null}
+    </>
   );
 }

@@ -3,6 +3,8 @@
   "career.lead": "职级、声誉、业绩，还有我的钱。",
   "career.fired": "解雇",
   "career.ladder": "职级阶梯",
+  "career.ladder.all": "查看全部职级",
+  "career.ladder.fewer": "收起",
   "career.atRank": "当前 · {months, plural, other {第#个月}}",
   "career.perk.attention": "每月精力",
   "career.perk.deals": "并行交易",

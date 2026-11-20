@@ -3,6 +3,8 @@
 .deals {
   container: deals / inline-size;
   display: grid;
+  /* One column that never grows past the screen: the wide table scrolls inside its own box. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--gap);
 }
 .deals .page-head {
@@ -529,4 +531,331 @@
 }
 .deals-table .table th {
   word-break: keep-all;
+}
+
+/* The filters after the search field: one group, which becomes a single scrolling row on a phone. */
+.deals-filter-row {
+  display: contents;
+}
+
+/* Phone: one column; empty board columns fold to a header; the for-sale table becomes cards. */
+@media (max-width: 760px) {
+  .deals > .page-head p {
+    display: none;
+  }
+  .deals-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .deals-top .funnel {
+    gap: 4px;
+    height: 100px;
+  }
+  .deals-top .funnel button {
+    min-height: 44px;
+  }
+  .deals-top .funnel span:last-child {
+    font-size: 0.74rem;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .deals-capacity {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .deals-slots .row {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+  .deals-pips {
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+  .deals-pips i {
+    width: 13px;
+    height: 13px;
+    border-radius: 4px;
+  }
+  .deals-pips[data-kind="attention"] i {
+    width: 7px;
+    height: 13px;
+  }
+  .deals-capacity > .stat {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    align-items: baseline;
+    gap: 2px 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .deals-capacity > .stat .stat-value {
+    font-size: 1.1rem;
+  }
+  .deals-powder {
+    gap: 6px;
+  }
+  .deals-powder .row {
+    flex-wrap: wrap;
+  }
+
+  .deals-board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .deals-column h3 {
+    min-height: 22px;
+    font-size: 0.84rem;
+  }
+  .deals-column[data-empty] {
+    padding-block: 5px;
+    opacity: 0.75;
+  }
+  .deals-column[data-empty] .deals-slot {
+    display: none;
+  }
+  .deals-card {
+    padding: 12px;
+  }
+  .deals-card-name b {
+    overflow-wrap: anywhere;
+  }
+
+  .deals-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .deals-search {
+    display: flex;
+    min-height: 44px;
+  }
+  .deals-search input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    min-height: 42px;
+    font-size: 16px;
+  }
+  .deals-filter-row {
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-right: -12px;
+    padding-right: 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* The row scrolls sideways: fade the edge it continues under. */
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
+  .deals-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+  .deals-filter-row > *,
+  .deals-filter-row .deals-chip {
+    flex: none;
+  }
+  .deals-filter-row .deals-chips {
+    flex-flow: row;
+  }
+  .deals-filter-row .deals-chips + .deals-chips {
+    padding-left: 6px;
+    border-left: 1px solid var(--line);
+  }
+  .deals-chip,
+  .deals-filters select {
+    min-height: 40px;
+  }
+  .deals-filters select {
+    max-width: 46vw;
+    font-size: 0.9rem;
+  }
+  .deals-filters > small {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
+  .deals-table {
+    overflow: visible;
+  }
+  .deals-table .table {
+    display: block;
+    min-width: 0;
+    font-size: 0.88rem;
+  }
+  .deals-table .table thead {
+    display: none;
+  }
+  .deals-table .table tbody {
+    display: grid;
+    gap: 8px;
+  }
+  .deals-table .table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--raised);
+  }
+  .deals-table .table tbody tr[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .deals-table .table tbody tr[data-locked] {
+    border-style: dashed;
+    border-color: var(--warn);
+    background: var(--panel);
+  }
+  .deals-table .table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+  /* Row 1: name and region, the stage with its ring. */
+  .deals-table .table .name {
+    flex: 1 1 0;
+    order: 1;
+    min-width: 50%;
+    max-width: none;
+    font-size: 1rem;
+    line-height: 1.3;
+    overflow: visible;
+    overflow-wrap: anywhere;
+  }
+  .deals-table .table .name .sub {
+    font-size: 0.8rem;
+  }
+  .deals-cell-stage {
+    flex: none;
+    order: 2;
+  }
+  .deals-stage {
+    min-width: 0;
+  }
+  /* Row 2: sector, country, owner, reason, rivals. */
+  .deals-cell-sector {
+    order: 3;
+  }
+  .deals-cell-country {
+    order: 4;
+  }
+  .deals-cell-country[data-home] {
+    display: none !important;
+  }
+  .deals-cell-owner {
+    order: 5;
+    color: var(--ink-soft);
+  }
+  .deals-cell-reason {
+    order: 6;
+  }
+  .deals-cell-rivals {
+    display: inline-flex !important;
+    order: 7;
+    align-items: center;
+    gap: 5px;
+  }
+  .deals-cell-rivals::before {
+    color: var(--muted);
+    font-size: 0.76rem;
+    content: attr(data-label);
+  }
+  .deals-rivals {
+    min-width: 0;
+  }
+  .deals-reason {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+  }
+  .deals-table .table tbody tr::before,
+  .deals-table .table tbody tr::after {
+    flex: 0 0 100%;
+    order: 8;
+    height: 0;
+    margin-top: -8px;
+    content: "";
+  }
+  .deals-table .table tbody tr::after {
+    order: 10;
+  }
+  /* Row 3: the three figures. */
+  .deals-table .table .deals-cell-figure {
+    flex: 1 1 0;
+    order: 9;
+    align-self: stretch;
+    padding: 6px 7px;
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: 0.94rem;
+    word-break: keep-all;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+  }
+  .deals-table .table tbody tr[data-locked] .deals-cell-figure {
+    background: var(--line-soft);
+  }
+  .deals-cell-figure::before,
+  .deals-rel::before {
+    display: block;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 400;
+    content: attr(data-label);
+  }
+  .deals-cell-figure .sub {
+    font-size: 0.72rem;
+  }
+  /* Row 4: watch, relationship, the NDA. */
+  .deals-cell-watch {
+    flex: none;
+    order: 11;
+  }
+  .deals-watch {
+    width: 46px;
+    height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    opacity: 1;
+  }
+  .deals-watch[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .deals-table .table .deals-rel {
+    flex: 1 1 0;
+    order: 12;
+    min-width: 0;
+  }
+  .deals-table .table .deals-cell-action {
+    flex: none;
+    order: 13;
+    text-align: right;
+  }
+  .deals-table .deals-cell-action .btn {
+    min-width: 96px;
+    min-height: 46px;
+    padding: 0 14px;
+    font-size: 0.95rem;
+  }
+  .deals-table .deals-cell-action .tag {
+    min-height: 32px;
+    padding-inline: 12px;
+  }
+  .deals-locked {
+    min-width: 0;
+  }
+  .deals-lock-note {
+    align-items: flex-start;
+    line-height: 1.4;
+  }
 }

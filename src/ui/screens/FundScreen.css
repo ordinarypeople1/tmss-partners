@@ -258,3 +258,209 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .fundscreen .page-head .row {
+    flex-wrap: wrap;
+  }
+  /* Eight header stats, two across. */
+  .fundscreen .fund-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px;
+  }
+  .fundscreen .grid.gp-stats,
+  .fundscreen .grid.report-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fundscreen .grid.carry-mine {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fundscreen .carry-mine .stat-value {
+    font-size: 1.05rem;
+  }
+
+  /* The clock: thicker track, every other year tick. */
+  .fundscreen .clock-track {
+    height: 32px;
+  }
+  .fundscreen .clock-elapsed {
+    top: 12px;
+  }
+  .fundscreen .clock-tick:nth-of-type(odd) {
+    display: none;
+  }
+  .fundscreen .clock-labels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  /* Investors: who and share, the meter full width, then the re-up tag. */
+  .fundscreen .lp-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 10px;
+  }
+  .fundscreen .lp-mood {
+    grid-column: 1 / -1;
+  }
+  .fundscreen .lp-mood .meter-track {
+    height: 10px;
+  }
+  .fundscreen .lp-list .tag {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  /* GP commitment: a slider a thumb can hold, quick picks and the button in one row. */
+  .fundscreen .gp-slider input[type="range"] {
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fundscreen .gp-slider input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .fundscreen .gp-slider input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .fundscreen .gp-slider input[type="range"]::-webkit-slider-thumb {
+    width: 32px;
+    height: 32px;
+    margin-top: -12px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgb(31 41 37 / 35%);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fundscreen .gp-slider input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgb(31 41 37 / 35%);
+  }
+  .fundscreen .gp-slider input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--muted);
+  }
+  .fundscreen .gp-slider output {
+    font-size: 1.15rem;
+  }
+  .fundscreen .gp-picks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
+    gap: 6px;
+  }
+  .fundscreen .gp-picks .btn,
+  .fundscreen .gp-picks .btn.primary {
+    justify-content: center;
+    min-height: 44px;
+    margin-left: 0;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  /* Waterfall: the three steps stacked. */
+  .fundscreen .waterfall {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fundscreen .waterfall li,
+  .fundscreen .waterfall li:nth-child(n) {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 2px 8px;
+    align-items: center;
+    min-height: 0;
+  }
+  .fundscreen .waterfall small {
+    grid-column: 2 / -1;
+  }
+
+  /* Deal tables: one card per deal. */
+  .fundscreen .deal-table,
+  .fundscreen .deal-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+  .fundscreen .deal-table thead {
+    display: none;
+  }
+  .fundscreen .deal-table tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  .fundscreen .deal-table tr[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .fundscreen .deal-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .fundscreen .deal-table .name {
+    grid-column: 1 / 3;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+  .fundscreen .deal-when {
+    grid-column: 3;
+    font-size: 0.82rem;
+    text-align: right !important;
+  }
+  .fundscreen .realized-table .name {
+    grid-column: 1 / -1;
+  }
+  .fundscreen .realized-table .deal-when {
+    grid-column: 1 / 3;
+    text-align: left !important;
+  }
+  .fundscreen .deal-route {
+    justify-self: end;
+  }
+  .fundscreen .deal-figure,
+  .fundscreen .deal-moic {
+    display: grid;
+    gap: 1px;
+  }
+  .fundscreen .deal-figure::before,
+  .fundscreen .deal-moic::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 400;
+  }
+  .fundscreen .deal-moic {
+    grid-row: 4;
+    grid-column: 1 / -1;
+  }
+  .fundscreen .deal-table:not(.realized-table) .deal-moic {
+    grid-row: 3;
+  }
+  .fundscreen .table .meter {
+    min-width: 0;
+  }
+  .fundscreen .table .meter-track {
+    height: 10px;
+  }
+  .fundscreen .row-link {
+    min-height: 32px;
+  }
+}

@@ -310,7 +310,7 @@ export function FundScreen() {
               {fund.investing ? t("fundscreen.gp.open") : t("fundscreen.gp.closed")}
             </Tag>
           </div>
-          <div className="grid cols-2">
+          <div className="grid cols-2 gp-stats">
             <Stat
               label={t("fundscreen.gp.committed")}
               value={f.money(career.gp_commit)}
@@ -319,7 +319,7 @@ export function FundScreen() {
             />
             <Stat label={t("fundscreen.gp.wealth")} value={f.money(career.wealth)} />
           </div>
-          <div className="slider">
+          <div className="slider gp-slider">
             <label htmlFor="gp-commit">{t("fundscreen.gp.amount")}</label>
             <output htmlFor="gp-commit">{f.money(commitAmount)}</output>
             <input
@@ -468,7 +468,7 @@ export function FundScreen() {
             {fund.pending > 0 ? <Tag tone="accent">{t("fundscreen.pending", { amount: f.money(fund.pending) })}</Tag> : null}
           </div>
           {fund.realized.length ? (
-            <table className="table realized-table">
+            <table className="table deal-table realized-table">
               <thead>
                 <tr>
                   <th>{t("fundscreen.company")}</th>
@@ -484,20 +484,20 @@ export function FundScreen() {
                 {fund.realized.map((deal, index) => (
                   <tr key={`${deal.company}-${index}`}>
                     <td className="name">{deal.company}</td>
-                    <td>
+                    <td className="deal-when">
                       {f.shortDate(deal.acquired)} → {f.shortDate(deal.exited)}
                       <span className="sub">
                         {t("format.months", { months: monthsBetween(deal.acquired, deal.exited) })}
                       </span>
                     </td>
-                    <td>
+                    <td className="deal-route">
                       <Tag tone={deal.route === null ? "bad" : "muted"}>
                         {deal.route === null ? t("fundscreen.route.lender") : t(`route.${deal.route}`)}
                       </Tag>
                     </td>
-                    <td className="num">{f.money(deal.cost)}</td>
-                    <td className="num">{f.money(deal.proceeds)}</td>
-                    <td>
+                    <td className="num deal-figure" data-label={t("fundscreen.cost")}>{f.money(deal.cost)}</td>
+                    <td className="num deal-figure" data-label={t("fundscreen.proceeds")}>{f.money(deal.proceeds)}</td>
+                    <td className="deal-moic" data-label={t("term.moic")}>
                       <Meter
                         value={deal.moic_millis}
                         max={bestMoic}
@@ -506,7 +506,7 @@ export function FundScreen() {
                         text={f.multiple(deal.moic_millis, 2)}
                       />
                     </td>
-                    <td className="num">{deal.irr_bps === null ? t("term.none") : f.pct(deal.irr_bps)}</td>
+                    <td className="num deal-figure" data-label={t("term.irr")}>{deal.irr_bps === null ? t("term.none") : f.pct(deal.irr_bps)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -520,7 +520,7 @@ export function FundScreen() {
                 <Icon name="portfolio" size={16} />
                 {t("fundscreen.unrealized")}
               </h3>
-              <table className="table">
+              <table className="table deal-table">
                 <thead>
                   <tr>
                     <th>{t("fundscreen.company")}</th>
@@ -540,13 +540,13 @@ export function FundScreen() {
                         </button>
                         <span className="sub">{t(`sector.${item.sector}`)}</span>
                       </td>
-                      <td>
+                      <td className="deal-when">
                         {f.shortDate(item.holding.acquired)}
                         <span className="sub">{t("format.months", { months: item.holding.months_held })}</span>
                       </td>
-                      <td className="num">{f.money(item.holding.cost)}</td>
-                      <td className="num">{f.money(item.holding.value)}</td>
-                      <td>
+                      <td className="num deal-figure" data-label={t("fundscreen.cost")}>{f.money(item.holding.cost)}</td>
+                      <td className="num deal-figure" data-label={t("fundscreen.mark")}>{f.money(item.holding.value)}</td>
+                      <td className="deal-moic" data-label={t("term.moic")}>
                         <Meter
                           value={item.holding.moic_millis}
                           max={bestMoic}
@@ -557,7 +557,7 @@ export function FundScreen() {
                           text={f.multiple(item.holding.moic_millis, 2)}
                         />
                       </td>
-                      <td className="num">
+                      <td className="num deal-figure" data-label={t("term.irr")}>
                         {item.holding.irr_bps === null ? t("term.none") : f.pct(item.holding.irr_bps)}
                       </td>
                     </tr>
@@ -574,7 +574,7 @@ export function FundScreen() {
             {t("fundscreen.lpReport")}
           </h2>
           {report && report.type === "quarter_report" ? (
-            <div className="grid cols-2">
+            <div className="grid cols-2 report-stats">
               <Stat label={t("term.nav")} value={f.money(report.nav)} hint={f.date(report.date)} />
               <Stat
                 label={t("term.tvpi")}

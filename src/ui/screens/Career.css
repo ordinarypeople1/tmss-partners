@@ -410,3 +410,223 @@
   grid-column: 2;
   font-size: 0.86rem;
 }
+
+.career .ladder-toggle,
+.career .badge-detail {
+  display: none;
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .career .page-head .row {
+    flex-wrap: wrap;
+  }
+  /* Ladder: four dots across, then the perks of the current and the next rank. */
+  .career .ladder {
+    position: relative;
+    gap: 6px 8px;
+  }
+  .career .ladder::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    right: 12.5%;
+    left: 12.5%;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--accent) calc(var(--ladder-done, 0) * 100%), var(--line) 0);
+  }
+  .career .ladder li {
+    display: contents;
+  }
+  .career .ladder li::before {
+    display: none;
+  }
+  .career .ladder-node {
+    grid-row: 1;
+    justify-self: center;
+    width: 32px;
+    height: 32px;
+  }
+  .career .ladder li > .row {
+    grid-row: 2;
+    flex-direction: column;
+    align-items: center;
+    align-self: start;
+    gap: 3px;
+    text-align: center;
+  }
+  .career .ladder li:nth-child(1) > .ladder-node,
+  .career .ladder li:nth-child(1) > .row {
+    grid-column: 1;
+  }
+  .career .ladder li:nth-child(2) > .ladder-node,
+  .career .ladder li:nth-child(2) > .row {
+    grid-column: 2;
+  }
+  .career .ladder li:nth-child(3) > .ladder-node,
+  .career .ladder li:nth-child(3) > .row {
+    grid-column: 3;
+  }
+  .career .ladder li:nth-child(4) > .ladder-node,
+  .career .ladder li:nth-child(4) > .row {
+    grid-column: 4;
+  }
+  .career .ladder strong {
+    font-size: 0.86rem;
+    line-height: 1.2;
+  }
+  .career .ladder .tag {
+    font-size: 0.68rem;
+  }
+  .career .ladder-perks {
+    display: none;
+    grid-column: span 2;
+    align-content: start;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 0.84rem;
+  }
+  .career .ladder li[data-state="now"] > .ladder-perks,
+  .career .ladder li[data-next="true"] > .ladder-perks,
+  .career .ladder[data-all="true"] .ladder-perks {
+    display: grid;
+  }
+  .career .ladder:not([data-all="true"]) li[data-state="now"]:last-child > .ladder-perks {
+    grid-column: 1 / -1;
+  }
+  .career .ladder-perks::before {
+    content: attr(data-rank);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line-soft);
+    font-weight: 700;
+  }
+  .career .ladder-toggle {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .career .career-mid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .career .career-mid .grid.cols-2,
+  .career .career-money .grid.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .career .ticks li {
+    min-height: 44px;
+  }
+  .career .reputation {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .career .reputation > .stack {
+    width: 100%;
+  }
+  .career .moves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .career .perk-list .btn,
+  .career .career-money .row .btn {
+    min-height: 40px;
+  }
+  .career .perk-list .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .career .career-money .row .btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+  .career .career-money > .card > .btn {
+    min-height: 40px;
+  }
+
+  /* Achievements: a badge grid; the picked badge's requirement sits above it. */
+  .career .achievement-count .meter {
+    width: 90px;
+  }
+  .career .badge-detail {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 2px 8px;
+    align-items: center;
+    min-height: 64px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--raised);
+    box-shadow: 0 4px 10px rgb(31 41 37 / 10%);
+  }
+  .career .badge-detail[data-done="true"] {
+    border-color: var(--good);
+  }
+  .career .badge-detail .achievement-mark {
+    width: 28px;
+    height: 28px;
+  }
+  .career .badge-detail[data-done="true"] .achievement-mark {
+    background: var(--good);
+    color: #fff;
+  }
+  .career .badge-detail b {
+    color: var(--good);
+    font-size: 0.78rem;
+  }
+  .career .badge-detail small {
+    grid-column: 2 / -1;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+  .career .achievements {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .career .achievements li {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 5px;
+    min-height: 84px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .career .achievements .achievement-mark {
+    width: 36px;
+    height: 36px;
+  }
+  .career .achievements strong {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .career .achievements small,
+  .career .achievements b {
+    display: none;
+  }
+  .career .achievements li[data-picked="true"] {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+
+  /* Committee: two per row. */
+  .career .partners {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .career .partners li {
+    padding: 10px;
+  }
+  .career .partners small {
+    font-size: 0.76rem;
+  }
+  .career .partners .meter-track {
+    height: 9px;
+  }
+}

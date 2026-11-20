@@ -259,3 +259,106 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* The cards stay in the page in table mode so a phone can show them instead of the table. */
+.pf-cards[data-mode="table"] {
+  display: none;
+}
+
+/* ---------- phone: cards only ---------- */
+@media (max-width: 760px) {
+  .portfolio .pf-toggle,
+  .portfolio .pf-table-card {
+    display: none;
+  }
+  .pf-cards,
+  .pf-cards[data-mode="table"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Six figures, two across. */
+  .pf-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pf-summary .stat-value {
+    font-size: 1.15rem;
+    overflow-wrap: anywhere;
+  }
+  .pf-card-head {
+    align-items: flex-start;
+  }
+  .pf-card-name strong {
+    overflow-wrap: anywhere;
+  }
+  .pf-meta .tag,
+  .pf-tags .tag {
+    min-height: 26px;
+  }
+  .pf-limits {
+    gap: 10px;
+  }
+  .pf-year-pending {
+    min-height: 44px;
+  }
+
+  /* Realized exits: one block per exit instead of a table row. */
+  .pf-scroll {
+    overflow: visible;
+  }
+  .pf-static,
+  .pf-static tbody {
+    display: block;
+  }
+  .pf-static thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .pf-static tr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .pf-static tr:first-child {
+    border-top: 0;
+  }
+  .pf-static tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .pf-static tbody td.name {
+    grid-row: 1;
+    grid-column: 1 / 4;
+    max-width: none;
+    font-size: 0.98rem;
+    overflow-wrap: anywhere;
+  }
+  .pf-static tbody td.pf-route {
+    grid-row: 1;
+    grid-column: 4;
+    justify-self: end;
+  }
+  .pf-static td[data-label] {
+    font-size: 0.88rem;
+  }
+  .pf-static td[data-label]:not(.num) {
+    grid-column: span 2;
+  }
+  .pf-static td.num {
+    text-align: left;
+  }
+  .pf-static td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 400;
+  }
+}

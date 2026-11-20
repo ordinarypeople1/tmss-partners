@@ -3,6 +3,8 @@
   "career.lead": "Rank, reputation, track record and your own money.",
   "career.fired": "Fired",
   "career.ladder": "Career ladder",
+  "career.ladder.all": "Show all ranks",
+  "career.ladder.fewer": "Show fewer",
   "career.atRank": "Current · {months, plural, one {# month} other {# months}}",
   "career.perk.attention": "Monthly attention",
   "career.perk.deals": "Concurrent deals",

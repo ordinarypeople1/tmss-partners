@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from "react";
 import { useT, type Translate } from "../../i18n/useT";
 import type { Choice, Message, SaleView, View } from "../../sim/types";
 import { Meter, Ring, Stat, Tag } from "../charts";
@@ -106,6 +106,36 @@ function matches(filter: Filter, message: Message): boolean {
   return categoryOf(message) === filter;
 }
 
+const PHONE = "(max-width: 760px)";
+
+/** Whether a media query holds. On a phone the inbox shows the list or one message, never both. */
+function useMediaQuery(query: string): boolean {
+  const subscribe = useCallback(
+    (notify: () => void) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => undefined;
+      }
+      const list = window.matchMedia(query);
+      list.addEventListener("change", notify);
+      return () => list.removeEventListener("change", notify);
+    },
+    [query],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(query).matches,
+    () => false,
+  );
+}
+
+function Back({ size = 18 }: { size?: number }) {
+  return (
+    <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
 function deadlineTone(left: number): "bad" | "warn" | "accent" {
   return left <= 1 ? "bad" : left <= 2 ? "warn" : "accent";
 }
@@ -118,6 +148,12 @@ export function Inbox() {
   const [filter, setFilter] = useState<Filter>("all");
   const [picked, setPicked] = useState<number | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const phone = useMediaQuery(PHONE);
+  /** On a phone: whether a message is open over the list. */
+  const [opened, setOpened] = useState(false);
+  /** Where the list was scrolled to when a message was opened. */
+  const listScroll = useRef(0);
 
   const counts = useMemo(() => {
     const result: Record<Filter, number> = { all: 0, decision: 0, deals: 0, portfolio: 0, news: 0, decided: 0 };
@@ -140,7 +176,10 @@ export function Inbox() {
     return [...open, ...rest];
   }, [view.messages, filter]);
 
-  const current = list.find((message) => message.id === picked) ?? list[0] ?? null;
+  const found = list.find((message) => message.id === picked) ?? null;
+  // A desk always has a message in the reading pane; a phone only after a tap.
+  const reading = phone && opened && found !== null;
+  const current = phone ? (reading ? found : null) : (found ?? list[0] ?? null);
   const currentId = current?.id ?? null;
   const currentUnread = current !== null && !current.read;
   const { act } = game;
@@ -151,6 +190,25 @@ export function Inbox() {
       act({ type: "mark_read", message: currentId });
     }
   }, [currentId, currentUnread, act]);
+
+  // The reading view starts at its top; going back returns the list to where it was.
+  useLayoutEffect(() => {
+    if (!phone) {
+      return;
+    }
+    const screen = rootRef.current?.closest(".screen");
+    if (screen) {
+      screen.scrollTop = reading ? 0 : listScroll.current;
+    }
+  }, [phone, reading]);
+
+  const openMessage = (id: number) => {
+    setPicked(id);
+    if (phone) {
+      listScroll.current = rootRef.current?.closest(".screen")?.scrollTop ?? 0;
+      setOpened(true);
+    }
+  };
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
@@ -169,7 +227,7 @@ export function Inbox() {
   };
 
   return (
-    <div className="inbox">
+    <div className="inbox" ref={rootRef} data-view={reading ? "reading" : "list"}>
       <header className="page-head">
         <div>
           <h1>{t("inbox.title")}</h1>
@@ -244,7 +302,7 @@ export function Inbox() {
                     data-quiet={message.news ? "true" : undefined}
                     data-pinned={open ? deadlineTone(left) : undefined}
                     aria-current={message.id === currentId ? "true" : undefined}
-                    onClick={() => setPicked(message.id)}
+                    onClick={() => openMessage(message.id)}
                   >
                     <span className="inbox-icon" data-tone={tone}>
                       <Icon name={text.icon} size={16} />
@@ -269,6 +327,12 @@ export function Inbox() {
               );
             })}
           </ul>
+          {reading ? (
+            <button type="button" className="inbox-back" onClick={() => setOpened(false)}>
+              <Back />
+              {t("inbox.list.label")}
+            </button>
+          ) : null}
           {current ? <Reading message={current} /> : null}
         </div>
       )}
