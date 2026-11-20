@@ -1,6 +1,6 @@
 {
   "msg.welcome.title": "欢迎入职",
-  "msg.welcome.body": "Fund III 今日开始运作。承诺出资7.5亿美元，投资组合为空。在地图上寻找标的，签署 NDA，做尽调，然后提交 IC。",
+  "msg.welcome.body": "Fund III 今日开始运作。承诺出资$7.5亿，投资组合为空。在地图上寻找标的，签署 NDA，做尽调，然后提交 IC。",
   "msg.rate_changed.title": "政策利率 {to}",
   "msg.rate_changed.body": "由 {from} 调至 {to}。",
   "msg.phase_changed.title": "经济阶段：{to}",
@@ -153,7 +153,7 @@
   "achievement.recession_buyer": "逆向投资",
   "achievement.recession_buyer.detail": "在衰退期完成收购。",
   "achievement.big_game": "大猎物",
-  "achievement.big_game.detail": "完成了企业价值3亿美元以上的交易。",
+  "achievement.big_game.detail": "完成了企业价值$3亿以上的交易。",
   "achievement.dealmaker": "交易老手",
   "achievement.dealmaker.detail": "完成了 10 笔交易的交割。",
   "achievement.networker": "人脉",

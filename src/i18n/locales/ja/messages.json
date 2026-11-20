@@ -1,6 +1,6 @@
 {
   "msg.welcome.title": "入社おめでとうございます",
-  "msg.welcome.body": "Fund IIIが本日、運用を開始します。コミットメント7.5億ドル、ポートフォリオは空です。地図で売り案件を探し、NDAを締結し、DDを実施してICに付議してください。",
+  "msg.welcome.body": "Fund IIIが本日、運用を開始します。コミットメント$7.5億、ポートフォリオは空です。地図で売り案件を探し、NDAを締結し、DDを実施してICに付議してください。",
   "msg.rate_changed.title": "政策金利 {to}",
   "msg.rate_changed.body": "{from}から{to}に動きました。",
   "msg.phase_changed.title": "景気局面: {to}",
@@ -153,7 +153,7 @@
   "achievement.recession_buyer": "逆張り",
   "achievement.recession_buyer.detail": "後退期に買収しました。",
   "achievement.big_game": "大物狙い",
-  "achievement.big_game.detail": "EV 3億ドル以上のディールをクロージングしました。",
+  "achievement.big_game.detail": "EV $3億以上のディールをクロージングしました。",
   "achievement.dealmaker": "ディールメーカー",
   "achievement.dealmaker.detail": "ディール10件をクロージングしました。",
   "achievement.networker": "人脈",

@@ -8,13 +8,13 @@ const intl = createIntl({ locale: "ko", messages }, createIntlCache());
 
 describe("money", () => {
   it("formats thousand USD with Korean scales", () => {
-    expect(formatUsdThousand(intl, 750_000)).toBe("7.5억 달러");
-    expect(formatUsdThousand(intl, 1_200_000)).toBe("12억 달러");
-    expect(formatUsdThousand(intl, 1_800_000_000)).toBe("1.8조 달러");
-    expect(formatUsdThousand(intl, 2_500)).toBe("250만 달러");
-    expect(formatUsdThousand(intl, 5)).toBe("5천 달러");
-    expect(formatUsdThousand(intl, 0)).toBe("0달러");
-    expect(formatUsdThousand(intl, -50_000)).toBe("-5,000만 달러");
+    expect(formatUsdThousand(intl, 750_000)).toBe("$7.5억");
+    expect(formatUsdThousand(intl, 1_200_000)).toBe("$12억");
+    expect(formatUsdThousand(intl, 1_800_000_000)).toBe("$1.8조");
+    expect(formatUsdThousand(intl, 2_500)).toBe("$250만");
+    expect(formatUsdThousand(intl, 5)).toBe("$5천");
+    expect(formatUsdThousand(intl, 0)).toBe("$0");
+    expect(formatUsdThousand(intl, -50_000)).toBe("-$5,000만");
   });
 
   it("formats ratios, ranges and dates", () => {
@@ -22,9 +22,9 @@ describe("money", () => {
     expect(f.pct(1_250)).toBe("12.5%");
     expect(f.signedPct(-320)).toBe("-3.2%");
     expect(f.multiple(7_200)).toBe("7.2x");
-    expect(f.figure([120_000, 120_000])).toBe("1.2억 달러");
-    expect(f.figure([100_000, 150_000])).toBe("1억 달러 ~ 1.5억 달러");
-    expect(f.signedMoney(2_500)).toBe("+250만 달러");
+    expect(f.figure([120_000, 120_000])).toBe("$1.2억");
+    expect(f.figure([100_000, 150_000])).toBe("$1억 ~ $1.5억");
+    expect(f.signedMoney(2_500)).toBe("+$250만");
     expect(f.shortFigure([100_000, 150_000])).toBe("1억–1.5억");
     expect(f.shortMoney(49_000)).toBe("4,900만");
     expect(f.date({ year: 2024, month: 3 })).toBe("2024년 3월");
@@ -40,9 +40,9 @@ describe("money", () => {
     expect(formatUsdThousand(en, -50_000)).toBe("-$50M");
     expect(makeFormat(en).shortFigure([100_000, 150_000])).toBe("100M–150M");
     const ja = createIntl({ locale: "ja", messages: catalogs.ja }, createIntlCache());
-    expect(formatUsdThousand(ja, 750_000)).toBe("7.5億ドル");
+    expect(formatUsdThousand(ja, 750_000)).toBe("$7.5億");
     const zh = createIntl({ locale: "zh-Hans", messages: catalogs["zh-Hans"] }, createIntlCache());
-    expect(formatUsdThousand(zh, 750_000)).toBe("7.5亿美元");
+    expect(formatUsdThousand(zh, 750_000)).toBe("$7.5亿");
     expect(makeFormat(en).date({ year: 2024, month: 3 })).toBe("2024-03");
   });
 });
