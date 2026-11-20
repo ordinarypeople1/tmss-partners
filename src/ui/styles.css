@@ -9,9 +9,9 @@
   --paper: #f2f3f5;
   --panel: #ffffff;
   --raised: #ffffff;
-  --ink: #14171c;
-  --ink-soft: #2d323b;
-  --muted: #6c7380;
+  --ink: #000000;
+  --ink-soft: #1f232a;
+  --muted: #5f6672;
   --line: #dcdfe5;
   --line-soft: #ebedf1;
   --accent: #a3122f;
@@ -28,9 +28,9 @@
   --s5: #cf7f90;
   --s6: #8fb0c9;
   --side: #fafafb;
-  --side-ink: #2d323b;
-  --side-strong: #14171c;
-  --side-muted: #7b828e;
+  --side-ink: #1f232a;
+  --side-strong: #000000;
+  --side-muted: #5f6672;
   --map-sea: #e4e7ec;
   --map-land: #f7f8fa;
   --map-home: #ffffff;
@@ -45,9 +45,9 @@
   --paper: #0b0e13;
   --panel: #141920;
   --raised: #1a2029;
-  --ink: #eceff4;
-  --ink-soft: #c5cad3;
-  --muted: #8a92a0;
+  --ink: #ffffff;
+  --ink-soft: #dfe3ea;
+  --muted: #9aa2b0;
   --line: #2a313c;
   --line-soft: #202630;
   --accent: #d23a5c;
@@ -64,9 +64,9 @@
   --s5: #e8a0b0;
   --s6: #a9c6dc;
   --side: #0f1319;
-  --side-ink: #c5cad3;
+  --side-ink: #dfe3ea;
   --side-strong: #ffffff;
-  --side-muted: #7f8794;
+  --side-muted: #9aa2b0;
   --map-sea: #0b0e13;
   --map-land: #1a2029;
   --map-home: #232a35;
@@ -87,7 +87,8 @@
 
   color: var(--ink);
   background: var(--paper);
-  font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   line-height: 1.4;
   /* Korean breaks between words, not inside them. Long labels wrap; nothing is pinned to one line. */
@@ -97,10 +98,12 @@
 }
 
 :lang(ja) {
-  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-family: var(--font);
 }
 :lang(zh-Hans) {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--font);
 }
 
 * {
@@ -114,6 +117,16 @@ body,
 body {
   margin: 0;
   overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+}
+/* A page that hosts the game may style body itself, so the game states its own base. */
+#root {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.4;
 }
 button,
 input,
@@ -254,11 +267,38 @@ th,
   background: color-mix(in srgb, var(--side-ink) 14%, transparent);
 }
 .sidebar .language {
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--side-ink) 18%, transparent);
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: transparent;
-  color: var(--side-ink);
+  background: var(--panel);
+  color: var(--side-strong);
+}
+.settings {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.icon-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--side-strong);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  border-color: var(--ink);
+}
+.icon-btn[aria-pressed="true"] {
+  color: var(--muted);
 }
 .sidebar .language option {
   color: var(--ink);
@@ -1200,6 +1240,13 @@ th,
 
 /* A phone: one column, the turn on top, tabs at the bottom, everything else a sheet. */
 @media (max-width: 760px) {
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .settings .language {
+    height: 44px;
+  }
   :root {
     --tabbar: calc(58px + env(safe-area-inset-bottom));
     --gap: 10px;
@@ -1420,11 +1467,11 @@ th,
     color: #fff;
   }
   .more-card .language {
-    height: 40px;
-    border: 1px solid color-mix(in srgb, var(--side-ink) 18%, transparent);
+    height: 44px;
+    border: 1px solid var(--line);
     border-radius: 8px;
-    background: transparent;
-    color: var(--side-ink);
+    background: var(--panel);
+    color: var(--side-strong);
   }
   .more-card .language option {
     color: var(--ink);

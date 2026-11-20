@@ -96,7 +96,7 @@ function Settings({ onNewGame }: { onNewGame: () => void }) {
   const { locale, setLocale } = useLocale();
   const [theme, setTheme] = useState<Theme>(currentTheme);
   return (
-    <>
+    <div className="settings">
       <select className="language" value={locale} aria-label={t("language.label")} onChange={(event) => setLocale(event.target.value as Locale)}>
         {LOCALES.map((code) => (
           <option key={code} value={code}>
@@ -104,35 +104,36 @@ function Settings({ onNewGame }: { onNewGame: () => void }) {
           </option>
         ))}
       </select>
-      <div className="row">
-        <button type="button" className="btn ghost small" onClick={onNewGame}>
-          {t("shell.newGame")}
-        </button>
-        <button
-          type="button"
-          className="btn ghost small"
-          aria-pressed={muted}
-          onClick={() => {
-            setMuted(!muted);
-            setMutedState(!muted);
-          }}
-        >
-          {muted ? t("shell.sound.off") : t("shell.sound.on")}
-        </button>
-        <button
-          type="button"
-          className="btn ghost small"
-          aria-label={t("shell.theme.label")}
-          onClick={() => {
-            const next = theme === "dark" ? "light" : "dark";
-            applyTheme(next, true);
-            setTheme(next);
-          }}
-        >
-          {t(`shell.theme.${theme}`)}
-        </button>
-      </div>
-    </>
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label={t("shell.theme.label")}
+        title={t(`shell.theme.${theme}`)}
+        onClick={() => {
+          const next = theme === "dark" ? "light" : "dark";
+          applyTheme(next, true);
+          setTheme(next);
+        }}
+      >
+        <Icon name={theme === "dark" ? "moon" : "sun"} size={16} />
+      </button>
+      <button
+        type="button"
+        className="icon-btn"
+        aria-pressed={muted}
+        aria-label={muted ? t("shell.sound.off") : t("shell.sound.on")}
+        title={muted ? t("shell.sound.off") : t("shell.sound.on")}
+        onClick={() => {
+          setMuted(!muted);
+          setMutedState(!muted);
+        }}
+      >
+        <Icon name={muted ? "mute" : "sound"} size={16} />
+      </button>
+      <button type="button" className="icon-btn" aria-label={t("shell.newGame")} title={t("shell.newGame")} onClick={onNewGame}>
+        <Icon name="restart" size={16} />
+      </button>
+    </div>
   );
 }
 
