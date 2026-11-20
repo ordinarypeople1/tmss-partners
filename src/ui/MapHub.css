@@ -380,7 +380,55 @@
   .drawer-bar .search input {
     width: 110px;
   }
-  .drawer-table .table {
-    min-width: 640px;
+  /* The table becomes a list: name and model value on top, sector, region and sale underneath. */
+  .drawer-table .table,
+  .drawer-table tbody {
+    display: block;
+  }
+  .drawer-table thead {
+    display: none;
+  }
+  .drawer-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .drawer-table td {
+    padding: 0;
+    border: 0;
+  }
+  .drawer-table td:nth-child(4),
+  .drawer-table td:nth-child(6),
+  .drawer-table td:nth-child(7),
+  .drawer-table td:nth-child(9) {
+    display: none;
+  }
+  .drawer-table td:nth-child(1) {
+    grid-column: 1;
+    max-width: none;
+  }
+  .drawer-table td:nth-child(8) {
+    grid-column: 2;
+    grid-row: 1;
+    font-weight: 700;
+  }
+  .drawer-table td:nth-child(2),
+  .drawer-table td:nth-child(3) {
+    grid-column: 1;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .drawer-table td:nth-child(3) .sub {
+    display: inline;
+    margin-left: 4px;
+  }
+  .drawer-table td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    justify-self: end;
+    font-size: 0.82rem;
   }
 }

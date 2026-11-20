@@ -5,7 +5,7 @@
 ## 지금 하는 일
 
 - 플레이어가 읽는 문장은 메시지 키다. JSX 텍스트, `aria-label`, `title`, `alt`, `placeholder`에 문장을 적지 않는다.
-- 한국어 카탈로그가 ICU를 쓴다. 수량, 숫자, 천 달러 단위의 만·억·조. 연도는 `{value, number, ::integer group-off}`다. `group-off`가 없으면 2012가 2,012가 된다.
+- 한국어 카탈로그가 ICU를 쓴다. 수량과 숫자. 연도는 `{value, number, ::integer group-off}`다. `group-off`가 없으면 2012가 2,012가 된다.
 - 회사 이름과 단지 이름은 콘텐츠 데이터이고 번역하지 않는다. 주 이름은 `admin1.<코드>`, 섹터는 `sector.<id>`로 키를 고른다.
 - 레이아웃은 문장이 길어져도 깨지지 않게 잡는다. `flex-wrap`, `minmax(0, …)`, `repeat(auto-fit, minmax(9rem, 1fr))`, `overflow-wrap: anywhere`. `white-space: nowrap`를 화면 CSS에 넣지 않는다.
 - 글꼴은 벤더하지 않는다. 런타임에 Google Fonts CDN을 부르지 않는다. 게임은 오프라인이다. 패키징할 때 필요한 글자만 서브셋한다.
@@ -66,4 +66,4 @@ id는 고정한다. 한국어가 소스다. 목표 언어는 문장이 잠긴 �
 
 - `src/i18n/checkUiStrings.test.ts`: `src/ui` 아래에 하드코딩된 문장이 없는지, 어떤 스타일시트에도 `nowrap`이 없는지 본다.
 - `src/i18n/catalog.test.ts`: 키가 두 번 정의되지 않았는지, 화면이 쓰는 `t("…")` 키가 전부 있는지, 지도의 187개 지역과 7개 나라에 이름이 있는지 본다.
-- 같은 테스트가 로케일마다 한국어 키가 전부 있는지, ICU 인자 이름이 같은지 본다. 돈은 한·일·중이 만 단위(`money.usd.jo/eok/man/thousand`), 영어가 천 단위(`money.usd.b/m/k`)로 센다.
+- 같은 테스트가 로케일마다 한국어 키가 전부 있는지, ICU 인자 이름이 같은지 본다. 돈은 모든 로케일이 미국식 K, M, B, T(`money.usd.k/m/b/t`)로 쓴다.
