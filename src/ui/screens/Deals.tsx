@@ -4,6 +4,7 @@ import { DD_STREAMS, type CompanyRow, type DealView, type Stage, type View } fro
 import { Funnel, Meter, Ring, Stat, Tag } from "../charts";
 import { mid, monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
+import { IntentTag, StepChip } from "../Journey";
 import { Icon } from "../icons";
 import { bidderName } from "../messages";
 import "./Deals.css";
@@ -131,6 +132,15 @@ export function Deals() {
   const stageOf = useMemo(() => new Map(mine.map((item) => [item.row.i, item.stage])), [mine]);
 
   const forSale = useMemo(() => view.companies.filter((row) => row.sale && !row.held), [view.companies]);
+  /** Owners the player has met whose company is not for sale: the pipeline behind the pipeline. */
+  const courting = useMemo(
+    () =>
+      view.companies
+        .filter((row) => row.relationship > 0 && !row.sale && !row.held && !row.in_deal && row.owner.kind !== "merged" && row.owner.kind !== "lender")
+        .sort((a, b) => b.relationship - a.relationship)
+        .slice(0, 12),
+    [view.companies],
+  );
   const watching = forSale.filter((row) => row.watched && !row.in_deal);
   const limit = view.fund.concentration_limit;
   const withinReach = (row: CompanyRow) => row.ev[0] * EQUITY_SHARE <= limit;
@@ -292,6 +302,30 @@ export function Deals() {
           </div>
         </section>
       </div>
+
+      <section className="card">
+        <h2>
+          <Icon name="handshake" size={15} />
+          {t("deals.courting.title")}
+          <small className="muted">{courting.length}</small>
+        </h2>
+        {courting.length === 0 ? (
+          <p className="muted">{t("deals.courting.empty")}</p>
+        ) : (
+          <div className="rel-list">
+            {courting.map((row) => (
+              <button key={row.i} type="button" className="rel-item" onClick={() => game.select(row.i)}>
+                <strong>{row.name}</strong>
+                <Meter value={row.relationship} max={100} markers={[20, 40, 60]} tone={row.relationship >= 60 ? "good" : row.relationship >= 40 ? "accent" : "ink"} label={t(`access.${row.access}`)} text={f.integer(row.relationship)} />
+                <span className="row">
+                  <IntentTag intent={row.intent} />
+                  <StepChip row={row} />
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="card">
         <h2>

@@ -173,5 +173,9 @@
   "achievement.cross_border": "국경 밖",
   "achievement.cross_border.detail": "미국 밖의 회사를 인수했습니다.",
   "achievement.take_private": "비공개화",
-  "achievement.take_private.detail": "상장사를 인수해 비공개로 돌렸습니다."
+  "achievement.take_private.detail": "상장사를 인수해 비공개로 돌렸습니다.",
+  "msg.owner_opened.title": "{company}: 주인이 협상에 응했습니다",
+  "msg.owner_opened.body": "4개월간 단독으로 협상합니다. 사유는 {reason}. 그 안에 합의하지 못하면 자문사를 선임해 경매로 갑니다.",
+  "msg.owner_declined.title": "{company}: 주인이 거절했습니다",
+  "msg.owner_declined.body": "지금은 팔 생각이 없다고 합니다. 1년 뒤에 다시 꺼낼 수 있습니다."
 }

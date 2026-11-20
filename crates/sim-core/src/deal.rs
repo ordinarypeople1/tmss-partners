@@ -13,6 +13,7 @@ use crate::world::{Choice, CommandError, MessageKind, World};
 
 pub const FEE_BPS: i64 = 200;
 pub const MAX_ROLLOVER_BPS: i64 = 3_000;
+pub const DD_STREAM_COUNT: usize = 4;
 const PROJECTION_MONTHS: i64 = 60;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -686,7 +687,7 @@ impl World {
         if !preparing {
             return Err(CommandError::NotForSale);
         }
-        if target.relationship < 60 {
+        if target.relationship < crate::sourcing::PROPOSAL_AT {
             return Err(CommandError::NeedsRelationship);
         }
         self.spend_attention(1)?;

@@ -173,5 +173,9 @@
   "achievement.cross_border": "走出国门",
   "achievement.cross_border.detail": "收购了美国以外的公司。",
   "achievement.take_private": "私有化",
-  "achievement.take_private.detail": "收购上市公司并完成私有化。"
+  "achievement.take_private.detail": "收购上市公司并完成私有化。",
+  "msg.owner_opened.title": "{company}：所有者同意谈判",
+  "msg.owner_opened.body": "单独谈判4个月。原因：{reason}。届时未达成一致，将聘请顾问转为竞拍。",
+  "msg.owner_declined.title": "{company}：所有者拒绝了",
+  "msg.owner_declined.body": "对方表示目前无意出售。一年后可再提。"
 }

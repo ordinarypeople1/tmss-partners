@@ -17,6 +17,7 @@ import { useFormat, type Format } from "./format";
 import { useGame, type Game } from "./game";
 import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
+import { Journey } from "./Journey";
 import { bidderName } from "./messages";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
@@ -24,9 +25,6 @@ import "./CompanyPanel.css";
 type TabId = "overview" | "financials" | "deal" | "operations";
 type Tone = "good" | "bad" | "warn";
 
-/** Thresholds the sim uses for the owner relationship. Shown as marks; the sim enforces them. */
-const HEARS_EARLY = 40;
-const CAN_PROPOSE = 60;
 /** The longest a sale stage runs, for the countdown ring. */
 const STAGE_MONTHS = 6;
 const STAGES: Stage[] = ["preparing", "marketing", "bidding"];
@@ -45,16 +43,6 @@ function ownerText(t: Translate, view: View, owner: Owner): string {
     });
   }
   return t(`owner.${owner.kind}`);
-}
-
-function Cost({ points }: { points: number }) {
-  return (
-    <span className="cost" aria-hidden>
-      {Array.from({ length: points }, (_, index) => (
-        <i key={index} />
-      ))}
-    </span>
-  );
 }
 
 function leverageTone(millis: number): Tone {
@@ -223,6 +211,9 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
             count: company.employees,
           })}
         </p>
+        {company.held || company.owner.kind === "merged" || company.owner.kind === "lender" ? null : (
+          <Journey company={company} onOpenDeal={() => setTab("deal")} />
+        )}
         {current === "overview" ? (
           <Overview game={game} company={company} />
         ) : null}
@@ -278,19 +269,9 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
   const fin = company.financials;
   const sale = company.sale;
   const fogged = !company.revealed;
-  const relationship = company.relationship;
-  const canAct =
-    !company.held &&
-    company.owner.kind !== "merged" &&
-    company.owner.kind !== "lender";
-  const canNda = canAct && Boolean(sale) && !company.in_deal;
-  const canExclusive = canAct && sale?.stage === "preparing";
   const found = company.issues.filter(
     (issue) => issue.found || issue.triggered,
   );
-  const abroad = company.country !== HOME;
-  // The sim refuses the NDA below principal; the notice says why before the click.
-  const borderLocked = abroad && view.career.rank === "vice_president";
   const research =
     view.insight[
       view.economy.sectors.findIndex((sector) => sector.id === company.sector)
@@ -298,11 +279,8 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
   const founderLeaves =
     !company.held && sale?.reason === "retirement" && company.ceo.founder;
 
-  const nda = () => game.act({ type: "sign_nda", company: company.i });
-  const meet = () => game.act({ type: "meet_owner", company: company.i });
 
   return (
-    <>
     <div className="stack">
       <section className="card">
         <h3>
@@ -417,7 +395,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
               <>
                 <Tag tone="muted">{t("term.unknown")}</Tag>
                 <small className="muted">
-                  {t("company.stanceHint", { need: HEARS_EARLY })}
+                  {t("company.stanceHint", { need: company.approach.early_notice_at })}
                 </small>
               </>
             )}
@@ -465,40 +443,6 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
                   : "good"
             }
           />
-          {company.held ? null : (
-            <div className="cp-rel">
-              <div className="meter-head">
-                <span>{t("term.relationship")}</span>
-                <b>{f.integer(relationship)}</b>
-              </div>
-              <div
-                className="meter-track"
-                data-level={
-                  relationship >= CAN_PROPOSE
-                    ? "high"
-                    : relationship >= HEARS_EARLY
-                      ? "mid"
-                      : "low"
-                }
-              >
-                <span
-                  style={{ width: `${clamp01(relationship / 100) * 100}%` }}
-                />
-                <i style={{ left: `${HEARS_EARLY}%` }} />
-                <i style={{ left: `${CAN_PROPOSE}%` }} />
-              </div>
-              <ul className="cp-rel-marks">
-                <li data-on={relationship >= HEARS_EARLY}>
-                  <b>{HEARS_EARLY}</b>
-                  {t("company.rel.early")}
-                </li>
-                <li data-on={relationship >= CAN_PROPOSE}>
-                  <b>{CAN_PROPOSE}</b>
-                  {t("company.rel.exclusive")}
-                </li>
-              </ul>
-            </div>
-          )}
         </div>
       </section>
 
@@ -649,102 +593,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
         </section>
       ) : null}
 
-      {canAct ? (
-        <section className="card">
-          <h3>
-            {t("company.actions")}
-            <span className="cp-attention muted">
-              {t("company.attentionLeft", {
-                left: view.attention.left,
-                max: view.attention.max,
-              })}
-            </span>
-          </h3>
-          <div className="cp-actions">
-            <button
-              type="button"
-              className="btn"
-              onClick={meet}
-            >
-              <Icon name="handshake" size={16} />
-              {t("company.act.meet")}
-              <Cost points={abroad ? 2 : 1} />
-            </button>
-            {canNda ? (
-              <button
-                type="button"
-                className="btn primary"
-                disabled={borderLocked}
-                onClick={nda}
-              >
-                <Icon name="search" size={16} />
-                {t("company.act.nda")}
-              </button>
-            ) : null}
-            {canExclusive ? (
-              <button
-                type="button"
-                className="btn"
-                disabled={relationship < CAN_PROPOSE}
-                onClick={() =>
-                  game.act({ type: "propose_exclusive", company: company.i })
-                }
-              >
-                <Icon name="flag" size={16} />
-                {t("company.act.exclusive")}
-                <Cost points={1} />
-              </button>
-            ) : null}
-          </div>
-          {borderLocked ? (
-            <p className="cp-lock" role="note">
-              <Icon name="alert" size={14} />
-              {t("country.locked")}
-            </p>
-          ) : null}
-          {abroad ? (
-            <p className="cp-hint">
-              <span className="cp-flag">{company.country}</span>
-              {t("company.abroadCosts")}
-            </p>
-          ) : null}
-          {canExclusive && relationship < CAN_PROPOSE ? (
-            <p className="cp-hint">
-              {t("company.act.exclusiveNeeds", { need: CAN_PROPOSE })}
-            </p>
-          ) : null}
-          {!sale ? <p className="cp-hint">{t("company.noSale")}</p> : null}
-        </section>
-      ) : null}
     </div>
-    {/* On a phone the step that moves this company forward stays in reach. */}
-    {canNda ? (
-      <div className="cp-dock">
-        {borderLocked ? (
-          <span className="cp-dock-note" data-tone="bad">
-            {t("country.locked")}
-          </span>
-        ) : null}
-        <button
-          type="button"
-          className="btn primary"
-          disabled={borderLocked}
-          onClick={nda}
-        >
-          <Icon name="search" size={16} />
-          {t("company.act.nda")}
-        </button>
-      </div>
-    ) : canAct && !company.in_deal ? (
-      <div className="cp-dock">
-        <button type="button" className="btn" onClick={meet}>
-          <Icon name="handshake" size={16} />
-          {t("company.act.meet")}
-          <Cost points={abroad ? 2 : 1} />
-        </button>
-      </div>
-    ) : null}
-    </>
   );
 }
 

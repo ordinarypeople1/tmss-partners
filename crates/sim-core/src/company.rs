@@ -295,6 +295,9 @@ pub struct Company {
     /// Equity the current sponsor paid. Zero unless a rival house owns it.
     #[serde(default)]
     pub sponsor_cost: i64,
+    /// Months before the owner will hear another unsolicited proposal.
+    #[serde(default)]
+    pub approach_cooldown: u32,
 }
 
 fn monthly_ebitda(
@@ -529,6 +532,7 @@ impl Company {
             holding: None,
             shortfall: false,
             sponsor_cost: 0,
+            approach_cooldown: 0,
         }
     }
 
@@ -803,6 +807,7 @@ impl Company {
             _ => {}
         }
         self.cooldown = self.cooldown.saturating_sub(1);
+        self.approach_cooldown = self.approach_cooldown.saturating_sub(1);
         dividends
     }
 

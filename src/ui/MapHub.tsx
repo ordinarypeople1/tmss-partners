@@ -8,6 +8,7 @@ import { Meter, Ring, Tag } from "./charts";
 import { mid, useFormat } from "./format";
 import { useGame } from "./game";
 import { Guide } from "./Guide";
+import { IntentTag, StepChip } from "./Journey";
 import { Icon } from "./icons";
 import { publicUrl } from "./publicPath";
 import "./MapHub.css";
@@ -293,7 +294,7 @@ export function MapHub() {
       if (dot) {
         const row = game.rows.get(dot.properties?.i as number);
         if (row) {
-          setHover({ x: event.point.x, y: event.point.y, text: t("map.tooltip.company", { name: row.name, sector: t(`sector.${row.sector}`) }) });
+          setHover({ x: event.point.x, y: event.point.y, text: `${t("map.tooltip.company", { name: row.name, sector: t(`sector.${row.sector}`) })} · ${t(`step.${row.next.step}`)}` });
           return;
         }
       }
@@ -737,6 +738,7 @@ export function MapHub() {
                 <thead>
                   <tr>
                     {header("name", t("map.col.company"))}
+                    <th>{t("journey.next")}</th>
                     {header("sector", t("term.sector"))}
                     {header("admin1", t("term.region"))}
                     <th>{t("term.owner")}</th>
@@ -745,6 +747,7 @@ export function MapHub() {
                     {header("ebitda", `${t("term.ebitda")} (${t("term.usd")})`, true)}
                     {header("ev", `${t("term.ev")} (${t("term.usd")})`, true)}
                     {header("relationship", t("term.relationship"), true)}
+                    <th>{t("journey.intent")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -757,6 +760,7 @@ export function MapHub() {
                           {row.in_deal ? <Tag tone="good">{t("map.legend.inDeal")}</Tag> : null}
                         </span>
                       </td>
+                      <td>{row.held ? null : <StepChip row={row} />}</td>
                       <td>
                         <span className="sector-cell">
                           <Icon name={row.sector} size={14} />
@@ -786,6 +790,7 @@ export function MapHub() {
                       <td className="num">{f.shortFigure(row.ebitda)}</td>
                       <td className="num">{f.shortFigure(row.ev)}</td>
                       <td className="num rel">{row.relationship > 0 ? <Meter value={row.relationship} max={100} tone="good" /> : null}</td>
+                      <td>{row.held || row.relationship === 0 ? null : <IntentTag intent={row.intent} />}</td>
                     </tr>
                   ))}
                 </tbody>

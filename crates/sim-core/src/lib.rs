@@ -15,6 +15,7 @@ pub mod math;
 pub mod people;
 pub mod portfolio;
 pub mod rng;
+pub mod sourcing;
 pub mod story;
 pub mod view;
 pub mod world;

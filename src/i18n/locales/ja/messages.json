@@ -173,5 +173,9 @@
   "achievement.cross_border": "国境の外へ",
   "achievement.cross_border.detail": "米国外の会社を買収しました。",
   "achievement.take_private": "非公開化",
-  "achievement.take_private.detail": "上場企業を買収して非公開化しました。"
+  "achievement.take_private.detail": "上場企業を買収して非公開化しました。",
+  "msg.owner_opened.title": "{company}: オーナーが交渉に応じました",
+  "msg.owner_opened.body": "4か月間、単独で交渉します。理由は{reason}。その間に合意できなければ、アドバイザーを選任して入札に進みます。",
+  "msg.owner_declined.title": "{company}: オーナーが断りました",
+  "msg.owner_declined.body": "今は売る気がないとのことです。1年後に再提案できます。"
 }

@@ -107,6 +107,10 @@ pub enum MessageKind {
     SaleEarlyNotice {
         reason: SaleReason,
     },
+    OwnerOpened {
+        reason: SaleReason,
+    },
+    OwnerDeclined,
     SaleStarted {
         reason: SaleReason,
     },
@@ -245,6 +249,9 @@ pub enum Command {
     MeetOwner {
         company: usize,
     },
+    ApproachOwner {
+        company: usize,
+    },
     SignNda {
         company: usize,
     },
@@ -356,6 +363,8 @@ pub enum CommandError {
     FoundersOnly,
     TeamFull,
     NotEnoughWealth,
+    AlreadyForSale,
+    OwnerNotReady,
 }
 
 #[derive(Debug)]
@@ -519,6 +528,7 @@ impl World {
                 Ok(())
             }
             Command::MeetOwner { company } => self.meet_owner(company),
+            Command::ApproachOwner { company } => self.approach_owner(company),
             Command::SignNda { company } => self.sign_nda(company),
             Command::RunDiligence { company, stream } => self.run_diligence(company, stream),
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
@@ -1491,5 +1501,88 @@ pub mod tests {
             serde_json::from_str::<Options>("{}").unwrap(),
             Options::default()
         );
+    }
+
+    #[test]
+    fn an_owner_tells_a_friend_what_they_think_and_may_take_a_proposal() {
+        use crate::sourcing::{Access, Block, Step};
+        let mut opened = 0;
+        let mut declined = 0;
+        for seed in 0..12 {
+            let mut world = world(seed);
+            let company = (0..world.companies.len())
+                .find(|index| {
+                    let target = &world.companies[*index];
+                    !target.is_abroad()
+                        && target.process.is_none()
+                        && matches!(target.owner, crate::company::Owner::Founder { .. })
+                })
+                .unwrap();
+            assert_eq!(world.access(company), Access::Stranger);
+            assert_eq!(world.next_step(company).0, Step::Meet);
+            assert!(world.company_view(company)["intent"].is_null());
+            assert_eq!(
+                world.apply(Command::ApproachOwner { company }),
+                Err(CommandError::NeedsRelationship)
+            );
+            world.companies[company].relationship = 70;
+            world.companies[company].process = None;
+            assert_eq!(world.access(company), Access::Confidant);
+            assert!(!world.company_view(company)["intent"].is_null());
+            assert_eq!(world.next_step(company), (Step::Approach, None));
+            world.apply(Command::ApproachOwner { company }).unwrap();
+            if world.deal_index(company).is_some() {
+                opened += 1;
+                let process = world.companies[company].process.as_ref().unwrap();
+                assert_eq!(process.stage, crate::market::Stage::Exclusive);
+                assert!(process.rivals.is_empty());
+                assert_eq!(world.next_step(company).0, Step::Diligence);
+            } else {
+                declined += 1;
+                assert_eq!(world.companies[company].approach_cooldown, 12);
+                assert_eq!(
+                    world.next_step(company),
+                    (Step::Approach, Some(Block::OwnerNotReady))
+                );
+                assert_eq!(
+                    world.apply(Command::ApproachOwner { company }),
+                    Err(CommandError::OwnerNotReady)
+                );
+            }
+        }
+        assert!(
+            opened > 0 && declined > 0,
+            "opened {opened} declined {declined}"
+        );
+    }
+
+    #[test]
+    fn the_next_step_follows_a_deal_from_the_data_room_to_the_bid() {
+        use crate::sourcing::{Block, Step};
+        let mut world = world(7);
+        run(&mut world, 12);
+        let company = (0..world.companies.len())
+            .find(|index| world.process_visible(*index) && !world.companies[*index].is_abroad())
+            .unwrap();
+        assert_eq!(world.next_step(company), (Step::SignNda, None));
+        world.apply(Command::SignNda { company }).unwrap();
+        assert_eq!(world.next_step(company), (Step::Diligence, None));
+        for stream in DD_STREAMS {
+            world
+                .apply(Command::RunDiligence { company, stream })
+                .unwrap();
+        }
+        assert_eq!(
+            world.next_step(company),
+            (Step::Wait, Some(Block::ReportsDue))
+        );
+        let abroad = (0..world.companies.len())
+            .find(|index| world.companies[*index].is_abroad() && world.process_visible(*index));
+        if let Some(abroad) = abroad {
+            assert_eq!(
+                world.next_step(abroad),
+                (Step::SignNda, Some(Block::CrossBorderLocked))
+            );
+        }
     }
 }

@@ -75,5 +75,7 @@
   "deals.standing.mine": "自分の入札",
   "deals.standing.ceiling": "承認上限",
   "deals.next.raise_bid": "入札額引き上げ",
-  "deals.unit": "金額単位: {unit}"
+  "deals.unit": "金額単位: {unit}",
+  "deals.courting.title": "関係構築中の会社",
+  "deals.courting.empty": "まだ面談したオーナーがいません。地図で会社を選び、オーナーに会ってください。売り案件でなくても関係60で直接提案できます。"
 }

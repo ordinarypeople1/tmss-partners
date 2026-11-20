@@ -173,5 +173,9 @@
   "achievement.cross_border": "Cross-border",
   "achievement.cross_border.detail": "Acquired a company outside the US.",
   "achievement.take_private": "Take-private",
-  "achievement.take_private.detail": "Bought a public company and took it private."
+  "achievement.take_private.detail": "Bought a public company and took it private.",
+  "msg.owner_opened.title": "{company}: the owner will talk",
+  "msg.owner_opened.body": "Four months of talks alone. Reason: {reason}. Without an agreement by then, an adviser is hired and it goes to auction.",
+  "msg.owner_declined.title": "{company}: the owner said no",
+  "msg.owner_declined.body": "They are not selling now. You can raise it again in a year."
 }

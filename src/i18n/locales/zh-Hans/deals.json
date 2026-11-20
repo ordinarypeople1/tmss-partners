@@ -75,5 +75,7 @@
   "deals.standing.mine": "我的报价",
   "deals.standing.ceiling": "批准上限",
   "deals.next.raise_bid": "提高报价",
-  "deals.unit": "金额单位：{unit}"
+  "deals.unit": "金额单位：{unit}",
+  "deals.courting.title": "正在建立关系的公司",
+  "deals.courting.empty": "尚未会见任何所有者。在地图上选择公司并会见其所有者。即使不在出售中，关系达到60也可直接提议。"
 }

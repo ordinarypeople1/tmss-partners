@@ -192,9 +192,10 @@ pub enum Outcome {
 
 impl World {
     /// Monthly chance, in basis points, that this owner starts a sale.
-    fn sale_trigger(&mut self, index: usize) -> Option<SaleReason> {
+    /// Why this owner would sell and how likely that is in a month, in basis
+    /// points. A read: nothing is rolled here.
+    pub fn sale_motive(&self, index: usize) -> Option<(i64, SaleReason)> {
         let company = &self.companies[index];
-        let industry = &self.industries[company.sector];
         let distressed = company.shortfall || company.leverage_millis() >= 6_500;
         let (base, reason) = match company.owner {
             Owner::Founder { age } => {
@@ -223,7 +224,6 @@ impl World {
             Owner::Public => (30, SaleReason::StrategicReview),
             Owner::Player | Owner::Merged => return None,
         };
-        let _ = industry;
         let (chance, reason) = if distressed && company.owner != (Owner::Lender) {
             (600, SaleReason::Distress)
         } else {
@@ -235,9 +235,13 @@ impl World {
             };
             (base * market / 100, reason)
         };
-        self.rng
-            .chance_bps(chance.clamp(0, 10_000) as u32)
-            .then_some(reason)
+        Some((chance.clamp(0, 10_000), reason))
+    }
+
+    /// Monthly: does this owner start a sale?
+    fn sale_trigger(&mut self, index: usize) -> Option<SaleReason> {
+        let (chance, reason) = self.sale_motive(index)?;
+        self.rng.chance_bps(chance as u32).then_some(reason)
     }
 
     pub(crate) fn market_step(&mut self) {

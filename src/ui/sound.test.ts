@@ -11,6 +11,8 @@ const EXPECTED: Record<Message["type"], SoundName | null> = {
   welcome: null,
   rate_changed: null,
   phase_changed: null,
+  owner_opened: "good",
+  owner_declined: "bad",
   sale_early_notice: null,
   sale_started: null,
   sale_withdrawn: null,

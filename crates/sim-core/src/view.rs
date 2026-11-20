@@ -127,6 +127,11 @@ impl World {
             .as_ref()
             .is_some_and(|holding| holding.breaches > 0 || holding.strike)
             || (company.is_player_owned() && company.shortfall);
+        // An owner says what they think about selling once they know the player a little.
+        let intent = (company.relationship >= crate::sourcing::KNOWN_AT
+            && !company.is_player_owned())
+        .then(|| self.intent(index));
+        let (step, block) = self.next_step(index);
         json!({
             "i": index,
             "id": company.id,
@@ -149,6 +154,9 @@ impl World {
             "ebitda": figure(company.ttm_ebitda(), 2),
             "ev": figure(self.model_ev(index), 3),
             "alert": alert,
+            "access": self.access(index),
+            "intent": intent,
+            "next": { "step": step, "block": block },
             "exiting": company.holding.as_ref().is_some_and(|holding| holding.exit.is_some()),
         })
     }
@@ -346,6 +354,16 @@ impl World {
         let mut view = self.row(index);
         let detail = view.as_object_mut().expect("row is an object");
         detail.insert("site_name".into(), json!(company.site_name));
+        detail.insert(
+            "approach".into(),
+            json!({
+                "odds_pct": if company.relationship >= crate::sourcing::PROPOSAL_AT { json!(self.approach_odds(index)) } else { Value::Null },
+                "cooldown": company.approach_cooldown,
+                "known_at": crate::sourcing::KNOWN_AT,
+                "early_notice_at": self.early_notice_threshold(),
+                "proposal_at": crate::sourcing::PROPOSAL_AT,
+            }),
+        );
         detail.insert("country".into(), json!(company.country));
         detail.insert(
             "sector_multiple_millis".into(),

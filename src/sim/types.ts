@@ -153,6 +153,35 @@ export const ACHIEVEMENTS: Achievement[] = [
   "cross_border",
   "take_private",
 ];
+/** How the owner knows the player: relationship 0, 1–39, 40–59, 60+. */
+export type Access = "stranger" | "acquainted" | "trusted" | "confidant";
+/** What the owner says about selling, once relationship reaches 20. */
+export type Intent = "closed" | "thinking" | "open" | "eager";
+/** The one thing worth doing at a company now. The sim decides it; screens only show it. */
+export type Step =
+  | "meet"
+  | "approach"
+  | "propose_exclusive"
+  | "sign_nda"
+  | "diligence"
+  | "offer"
+  | "committee"
+  | "bid"
+  | "raise"
+  | "wait"
+  | "operate";
+/** Why the step cannot be taken yet. */
+export type Block =
+  | "no_attention"
+  | "cross_border_locked"
+  | "too_many_deals"
+  | "owner_not_ready"
+  | "board_only"
+  | "reports_due"
+  | "not_bidding_yet"
+  | "bid_in"
+  | "committee_held"
+  | "investment_period_over";
 export type Difficulty = "relaxed" | "standard" | "hard";
 export type Era = "high_rates" | "cheap_money" | "late_cycle";
 export interface Options {
@@ -229,6 +258,11 @@ export interface CompanyRow {
   ev: Figure;
   alert: boolean;
   exiting: boolean;
+  access: Access;
+  /** Null until the owner knows the player a little (relationship 20), and for holdings. */
+  intent: Intent | null;
+  /** What to do here now, and what stands in the way. Labels: t(`step.${step}`), t(`block.${block}`). */
+  next: { step: Step; block: Block | null };
 }
 
 export interface MonthResult {
@@ -420,6 +454,12 @@ export interface HoldingView {
 
 export interface CompanyView extends CompanyRow {
   site_name: string;
+  /**
+   * An unsolicited proposal to an owner who is not selling (`approach_owner`, 1 attention, relationship 60+).
+   * `odds_pct` is the chance it opens four months of exclusive talks; null below 60. A refusal sets
+   * `cooldown` to 12 months. The thresholds are the relationship levels that unlock things.
+   */
+  approach: { odds_pct: number | null; cooldown: number; known_at: number; early_notice_at: number; proposal_at: number };
   sector_multiple_millis: number;
   union_strength_bps: number;
   /** 1 through 20. Null until operational diligence. */
@@ -447,6 +487,8 @@ export type MessageBody =
   | { type: "rate_changed"; from_bps: number; to_bps: number }
   | { type: "phase_changed"; from: Phase; to: Phase }
   | { type: "sale_early_notice"; reason: SaleReason }
+  | { type: "owner_opened"; reason: SaleReason }
+  | { type: "owner_declined" }
   | { type: "sale_started"; reason: SaleReason }
   | { type: "sale_withdrawn" }
   | { type: "sale_failed" }
@@ -626,6 +668,7 @@ export type Command =
   | { type: "advance_month" }
   | { type: "watch"; company: number; on: boolean }
   | { type: "meet_owner"; company: number }
+  | { type: "approach_owner"; company: number }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
   | { type: "set_offer"; company: number; offer: Offer }

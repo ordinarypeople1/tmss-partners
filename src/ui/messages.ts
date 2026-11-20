@@ -18,6 +18,8 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   rate_changed: ["market"],
   phase_changed: ["clock"],
   sale_early_notice: ["handshake", "good"],
+  owner_opened: ["handshake", "good"],
+  owner_declined: ["close", "warn"],
   sale_started: ["deals"],
   sale_withdrawn: ["close"],
   sale_failed: ["close"],
@@ -69,6 +71,7 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
       values.to = t(`phase.${message.to}`);
       break;
     case "sale_early_notice":
+    case "owner_opened":
     case "sale_started":
       values.reason = t(`reason.${message.reason}`);
       break;
