@@ -136,6 +136,7 @@ impl World {
             "i": index,
             "id": company.id,
             "name": company.legal_name,
+            "short": short_name(&company.legal_name),
             "sector": self.industries[company.sector].sector_id,
             "admin1": company.admin1,
             "country": company.country,
@@ -577,5 +578,48 @@ impl World {
             return Value::Null;
         }
         self.offer_view(index, offer)
+    }
+}
+
+/// The legal forms a name can end in, longest first.
+const LEGAL_FORMS: [&str; 12] = [
+    " GmbH & Co. KG",
+    " Group Ltd",
+    " Co., Ltd.",
+    " GmbH",
+    " Corp.",
+    " Inc.",
+    " K.K.",
+    " LLC",
+    " Ltd",
+    " SAS",
+    " Co.",
+    " SA",
+];
+
+/// The name people say: the legal name without its legal form. Lists and tables show this.
+pub fn short_name(legal: &str) -> &str {
+    LEGAL_FORMS
+        .iter()
+        .find_map(|form| legal.strip_suffix(form))
+        .unwrap_or(legal)
+}
+
+#[cfg(test)]
+mod short_name_tests {
+    use super::short_name;
+
+    #[test]
+    fn the_legal_form_is_dropped() {
+        assert_eq!(
+            short_name("Brunnhaus Millwork GmbH & Co. KG"),
+            "Brunnhaus Millwork"
+        );
+        assert_eq!(
+            short_name("Halcyon Testing Labs Corp."),
+            "Halcyon Testing Labs"
+        );
+        assert_eq!(short_name("Pennington Kitchens Ltd"), "Pennington Kitchens");
+        assert_eq!(short_name("Plain Name"), "Plain Name");
     }
 }

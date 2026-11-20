@@ -4,11 +4,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection, Geometry, Position } from "geojson";
 import { useT } from "../i18n/useT";
 import type { CompanyRow, Owner, Stage } from "../sim/types";
-import { Meter, Ring, Tag } from "./charts";
+import { Ring, Tag } from "./charts";
 import { mid, useFormat } from "./format";
 import { useGame } from "./game";
 import { Guide } from "./Guide";
-import { IntentTag, StepChip } from "./Journey";
+import { AccessPips, StepChip } from "./Journey";
 import { Icon } from "./icons";
 import { publicUrl } from "./publicPath";
 import "./MapHub.css";
@@ -118,6 +118,17 @@ interface Hover {
   y: number;
   text: string;
 }
+
+/** One symbol per kind of owner; the name is in the cell's title. */
+const OWNER_ICON: Record<string, string> = {
+  founder: "career",
+  sponsor: "flag",
+  corporate: "layers",
+  public: "market",
+  player: "portfolio",
+  lender: "lock",
+  merged: "link",
+};
 
 type SortKey = "name" | "sector" | "admin1" | "sale" | "revenue" | "ebitda" | "ev" | "relationship";
 
@@ -294,7 +305,7 @@ export function MapHub() {
       if (dot) {
         const row = game.rows.get(dot.properties?.i as number);
         if (row) {
-          setHover({ x: event.point.x, y: event.point.y, text: `${t("map.tooltip.company", { name: row.name, sector: t(`sector.${row.sector}`) })} · ${t(`step.${row.next.step}`)}` });
+          setHover({ x: event.point.x, y: event.point.y, text: `${t("map.tooltip.company", { name: row.short, sector: t(`sector.${row.sector}`) })} · ${t(`step.${row.next.step}`)}` });
           return;
         }
       }
@@ -623,14 +634,17 @@ export function MapHub() {
               {(["preparing", "marketing", "bidding"] as Stage[]).map((stage) => (
                 <span key={stage}>
                   <i style={{ background: STAGE_COLOR[stage] }} />
-                  {t(`map.legend.sale.${stage}`)}
+                  {t(`stage.${stage}`)}
                 </span>
               ))}
               <span>
                 <i data-shape="ring" />
                 {t("map.legend.inDeal")}
               </span>
-              <span>{t("map.legend.rivals")}</span>
+              <span title={t("map.legend.rivals")}>
+                <Icon name="flag" size={12} />
+                {t("deals.col.rivals")}
+              </span>
             </>
           ) : null}
           {layer === "portfolio" ? (
@@ -685,9 +699,9 @@ export function MapHub() {
               </span>
             </>
           ) : null}
-          <span className="fog">
+          <span className="fog" title={t("map.legend.fog")}>
             <i data-shape="hollow" />
-            {t("map.legend.fog")}
+            {t("map.legend.fogShort")}
           </span>
         </div>
         <Guide />
@@ -739,60 +753,61 @@ export function MapHub() {
                   <tr>
                     {header("name", t("map.col.company"))}
                     <th>{t("journey.next")}</th>
-                    {header("sector", t("term.sector"))}
                     {header("admin1", t("term.region"))}
                     <th>{t("term.owner")}</th>
                     {header("sale", t("map.col.sale"))}
                     {header("revenue", `${t("term.revenue")} (${t("term.usd")})`, true)}
                     {header("ebitda", `${t("term.ebitda")} (${t("term.usd")})`, true)}
-                    {header("ev", `${t("term.ev")} (${t("term.usd")})`, true)}
+                    {header("ev", `${t("term.evShort")} (${t("term.usd")})`, true)}
                     {header("relationship", t("term.relationship"), true)}
-                    <th>{t("journey.intent")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((row) => (
-                    <tr key={row.i} aria-selected={row.i === game.selected} onClick={() => game.select(row.i)}>
-                      <td className="name">
-                        <span className="name-cell">
-                          {row.name}
-                          {row.held ? <Tag tone="accent">{t("map.legend.held")}</Tag> : null}
-                          {row.in_deal ? <Tag tone="good">{t("map.legend.inDeal")}</Tag> : null}
-                        </span>
-                      </td>
-                      <td>{row.held ? null : <StepChip row={row} />}</td>
-                      <td>
-                        <span className="sector-cell">
-                          <Icon name={row.sector} size={14} />
-                          {t(`sector.${row.sector}`)}
-                        </span>
-                      </td>
-                      <td>
-                        {t(`admin1.${row.admin1}`)}
-                        {row.country === "US" ? null : <span className="sub">{t(`country.${row.country}`)}</span>}
-                      </td>
-                      <td>
-                        {row.owner.kind === "sponsor"
-                          ? (view.rivals[row.owner.house] ?? "")
-                          : row.owner.kind === "founder"
-                            ? t("owner.founderAge", { age: row.owner.age })
-                            : t(`owner.${row.owner.kind}`)}
-                      </td>
-                      <td>
-                        {row.sale ? (
-                          <span className="sale-cell" data-stage={row.sale.stage}>
-                            <Ring fraction={Math.min(row.sale.months_left / 4, 1)} size={18} tone={row.sale.stage === "bidding" ? "bad" : "warn"} />
-                            {t(`stage.${row.sale.stage}`)} · {t("map.col.monthsLeft", { months: row.sale.months_left })}
+                  {sorted.map((row) => {
+                    const ownerText =
+                      row.owner.kind === "sponsor"
+                        ? (view.rivals[row.owner.house] ?? "")
+                        : row.owner.kind === "founder"
+                          ? t("owner.founderAge", { age: row.owner.age })
+                          : t(`owner.${row.owner.kind}`);
+                    const place = `${t(`admin1.${row.admin1}`)}${row.country === "US" ? "" : ` · ${t(`country.${row.country}`)}`}`;
+                    return (
+                      <tr key={row.i} aria-selected={row.i === game.selected} onClick={() => game.select(row.i)}>
+                        <td className="name c-name" title={`${row.name} · ${t(`sector.${row.sector}`)}`}>
+                          <span className="name-cell">
+                            <span className="sector-dot" data-sector={row.sector}>
+                              <Icon name={row.sector} size={13} />
+                            </span>
+                            <span className="clip">{row.short}</span>
+                            {row.held ? <i className="mark" data-kind="held" title={t("map.legend.held")} /> : null}
+                            {row.in_deal ? <i className="mark" data-kind="deal" title={t("map.legend.inDeal")} /> : null}
                           </span>
-                        ) : null}
-                      </td>
-                      <td className="num">{f.shortFigure(row.revenue)}</td>
-                      <td className="num">{f.shortFigure(row.ebitda)}</td>
-                      <td className="num">{f.shortFigure(row.ev)}</td>
-                      <td className="num rel">{row.relationship > 0 ? <Meter value={row.relationship} max={100} tone="good" /> : null}</td>
-                      <td>{row.held || row.relationship === 0 ? null : <IntentTag intent={row.intent} />}</td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="c-next">{row.held ? null : <StepChip row={row} />}</td>
+                        <td className="c-region" title={place}>
+                          {row.country === "US" ? row.admin1.slice(3) : row.admin1.replace("-", " · ")}
+                        </td>
+                        <td className="c-owner" title={ownerText}>
+                          <span className="sector-cell">
+                            <Icon name={OWNER_ICON[row.owner.kind] ?? "career"} size={13} />
+                            {row.owner.kind === "founder" ? row.owner.age : row.owner.kind === "sponsor" ? <span className="clip">{ownerText}</span> : null}
+                          </span>
+                        </td>
+                        <td className="c-sale">
+                          {row.sale ? (
+                            <span className="sale-cell" data-stage={row.sale.stage} title={t(`map.legend.sale.${row.sale.stage}`)}>
+                              <Ring fraction={Math.min(row.sale.months_left / 4, 1)} size={16} tone={row.sale.stage === "bidding" ? "bad" : "warn"} />
+                              {t(`stage.${row.sale.stage}`)} · {t("map.col.monthsLeft", { months: row.sale.months_left })}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="num c-rev">{f.shortFigure(row.revenue)}</td>
+                        <td className="num c-ebitda">{f.shortFigure(row.ebitda)}</td>
+                        <td className="num c-ev">{f.shortFigure(row.ev)}</td>
+                        <td className="num c-rel">{row.held ? null : <AccessPips row={row} />}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

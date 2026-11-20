@@ -30,6 +30,13 @@ const INTENT_TONE: Record<Intent, "muted" | "warn" | "accent" | "good"> = {
   eager: "good",
 };
 
+/** What each relationship threshold unlocks, as a symbol and two words. */
+const MARKS = [
+  ["intent", "eye"],
+  ["early", "clock"],
+  ["propose", "flag"],
+] as const;
+
 const ACCESS_ORDER: Access[] = ["stranger", "acquainted", "trusted", "confidant"];
 
 /** Where on the road this company stands. The sim says what to do; this only places it on the track. */
@@ -65,6 +72,20 @@ export function StepChip({ row }: { row: CompanyRow }) {
   );
 }
 
+/** Relationship as three pips, with a dot for what the owner says about selling. */
+export function AccessPips({ row }: { row: CompanyRow }) {
+  const t = useT();
+  const level = ACCESS_ORDER.indexOf(row.access);
+  return (
+    <span className="pips" title={`${t(`access.${row.access}`)} · ${row.relationship}`}>
+      {[1, 2, 3].map((step) => (
+        <i key={step} data-on={level >= step} />
+      ))}
+      {row.intent ? <b data-intent={row.intent} title={t(`intent.${row.intent}`)} /> : null}
+    </span>
+  );
+}
+
 /** What the owner says about selling, or that nobody has asked yet. */
 export function IntentTag({ intent }: { intent: Intent | null }) {
   const t = useT();
@@ -89,7 +110,6 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
   const { approach } = company;
   const level = ACCESS_ORDER.indexOf(company.access);
   const marks = [approach.known_at, approach.early_notice_at, approach.proposal_at];
-  const nextMark = marks.find((mark) => company.relationship < mark);
 
   const run = () => {
     switch (step) {
@@ -143,10 +163,15 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
             markers={marks}
             tone={level >= 3 ? "good" : level >= 2 ? "accent" : "ink"}
           />
-          <small className="muted">
-            {t(`access.${company.access}.effect`, { known: approach.known_at })}
-            {nextMark ? ` ${t("journey.nextLevel", { points: nextMark - company.relationship })}` : ""}
-          </small>
+          <ul className="journey-marks">
+            {MARKS.map(([key, icon], index) => (
+              <li key={key} data-on={company.relationship >= marks[index]} title={t(`access.${ACCESS_ORDER[index + 1]}.effect`, { known: approach.known_at })}>
+                <Icon name={icon} size={12} />
+                <b>{marks[index]}</b>
+                {t(`journey.mark.${key}`)}
+              </li>
+            ))}
+          </ul>
         </div>
         <div className="journey-intent">
           <span className="muted">{t("journey.intent")}</span>
@@ -156,7 +181,10 @@ export function Journey({ company, onOpenDeal }: { company: CompanyView; onOpenD
             <IntentTag intent={company.intent} />
           )}
           {approach.odds_pct !== null && !company.sale && !company.in_deal ? (
-            <small className="muted">{t("journey.odds", { pct: approach.odds_pct })}</small>
+            <span className="journey-odds" title={t("journey.odds", { pct: approach.odds_pct })}>
+              <Icon name="flag" size={12} />
+              {f.pct(approach.odds_pct * 100, 0)}
+            </span>
           ) : null}
         </div>
       </div>

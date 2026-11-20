@@ -724,9 +724,26 @@ th,
 .table tbody tr[aria-selected="true"] {
   background: var(--accent-soft);
 }
-.table .name {
+/* One line per cell. A name that does not fit ends in an ellipsis; the full text is in the title. */
+.table th,
+.table td {
   max-width: 240px;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clip {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.step-chip,
+.tag,
+.btn {
+  white-space: nowrap;
+}
+.table .name {
   font-weight: 600;
 }
 .table .sub {

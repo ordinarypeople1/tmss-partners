@@ -315,7 +315,7 @@ export function Deals() {
           <div className="rel-list">
             {courting.map((row) => (
               <button key={row.i} type="button" className="rel-item" onClick={() => game.select(row.i)}>
-                <strong>{row.name}</strong>
+                <strong className="clip" title={row.name}>{row.short}</strong>
                 <Meter value={row.relationship} max={100} markers={[20, 40, 60]} tone={row.relationship >= 60 ? "good" : row.relationship >= 40 ? "accent" : "ink"} label={t(`access.${row.access}`)} text={f.integer(row.relationship)} />
                 <span className="row">
                   <IntentTag intent={row.intent} />
@@ -491,7 +491,7 @@ export function Deals() {
                         </button>
                       </td>
                       <td className="name">
-                        {row.name}
+                        {row.short}
                         <span className="sub">{t(`admin1.${row.admin1}`)}</span>
                       </td>
                       <td className="deals-cell-country" data-home={abroad ? undefined : "true"}>
@@ -650,7 +650,7 @@ function DealCard({ item }: { item: MyDeal }) {
           <Icon name={row.sector} size={16} />
         </span>
         <span className="deals-card-name">
-          <b>{row.name}</b>
+          <b className="clip" title={row.name}>{row.short}</b>
           <small>{`${t(`sector.${row.sector}`)} · ${placeText(t, row)}`}</small>
         </span>
         {sale ? (

@@ -217,3 +217,64 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.journey-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+.journey-marks li {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  opacity: 0.6;
+}
+.journey-marks li[data-on="true"] {
+  color: var(--good);
+  font-weight: 600;
+  opacity: 1;
+}
+.journey-odds {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  font-weight: 700;
+}
+
+/* Relationship in a table cell: three pips and an intent dot. */
+.pips {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.pips i {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+}
+.pips i[data-on="true"] {
+  border-color: var(--good);
+  background: var(--good);
+}
+.pips b {
+  width: 9px;
+  height: 9px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.pips b[data-intent="thinking"] {
+  background: var(--warn);
+}
+.pips b[data-intent="open"] {
+  background: var(--accent);
+}
+.pips b[data-intent="eager"] {
+  background: var(--good);
+}

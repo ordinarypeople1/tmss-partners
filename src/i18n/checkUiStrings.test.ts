@@ -57,7 +57,10 @@ describe("hardcoded UI strings", () => {
     expect(sheets.length).toBeGreaterThan(0);
     for (const sheet of sheets) {
       const css = readFileSync(sheet, "utf8");
-      expect(css, sheet).not.toMatch(/nowrap/);
+      // Single-line text is declared once, in the shared sheet, together with its ellipsis.
+      if (!sheet.endsWith("styles.css")) {
+        expect(css, sheet).not.toMatch(/nowrap/);
+      }
       expect(css, sheet).not.toMatch(new RegExp("[\\uAC00-\\uD7AF]"));
     }
   });

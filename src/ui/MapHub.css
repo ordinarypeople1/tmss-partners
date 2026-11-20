@@ -311,9 +311,32 @@
 }
 .drawer-table .name-cell {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  min-width: 0;
+}
+.sector-dot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--line-soft);
+  color: var(--ink-soft);
+}
+.drawer-table .mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.drawer-table .mark[data-kind="deal"] {
+  background: var(--good);
+}
+.drawer-table .c-owner .clip {
+  max-width: 110px;
 }
 .sector-cell,
 .sale-cell {
@@ -325,9 +348,7 @@
   color: var(--accent);
   font-weight: 600;
 }
-.drawer-table .rel {
-  width: 70px;
-}
+
 
 /* A phone: the map fills the screen, the layer switcher shrinks to icons, and the table is a short sheet. */
 @media (max-width: 760px) {
@@ -402,34 +423,31 @@
     padding: 0;
     border: 0;
   }
-  .drawer-table td:nth-child(4),
-  .drawer-table td:nth-child(6),
-  .drawer-table td:nth-child(7),
-  .drawer-table td:nth-child(9) {
+  .drawer-table .c-region,
+  .drawer-table .c-owner,
+  .drawer-table .c-rev,
+  .drawer-table .c-ebitda,
+  .drawer-table .c-rel {
     display: none;
   }
-  .drawer-table td:nth-child(1) {
-    grid-column: 1;
+  .drawer-table .table td {
     max-width: none;
   }
-  .drawer-table td:nth-child(8) {
+  .drawer-table .c-name {
+    grid-column: 1;
+    min-width: 0;
+  }
+  .drawer-table .c-ev {
     grid-column: 2;
     grid-row: 1;
     font-weight: 700;
   }
-  .drawer-table td:nth-child(2),
-  .drawer-table td:nth-child(3) {
+  .drawer-table .c-next {
     grid-column: 1;
-    color: var(--muted);
-    font-size: 0.82rem;
   }
-  .drawer-table td:nth-child(3) .sub {
-    display: inline;
-    margin-left: 4px;
-  }
-  .drawer-table td:nth-child(5) {
+  .drawer-table .c-sale {
     grid-column: 2;
-    grid-row: 2 / span 2;
+    grid-row: 2;
     justify-self: end;
     font-size: 0.82rem;
   }

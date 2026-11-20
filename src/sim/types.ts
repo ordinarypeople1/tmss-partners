@@ -235,6 +235,8 @@ export interface CompanyRow {
   i: number;
   id: string;
   name: string;
+  /** The name without its legal form, for lists and tables. */
+  short: string;
   sector: string;
   admin1: string;
   /** "US" is home. Deals elsewhere need the rank of principal. */

@@ -39,5 +39,6 @@
   "map.col.sale": "매각",
   "map.col.monthsLeft": "{months, plural, other {#개월}}",
   "map.empty": "조건에 맞는 회사가 없습니다.",
-  "map.ping": "이번 달 소식"
+  "map.ping": "이번 달 소식",
+  "map.legend.fogShort": "NDA 전"
 }

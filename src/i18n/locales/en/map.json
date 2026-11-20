@@ -39,5 +39,6 @@
   "map.col.sale": "Sale",
   "map.col.monthsLeft": "{months, plural, one {# mo} other {# mo}}",
   "map.empty": "No companies match.",
-  "map.ping": "News this month"
+  "map.ping": "News this month",
+  "map.legend.fogShort": "Pre-NDA"
 }
