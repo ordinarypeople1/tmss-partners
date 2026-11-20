@@ -1,0 +1,113 @@
+/* The year's objectives, on the dark sidebar. */
+
+.objectives {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.objectives h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--side-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.objectives h3 b {
+  color: var(--side-ink);
+}
+.objectives ul {
+  display: grid;
+  gap: 1px;
+  list-style: none;
+}
+.objective {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  margin-inline: -6px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--side-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.objectives li {
+  min-width: 0;
+}
+.objective {
+  width: calc(100% + 12px);
+}
+.objective:hover {
+  background: color-mix(in srgb, var(--side-ink) 7%, transparent);
+}
+.objective-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+.objective-text small {
+  color: var(--side-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.objective .ring circle:first-child {
+  stroke: color-mix(in srgb, var(--side-ink) 22%, transparent);
+}
+.objective .ring circle + circle {
+  stroke: var(--amber);
+}
+.objective-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--good);
+  color: var(--side);
+}
+.objective[data-state="met"] .objective-text > span {
+  color: var(--side-muted);
+  text-decoration: line-through;
+}
+.objective[data-state="kept"] .objective-mark {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--good);
+  color: var(--good);
+}
+.objective[data-state="kept"] small {
+  color: var(--good);
+}
+.objective[data-state="broken"] .objective-mark {
+  background: var(--bad);
+}
+.objective[data-state="broken"] small {
+  color: var(--bad);
+}
+
+/* In the phone menu sheet: thumb-sized rows, larger type. */
+@media (max-width: 760px) {
+  .objectives h3 {
+    font-size: 0.8rem;
+  }
+  .objective {
+    gap: 10px;
+    min-height: 44px;
+  }
+  .objective-text {
+    font-size: 0.9rem;
+  }
+  .objective-text small {
+    font-size: 0.78rem;
+  }
+}

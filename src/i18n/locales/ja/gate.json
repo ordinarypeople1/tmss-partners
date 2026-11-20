@@ -1,0 +1,17 @@
+{
+  "gate.attention": "工数 {need} が必要 · 残り {left}",
+  "gate.unchanged": "変更がありません。",
+  "gate.needsSave": "先にオファーを保存してください。",
+  "gate.inCommittee": "すでにICに上程済みです。",
+  "gate.raiseAbove": "現在の入札額より上げてください。",
+  "gate.atCeiling": "IC上限です。",
+  "gate.planFull": "100日計画は{max}件までです。",
+  "gate.amount": "金額を入力してください。",
+  "gate.initFull": "同時に進められる施策は{limit}件です。",
+  "gate.wealth": "個人資産 {amount} が必要",
+  "gate.noWealth": "個人資産がありません。",
+  "gate.teamFull": "チームは{max}人までです。",
+  "gate.teamEmpty": "外せるメンバーがいません。",
+  "gate.noUnread": "未読メッセージはありません。",
+  "gate.decided": "決定済みか期限切れです。"
+}

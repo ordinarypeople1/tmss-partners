@@ -1,0 +1,44 @@
+.portrait {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.portrait > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mood mark: a small shape in the corner, different in form as well as color. */
+.portrait[data-mood="for"]::after,
+.portrait[data-mood="hold"]::after,
+.portrait[data-mood="against"]::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  width: clamp(7px, 16%, 12px);
+  aspect-ratio: 1;
+  border: 2px solid var(--raised);
+}
+
+.portrait[data-mood="for"]::after {
+  border-radius: 50%;
+  background: var(--good);
+}
+
+.portrait[data-mood="hold"]::after {
+  border-radius: 50%;
+  background: var(--raised);
+  box-shadow: inset 0 0 0 2px var(--warn);
+  border-width: 1px;
+}
+
+.portrait[data-mood="against"]::after {
+  border-radius: 2px;
+  background: var(--bad);
+}

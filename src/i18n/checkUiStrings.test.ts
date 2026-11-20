@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, statSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,8 +41,27 @@ describe("hardcoded UI strings", () => {
   });
 
   it("keeps the layout from pinning a single line of text", () => {
-    const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "ui", "styles.css"), "utf8");
-    expect(css).not.toMatch(/nowrap/);
-    expect(css).not.toMatch(new RegExp("[\\uAC00-\\uD7AF]"));
+    const root = join(dirname(fileURLToPath(import.meta.url)), "..", "ui");
+    const sheets: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const path = join(dir, entry);
+        if (statSync(path).isDirectory()) {
+          walk(path);
+        } else if (entry.endsWith(".css")) {
+          sheets.push(path);
+        }
+      }
+    };
+    walk(root);
+    expect(sheets.length).toBeGreaterThan(0);
+    for (const sheet of sheets) {
+      const css = readFileSync(sheet, "utf8");
+      // Single-line text is declared once, in the shared sheet, together with its ellipsis.
+      if (!sheet.endsWith("styles.css")) {
+        expect(css, sheet).not.toMatch(/nowrap/);
+      }
+      expect(css, sheet).not.toMatch(new RegExp("[\\uAC00-\\uD7AF]"));
+    }
   });
 });

@@ -1,13 +1,13 @@
 # 문자열
 
-화면 문장은 `src/i18n/locales/ko.json`에만 있다. 소스 로케일은 `ko`다. `src/i18n/config.ts`의 `PLANNED_LOCALES`는 `en`, `ja`, `zh-Hans`, `zh-Hant`다. 그 파일은 아직 만들지 않는다. 개발 중에 문장이 계속 바뀌므로, 번역은 화면 문장이 잠긴 뒤에 한 번 한다.
+화면 문장은 한국어 카탈로그에만 있다. 공용 용어는 `src/i18n/locales/ko.json`에, 화면별 문장은 `src/i18n/locales/ko/` 아래 조각 파일에 있다. 조각은 자기 접두어(`map.`, `inbox.` …)의 키만 갖고, 한 키는 한 곳에만 정의한다. `src/i18n/messages.ts`가 합친다. 소스 로케일은 `ko`다. `src/i18n/config.ts`의 `LOCALES`는 `ko`, `en`, `ja`, `zh-Hans`이고 `PLANNED_LOCALES`는 `zh-Hant`다. 한국어로 먼저 쓰고, 나머지는 같은 파일 구조(`locales/<로케일>.json`, `locales/<로케일>/*.json`)로 옮긴다. 번역은 기계가 초벌을 냈고 원어민 검수 전이다. 그 파일은 아직 만들지 않는다. 개발 중에 문장이 계속 바뀌므로, 번역은 화면 문장이 잠긴 뒤에 한 번 한다.
 
 ## 지금 하는 일
 
 - 플레이어가 읽는 문장은 메시지 키다. JSX 텍스트, `aria-label`, `title`, `alt`, `placeholder`에 문장을 적지 않는다.
-- 한국어 카탈로그가 ICU를 쓴다. 수량, 숫자, 백만 원 단위의 억·조. 연도는 `{value, number, ::integer group-off}`다. `group-off`가 없으면 2012가 2,012가 된다.
-- 회사 이름, 단지 이름, 지역 라벨은 콘텐츠 데이터다. 섹터 크롬은 `sector_id`로 키를 고른다.
-- 레이아웃은 문장이 길어져도 깨지지 않게 잡는다. `flex-wrap`, `minmax(0, …)`, `repeat(auto-fit, minmax(9rem, 1fr))`, `overflow-wrap: anywhere`. `white-space: nowrap`를 화면 CSS에 넣지 않는다.
+- 한국어 카탈로그가 ICU를 쓴다. 수량과 숫자. 연도는 `{value, number, ::integer group-off}`다. `group-off`가 없으면 2012가 2,012가 된다.
+- 회사 이름과 단지 이름은 콘텐츠 데이터이고 번역하지 않는다. 주 이름은 `admin1.<코드>`, 섹터는 `sector.<id>`로 키를 고른다.
+- 레이아웃은 문장이 길어져도 깨지지 않게 잡는다. `flex-wrap`, `minmax(0, …)`, `repeat(auto-fit, minmax(9rem, 1fr))`, `overflow-wrap: anywhere`. 표의 칸, 칩, 버튼은 한 줄로 두고 넘치면 말줄임표로 자른다(`src/ui/styles.css`의 `.table td`, `.clip`). 줄바꿈 금지는 그 공용 시트에서만 선언하고, 화면별 CSS에는 `nowrap`을 넣지 않는다. 회사 이름은 목록과 표에서 약칭(`row.short`)을 쓴다.
 - 글꼴은 벤더하지 않는다. 런타임에 Google Fonts CDN을 부르지 않는다. 게임은 오프라인이다. 패키징할 때 필요한 글자만 서브셋한다.
   - 한국어: Pretendard, 이어서 Noto Sans KR. Pretendard는 OFL이다. <https://github.com/orioncactus/pretendard>
   - 일본어를 넣을 때: Noto Sans JP. <https://fonts.google.com/noto/specimen/Noto+Sans+JP>
@@ -17,7 +17,7 @@
   - OFL 본문: <https://openfontlicense.org/>
 - CSS는 이미 `:lang(ja)`, `:lang(zh-Hans)`, `:lang(zh-Hant)` 글꼴 스택을 갖고 있다. 카탈로그가 생기기 전에는 `html`의 언어가 `ko`라 그 스택이 쓰이지 않는다.
 
-백만 원을 달러로 보여줄 때는 `Intl.NumberFormat`의 `currency: "USD"`를 쓴다. 환율은 호출하는 쪽이 주는 자리다. 시나리오가 환율을 정하기 전에는 플레이스홀더임을 문장에 밝힌다. `million` / `billion` 같은 영어 규모 문장은 영어 카탈로그를 넣을 때 키로 추가한다. 한국어 파일에 그 문장을 미리 적지 않는다.
+돈은 달러 하나다. 천 달러 정수를 `formatUsdThousand`가 카탈로그의 단위(`money.usd.*`)로 포맷한다. 로케일이 늘면 단위 문장만 그 로케일의 것으로 넣는다(영어는 K, M, B). 환율은 없다.
 
 나중에 넣을 규모 문장의 틀은 이렇다. 이것은 카탈로그가 아니다.
 
@@ -61,3 +61,9 @@ id는 고정한다. 한국어가 소스다. 목표 언어는 문장이 잠긴 �
 | continuation_fund | 컨티뉴에이션 펀드 |  |  |  |  |
 
 플레이어 직함 VP는 부사장으로 옮기지 않는다. 용어 id는 `player_title_vp`이고, 한국어 표기는 문장이 잠길 때 `ko.json`의 직함 키와 같이 정한다. 지금은 헬로 월드에 그 키가 없다.
+
+## 검사
+
+- `src/i18n/checkUiStrings.test.ts`: `src/ui` 아래에 하드코딩된 문장이 없는지, 공용 시트 밖의 스타일시트에 `nowrap`이 없는지 본다.
+- `src/i18n/catalog.test.ts`: 키가 두 번 정의되지 않았는지, 화면이 쓰는 `t("…")` 키가 전부 있는지, 지도의 187개 지역과 7개 나라에 이름이 있는지 본다.
+- 같은 테스트가 로케일마다 한국어 키가 전부 있는지, ICU 인자 이름이 같은지 본다. 돈은 모든 로케일이 미국식 K, M, B, T(`money.usd.k/m/b/t`)로 쓴다.

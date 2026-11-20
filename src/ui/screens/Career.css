@@ -1,0 +1,632 @@
+.career .ladder {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+.career .ladder li {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  justify-items: start;
+  padding: 0 12px 4px 0;
+}
+.career .ladder li::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  right: 0;
+  left: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.career .ladder li:last-child::before {
+  display: none;
+}
+.career .ladder li[data-state="past"]::before {
+  background: var(--accent);
+}
+.career .ladder-node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--raised);
+  color: var(--muted);
+  font-weight: 700;
+}
+.career .ladder li[data-state="past"] .ladder-node {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.career .ladder li[data-state="now"] .ladder-node {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.career .ladder strong {
+  font-size: 1.05rem;
+}
+.career .ladder li[data-state="ahead"] strong {
+  color: var(--muted);
+}
+.career .ladder-perks {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+  font-size: 0.82rem;
+}
+.career .ladder li[data-state="now"] .ladder-perks {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.career .ladder-perks div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+.career .ladder-perks dt {
+  color: var(--muted);
+}
+.career .ladder-perks dd {
+  font-weight: 700;
+}
+
+.career .career-mid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.career .ticks {
+  display: grid;
+  gap: 6px;
+}
+.career .ticks li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.career .ticks.either li {
+  border-style: dashed;
+}
+.career .ticks li[data-done="true"] {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.career .tick {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: var(--raised);
+}
+.career .ticks li[data-done="true"] .tick {
+  border-color: var(--good);
+  background: var(--good);
+  color: #fff;
+}
+.career .tick-bar {
+  grid-column: 2 / -1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+.career .tick-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.career .ticks li[data-done="true"] .tick-bar span {
+  background: var(--good);
+}
+
+.career .fire-lines {
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.career .fire-lines ul {
+  display: grid;
+  gap: 6px;
+}
+.career .fire-lines li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.career .reputation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+.career .reputation .gauge {
+  width: 168px;
+}
+.career .reputation .gauge strong {
+  font-size: 1.6rem;
+}
+.career .moves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 4px 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.84rem;
+}
+.career .moves li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bad);
+}
+.career .moves li[data-up="true"] {
+  color: var(--good);
+}
+
+.career .partners {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--gap);
+}
+.career .partners li {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  justify-items: start;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.career .partners small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.career .avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--s1);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.career .avatar-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.career .avatar-face:not(:empty) {
+  background: var(--raised);
+}
+.career .avatar[data-seat="1"] {
+  background: var(--s4);
+}
+.career .avatar[data-seat="2"] {
+  background: var(--s6);
+}
+.career .avatar[data-seat="3"] {
+  background: var(--s5);
+}
+.career .avatar[data-seat="4"] {
+  background: var(--s3);
+}
+.career .avatar[data-seat="5"] {
+  background: var(--s2);
+}
+
+@media (max-width: 1250px) {
+  .career .career-mid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.career .ladder-perks dd[data-on="true"] {
+  color: var(--good);
+}
+.career .ladder-perks dd[data-on="false"] {
+  color: var(--muted);
+}
+
+.career .career-year {
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: start;
+}
+.career .career-year .ticks {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.career .ticks li[data-broken="true"] {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.career .option-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.career .option-list li {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+.career .option-list small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.career .career-money {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+.career .perk-list {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+.career .perk-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.career .perk-list li[data-owned="true"] {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.career .perk-list li div {
+  display: grid;
+  flex: 1 1 150px;
+}
+.career .perk-list small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.career .card[data-locked="true"] .team-pips,
+.career .card[data-locked="true"] .stat {
+  opacity: 0.5;
+}
+.career .team-pips {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.career .team-pips i {
+  height: 26px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+}
+.career .team-pips i[data-on="true"] {
+  border: 2px solid var(--accent);
+  background: var(--accent);
+}
+
+.career .achievement-count .meter {
+  width: 140px;
+}
+.career .achievements {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.career .achievements li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  align-items: center;
+  align-content: start;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+}
+.career .achievements small {
+  grid-column: 2 / -1;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.career .achievements b {
+  grid-row: 1;
+  grid-column: 3;
+  color: var(--good);
+  font-size: 0.78rem;
+}
+.career .achievement-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--line-soft);
+}
+.career .achievements li[data-done="true"] {
+  border: 1px solid var(--good);
+  background: var(--good-soft);
+  color: var(--ink);
+}
+.career .achievements li[data-done="true"] small {
+  color: var(--ink-soft);
+}
+.career .achievements li[data-done="true"] .achievement-mark {
+  background: var(--good);
+  color: #fff;
+}
+
+.career .partners .trust {
+  width: 100%;
+  margin-top: 2px;
+}
+
+@media (max-width: 1250px) {
+  .career .career-money {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .career .career-year,
+  .career .career-money {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.career .career-year .ticks li {
+  grid-template-columns: 22px minmax(0, 1fr);
+}
+.career .career-year .ticks b {
+  grid-column: 2;
+  font-size: 0.86rem;
+}
+
+.career .ladder-toggle,
+.career .badge-detail {
+  display: none;
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .career .page-head .row {
+    flex-wrap: wrap;
+  }
+  /* Ladder: four dots across, then the perks of the current and the next rank. */
+  .career .ladder {
+    position: relative;
+    gap: 6px 8px;
+  }
+  .career .ladder::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    right: 12.5%;
+    left: 12.5%;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--accent) calc(var(--ladder-done, 0) * 100%), var(--line) 0);
+  }
+  .career .ladder li {
+    display: contents;
+  }
+  .career .ladder li::before {
+    display: none;
+  }
+  .career .ladder-node {
+    grid-row: 1;
+    justify-self: center;
+    width: 32px;
+    height: 32px;
+  }
+  .career .ladder li > .row {
+    grid-row: 2;
+    flex-direction: column;
+    align-items: center;
+    align-self: start;
+    gap: 3px;
+    text-align: center;
+  }
+  .career .ladder li:nth-child(1) > .ladder-node,
+  .career .ladder li:nth-child(1) > .row {
+    grid-column: 1;
+  }
+  .career .ladder li:nth-child(2) > .ladder-node,
+  .career .ladder li:nth-child(2) > .row {
+    grid-column: 2;
+  }
+  .career .ladder li:nth-child(3) > .ladder-node,
+  .career .ladder li:nth-child(3) > .row {
+    grid-column: 3;
+  }
+  .career .ladder li:nth-child(4) > .ladder-node,
+  .career .ladder li:nth-child(4) > .row {
+    grid-column: 4;
+  }
+  .career .ladder strong {
+    font-size: 0.86rem;
+    line-height: 1.2;
+  }
+  .career .ladder .tag {
+    font-size: 0.75rem;
+  }
+  .career .ladder-perks {
+    display: none;
+    grid-column: span 2;
+    align-content: start;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 0.84rem;
+  }
+  .career .ladder li[data-state="now"] > .ladder-perks,
+  .career .ladder li[data-next="true"] > .ladder-perks,
+  .career .ladder[data-all="true"] .ladder-perks {
+    display: grid;
+  }
+  .career .ladder:not([data-all="true"]) li[data-state="now"]:last-child > .ladder-perks {
+    grid-column: 1 / -1;
+  }
+  .career .ladder-perks::before {
+    content: attr(data-rank);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line-soft);
+    font-weight: 700;
+  }
+  .career .ladder-toggle {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .career .career-mid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .career .career-mid .grid.cols-2,
+  .career .career-money .grid.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .career .ticks li {
+    min-height: 44px;
+  }
+  .career .reputation {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .career .reputation > .stack {
+    width: 100%;
+  }
+  .career .moves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .career .perk-list .btn,
+  .career .career-money .row .btn {
+    min-height: 40px;
+  }
+  .career .perk-list .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .career .career-money .row .btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+  .career .career-money > .card > .btn {
+    min-height: 40px;
+  }
+
+  /* Achievements: a badge grid; the picked badge's requirement sits above it. */
+  .career .achievement-count .meter {
+    width: 90px;
+  }
+  .career .badge-detail {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 2px 8px;
+    align-items: center;
+    min-height: 64px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--raised);
+    box-shadow: 0 4px 10px rgb(31 41 37 / 10%);
+  }
+  .career .badge-detail[data-done="true"] {
+    border-color: var(--good);
+  }
+  .career .badge-detail .achievement-mark {
+    width: 28px;
+    height: 28px;
+  }
+  .career .badge-detail[data-done="true"] .achievement-mark {
+    background: var(--good);
+    color: #fff;
+  }
+  .career .badge-detail b {
+    color: var(--good);
+    font-size: 0.78rem;
+  }
+  .career .badge-detail small {
+    grid-column: 2 / -1;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+  .career .achievements {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .career .achievements li {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 5px;
+    min-height: 84px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .career .achievements .achievement-mark {
+    width: 36px;
+    height: 36px;
+  }
+  .career .achievements strong {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .career .achievements small,
+  .career .achievements b {
+    display: none;
+  }
+  .career .achievements li[data-picked="true"] {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+
+  /* Committee: two per row. */
+  .career .partners {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .career .partners li {
+    padding: 10px;
+  }
+  .career .partners small {
+    font-size: 0.76rem;
+  }
+  .career .partners .meter-track {
+    height: 9px;
+  }
+}

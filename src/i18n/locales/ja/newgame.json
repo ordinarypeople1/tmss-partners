@@ -1,0 +1,9 @@
+{
+  "newgame.title": "新規ゲーム",
+  "newgame.lead": "難易度と開始時点を選びます。開始後は変更できません。",
+  "newgame.difficulty": "難易度",
+  "newgame.era": "時代",
+  "newgame.warning": "現在のゲームは消去されます。",
+  "newgame.start": "開始",
+  "newgame.cancel": "キャンセル"
+}

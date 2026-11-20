@@ -1,0 +1,1014 @@
+{
+ "countries": [
+  {
+   "code": "US",
+   "home": true
+  },
+  {
+   "code": "GB"
+  },
+  {
+   "code": "DE"
+  },
+  {
+   "code": "FR"
+  },
+  {
+   "code": "KR"
+  },
+  {
+   "code": "JP"
+  },
+  {
+   "code": "CN"
+  }
+ ],
+ "admin1": [
+  {
+   "code": "US-AL",
+   "country": "US",
+   "name_en": "Alabama",
+   "fips": "01"
+  },
+  {
+   "code": "US-AK",
+   "country": "US",
+   "name_en": "Alaska",
+   "fips": "02"
+  },
+  {
+   "code": "US-AZ",
+   "country": "US",
+   "name_en": "Arizona",
+   "fips": "04"
+  },
+  {
+   "code": "US-AR",
+   "country": "US",
+   "name_en": "Arkansas",
+   "fips": "05"
+  },
+  {
+   "code": "US-CA",
+   "country": "US",
+   "name_en": "California",
+   "fips": "06"
+  },
+  {
+   "code": "US-CO",
+   "country": "US",
+   "name_en": "Colorado",
+   "fips": "08"
+  },
+  {
+   "code": "US-CT",
+   "country": "US",
+   "name_en": "Connecticut",
+   "fips": "09"
+  },
+  {
+   "code": "US-DE",
+   "country": "US",
+   "name_en": "Delaware",
+   "fips": "10"
+  },
+  {
+   "code": "US-DC",
+   "country": "US",
+   "name_en": "District of Columbia",
+   "fips": "11"
+  },
+  {
+   "code": "US-FL",
+   "country": "US",
+   "name_en": "Florida",
+   "fips": "12"
+  },
+  {
+   "code": "US-GA",
+   "country": "US",
+   "name_en": "Georgia",
+   "fips": "13"
+  },
+  {
+   "code": "US-HI",
+   "country": "US",
+   "name_en": "Hawaii",
+   "fips": "15"
+  },
+  {
+   "code": "US-ID",
+   "country": "US",
+   "name_en": "Idaho",
+   "fips": "16"
+  },
+  {
+   "code": "US-IL",
+   "country": "US",
+   "name_en": "Illinois",
+   "fips": "17"
+  },
+  {
+   "code": "US-IN",
+   "country": "US",
+   "name_en": "Indiana",
+   "fips": "18"
+  },
+  {
+   "code": "US-IA",
+   "country": "US",
+   "name_en": "Iowa",
+   "fips": "19"
+  },
+  {
+   "code": "US-KS",
+   "country": "US",
+   "name_en": "Kansas",
+   "fips": "20"
+  },
+  {
+   "code": "US-KY",
+   "country": "US",
+   "name_en": "Kentucky",
+   "fips": "21"
+  },
+  {
+   "code": "US-LA",
+   "country": "US",
+   "name_en": "Louisiana",
+   "fips": "22"
+  },
+  {
+   "code": "US-ME",
+   "country": "US",
+   "name_en": "Maine",
+   "fips": "23"
+  },
+  {
+   "code": "US-MD",
+   "country": "US",
+   "name_en": "Maryland",
+   "fips": "24"
+  },
+  {
+   "code": "US-MA",
+   "country": "US",
+   "name_en": "Massachusetts",
+   "fips": "25"
+  },
+  {
+   "code": "US-MI",
+   "country": "US",
+   "name_en": "Michigan",
+   "fips": "26"
+  },
+  {
+   "code": "US-MN",
+   "country": "US",
+   "name_en": "Minnesota",
+   "fips": "27"
+  },
+  {
+   "code": "US-MS",
+   "country": "US",
+   "name_en": "Mississippi",
+   "fips": "28"
+  },
+  {
+   "code": "US-MO",
+   "country": "US",
+   "name_en": "Missouri",
+   "fips": "29"
+  },
+  {
+   "code": "US-MT",
+   "country": "US",
+   "name_en": "Montana",
+   "fips": "30"
+  },
+  {
+   "code": "US-NE",
+   "country": "US",
+   "name_en": "Nebraska",
+   "fips": "31"
+  },
+  {
+   "code": "US-NV",
+   "country": "US",
+   "name_en": "Nevada",
+   "fips": "32"
+  },
+  {
+   "code": "US-NH",
+   "country": "US",
+   "name_en": "New Hampshire",
+   "fips": "33"
+  },
+  {
+   "code": "US-NJ",
+   "country": "US",
+   "name_en": "New Jersey",
+   "fips": "34"
+  },
+  {
+   "code": "US-NM",
+   "country": "US",
+   "name_en": "New Mexico",
+   "fips": "35"
+  },
+  {
+   "code": "US-NY",
+   "country": "US",
+   "name_en": "New York",
+   "fips": "36"
+  },
+  {
+   "code": "US-NC",
+   "country": "US",
+   "name_en": "North Carolina",
+   "fips": "37"
+  },
+  {
+   "code": "US-ND",
+   "country": "US",
+   "name_en": "North Dakota",
+   "fips": "38"
+  },
+  {
+   "code": "US-OH",
+   "country": "US",
+   "name_en": "Ohio",
+   "fips": "39"
+  },
+  {
+   "code": "US-OK",
+   "country": "US",
+   "name_en": "Oklahoma",
+   "fips": "40"
+  },
+  {
+   "code": "US-OR",
+   "country": "US",
+   "name_en": "Oregon",
+   "fips": "41"
+  },
+  {
+   "code": "US-PA",
+   "country": "US",
+   "name_en": "Pennsylvania",
+   "fips": "42"
+  },
+  {
+   "code": "US-RI",
+   "country": "US",
+   "name_en": "Rhode Island",
+   "fips": "44"
+  },
+  {
+   "code": "US-SC",
+   "country": "US",
+   "name_en": "South Carolina",
+   "fips": "45"
+  },
+  {
+   "code": "US-SD",
+   "country": "US",
+   "name_en": "South Dakota",
+   "fips": "46"
+  },
+  {
+   "code": "US-TN",
+   "country": "US",
+   "name_en": "Tennessee",
+   "fips": "47"
+  },
+  {
+   "code": "US-TX",
+   "country": "US",
+   "name_en": "Texas",
+   "fips": "48"
+  },
+  {
+   "code": "US-UT",
+   "country": "US",
+   "name_en": "Utah",
+   "fips": "49"
+  },
+  {
+   "code": "US-VT",
+   "country": "US",
+   "name_en": "Vermont",
+   "fips": "50"
+  },
+  {
+   "code": "US-VA",
+   "country": "US",
+   "name_en": "Virginia",
+   "fips": "51"
+  },
+  {
+   "code": "US-WA",
+   "country": "US",
+   "name_en": "Washington",
+   "fips": "53"
+  },
+  {
+   "code": "US-WV",
+   "country": "US",
+   "name_en": "West Virginia",
+   "fips": "54"
+  },
+  {
+   "code": "US-WI",
+   "country": "US",
+   "name_en": "Wisconsin",
+   "fips": "55"
+  },
+  {
+   "code": "US-WY",
+   "country": "US",
+   "name_en": "Wyoming",
+   "fips": "56"
+  },
+  {
+   "code": "GB-TLC",
+   "country": "GB",
+   "name_en": "North East England"
+  },
+  {
+   "code": "GB-TLD",
+   "country": "GB",
+   "name_en": "North West England"
+  },
+  {
+   "code": "GB-TLE",
+   "country": "GB",
+   "name_en": "Yorkshire and the Humber"
+  },
+  {
+   "code": "GB-TLF",
+   "country": "GB",
+   "name_en": "East Midlands"
+  },
+  {
+   "code": "GB-TLG",
+   "country": "GB",
+   "name_en": "West Midlands"
+  },
+  {
+   "code": "GB-TLH",
+   "country": "GB",
+   "name_en": "East of England"
+  },
+  {
+   "code": "GB-TLI",
+   "country": "GB",
+   "name_en": "London"
+  },
+  {
+   "code": "GB-TLJ",
+   "country": "GB",
+   "name_en": "South East England"
+  },
+  {
+   "code": "GB-TLK",
+   "country": "GB",
+   "name_en": "South West England"
+  },
+  {
+   "code": "GB-SCT",
+   "country": "GB",
+   "name_en": "Scotland"
+  },
+  {
+   "code": "GB-WLS",
+   "country": "GB",
+   "name_en": "Wales"
+  },
+  {
+   "code": "GB-NIR",
+   "country": "GB",
+   "name_en": "Northern Ireland"
+  },
+  {
+   "code": "DE-BW",
+   "country": "DE",
+   "name_en": "Baden-Württemberg"
+  },
+  {
+   "code": "DE-BY",
+   "country": "DE",
+   "name_en": "Bavaria"
+  },
+  {
+   "code": "DE-BE",
+   "country": "DE",
+   "name_en": "Berlin"
+  },
+  {
+   "code": "DE-BB",
+   "country": "DE",
+   "name_en": "Brandenburg"
+  },
+  {
+   "code": "DE-HB",
+   "country": "DE",
+   "name_en": "Bremen"
+  },
+  {
+   "code": "DE-HH",
+   "country": "DE",
+   "name_en": "Hamburg"
+  },
+  {
+   "code": "DE-HE",
+   "country": "DE",
+   "name_en": "Hesse"
+  },
+  {
+   "code": "DE-MV",
+   "country": "DE",
+   "name_en": "Mecklenburg-Vorpommern"
+  },
+  {
+   "code": "DE-NI",
+   "country": "DE",
+   "name_en": "Lower Saxony"
+  },
+  {
+   "code": "DE-NW",
+   "country": "DE",
+   "name_en": "North Rhine-Westphalia"
+  },
+  {
+   "code": "DE-RP",
+   "country": "DE",
+   "name_en": "Rhineland-Palatinate"
+  },
+  {
+   "code": "DE-SL",
+   "country": "DE",
+   "name_en": "Saarland"
+  },
+  {
+   "code": "DE-SN",
+   "country": "DE",
+   "name_en": "Saxony"
+  },
+  {
+   "code": "DE-ST",
+   "country": "DE",
+   "name_en": "Saxony-Anhalt"
+  },
+  {
+   "code": "DE-SH",
+   "country": "DE",
+   "name_en": "Schleswig-Holstein"
+  },
+  {
+   "code": "DE-TH",
+   "country": "DE",
+   "name_en": "Thuringia"
+  },
+  {
+   "code": "FR-ARA",
+   "country": "FR",
+   "name_en": "Auvergne-Rhône-Alpes"
+  },
+  {
+   "code": "FR-BFC",
+   "country": "FR",
+   "name_en": "Bourgogne-Franche-Comté"
+  },
+  {
+   "code": "FR-BRE",
+   "country": "FR",
+   "name_en": "Brittany"
+  },
+  {
+   "code": "FR-CVL",
+   "country": "FR",
+   "name_en": "Centre-Val de Loire"
+  },
+  {
+   "code": "FR-20R",
+   "country": "FR",
+   "name_en": "Corsica"
+  },
+  {
+   "code": "FR-GES",
+   "country": "FR",
+   "name_en": "Grand Est"
+  },
+  {
+   "code": "FR-HDF",
+   "country": "FR",
+   "name_en": "Hauts-de-France"
+  },
+  {
+   "code": "FR-IDF",
+   "country": "FR",
+   "name_en": "Île-de-France"
+  },
+  {
+   "code": "FR-NOR",
+   "country": "FR",
+   "name_en": "Normandy"
+  },
+  {
+   "code": "FR-NAQ",
+   "country": "FR",
+   "name_en": "Nouvelle-Aquitaine"
+  },
+  {
+   "code": "FR-OCC",
+   "country": "FR",
+   "name_en": "Occitanie"
+  },
+  {
+   "code": "FR-PDL",
+   "country": "FR",
+   "name_en": "Pays de la Loire"
+  },
+  {
+   "code": "FR-PAC",
+   "country": "FR",
+   "name_en": "Provence-Alpes-Côte d'Azur"
+  },
+  {
+   "code": "KR-11",
+   "country": "KR",
+   "name_en": "Seoul"
+  },
+  {
+   "code": "KR-26",
+   "country": "KR",
+   "name_en": "Busan"
+  },
+  {
+   "code": "KR-27",
+   "country": "KR",
+   "name_en": "Daegu"
+  },
+  {
+   "code": "KR-28",
+   "country": "KR",
+   "name_en": "Incheon"
+  },
+  {
+   "code": "KR-29",
+   "country": "KR",
+   "name_en": "Gwangju"
+  },
+  {
+   "code": "KR-30",
+   "country": "KR",
+   "name_en": "Daejeon"
+  },
+  {
+   "code": "KR-31",
+   "country": "KR",
+   "name_en": "Ulsan"
+  },
+  {
+   "code": "KR-50",
+   "country": "KR",
+   "name_en": "Sejong"
+  },
+  {
+   "code": "KR-41",
+   "country": "KR",
+   "name_en": "Gyeonggi"
+  },
+  {
+   "code": "KR-42",
+   "country": "KR",
+   "name_en": "Gangwon"
+  },
+  {
+   "code": "KR-43",
+   "country": "KR",
+   "name_en": "North Chungcheong"
+  },
+  {
+   "code": "KR-44",
+   "country": "KR",
+   "name_en": "South Chungcheong"
+  },
+  {
+   "code": "KR-45",
+   "country": "KR",
+   "name_en": "North Jeolla"
+  },
+  {
+   "code": "KR-46",
+   "country": "KR",
+   "name_en": "South Jeolla"
+  },
+  {
+   "code": "KR-47",
+   "country": "KR",
+   "name_en": "North Gyeongsang"
+  },
+  {
+   "code": "KR-48",
+   "country": "KR",
+   "name_en": "South Gyeongsang"
+  },
+  {
+   "code": "KR-49",
+   "country": "KR",
+   "name_en": "Jeju"
+  },
+  {
+   "code": "JP-01",
+   "country": "JP",
+   "name_en": "Hokkaido"
+  },
+  {
+   "code": "JP-02",
+   "country": "JP",
+   "name_en": "Aomori"
+  },
+  {
+   "code": "JP-03",
+   "country": "JP",
+   "name_en": "Iwate"
+  },
+  {
+   "code": "JP-04",
+   "country": "JP",
+   "name_en": "Miyagi"
+  },
+  {
+   "code": "JP-05",
+   "country": "JP",
+   "name_en": "Akita"
+  },
+  {
+   "code": "JP-06",
+   "country": "JP",
+   "name_en": "Yamagata"
+  },
+  {
+   "code": "JP-07",
+   "country": "JP",
+   "name_en": "Fukushima"
+  },
+  {
+   "code": "JP-08",
+   "country": "JP",
+   "name_en": "Ibaraki"
+  },
+  {
+   "code": "JP-09",
+   "country": "JP",
+   "name_en": "Tochigi"
+  },
+  {
+   "code": "JP-10",
+   "country": "JP",
+   "name_en": "Gunma"
+  },
+  {
+   "code": "JP-11",
+   "country": "JP",
+   "name_en": "Saitama"
+  },
+  {
+   "code": "JP-12",
+   "country": "JP",
+   "name_en": "Chiba"
+  },
+  {
+   "code": "JP-13",
+   "country": "JP",
+   "name_en": "Tokyo"
+  },
+  {
+   "code": "JP-14",
+   "country": "JP",
+   "name_en": "Kanagawa"
+  },
+  {
+   "code": "JP-15",
+   "country": "JP",
+   "name_en": "Niigata"
+  },
+  {
+   "code": "JP-16",
+   "country": "JP",
+   "name_en": "Toyama"
+  },
+  {
+   "code": "JP-17",
+   "country": "JP",
+   "name_en": "Ishikawa"
+  },
+  {
+   "code": "JP-18",
+   "country": "JP",
+   "name_en": "Fukui"
+  },
+  {
+   "code": "JP-19",
+   "country": "JP",
+   "name_en": "Yamanashi"
+  },
+  {
+   "code": "JP-20",
+   "country": "JP",
+   "name_en": "Nagano"
+  },
+  {
+   "code": "JP-21",
+   "country": "JP",
+   "name_en": "Gifu"
+  },
+  {
+   "code": "JP-22",
+   "country": "JP",
+   "name_en": "Shizuoka"
+  },
+  {
+   "code": "JP-23",
+   "country": "JP",
+   "name_en": "Aichi"
+  },
+  {
+   "code": "JP-24",
+   "country": "JP",
+   "name_en": "Mie"
+  },
+  {
+   "code": "JP-25",
+   "country": "JP",
+   "name_en": "Shiga"
+  },
+  {
+   "code": "JP-26",
+   "country": "JP",
+   "name_en": "Kyoto"
+  },
+  {
+   "code": "JP-27",
+   "country": "JP",
+   "name_en": "Osaka"
+  },
+  {
+   "code": "JP-28",
+   "country": "JP",
+   "name_en": "Hyogo"
+  },
+  {
+   "code": "JP-29",
+   "country": "JP",
+   "name_en": "Nara"
+  },
+  {
+   "code": "JP-30",
+   "country": "JP",
+   "name_en": "Wakayama"
+  },
+  {
+   "code": "JP-31",
+   "country": "JP",
+   "name_en": "Tottori"
+  },
+  {
+   "code": "JP-32",
+   "country": "JP",
+   "name_en": "Shimane"
+  },
+  {
+   "code": "JP-33",
+   "country": "JP",
+   "name_en": "Okayama"
+  },
+  {
+   "code": "JP-34",
+   "country": "JP",
+   "name_en": "Hiroshima"
+  },
+  {
+   "code": "JP-35",
+   "country": "JP",
+   "name_en": "Yamaguchi"
+  },
+  {
+   "code": "JP-36",
+   "country": "JP",
+   "name_en": "Tokushima"
+  },
+  {
+   "code": "JP-37",
+   "country": "JP",
+   "name_en": "Kagawa"
+  },
+  {
+   "code": "JP-38",
+   "country": "JP",
+   "name_en": "Ehime"
+  },
+  {
+   "code": "JP-39",
+   "country": "JP",
+   "name_en": "Kochi"
+  },
+  {
+   "code": "JP-40",
+   "country": "JP",
+   "name_en": "Fukuoka"
+  },
+  {
+   "code": "JP-41",
+   "country": "JP",
+   "name_en": "Saga"
+  },
+  {
+   "code": "JP-42",
+   "country": "JP",
+   "name_en": "Nagasaki"
+  },
+  {
+   "code": "JP-43",
+   "country": "JP",
+   "name_en": "Kumamoto"
+  },
+  {
+   "code": "JP-44",
+   "country": "JP",
+   "name_en": "Oita"
+  },
+  {
+   "code": "JP-45",
+   "country": "JP",
+   "name_en": "Miyazaki"
+  },
+  {
+   "code": "JP-46",
+   "country": "JP",
+   "name_en": "Kagoshima"
+  },
+  {
+   "code": "JP-47",
+   "country": "JP",
+   "name_en": "Okinawa"
+  },
+  {
+   "code": "CN-BJ",
+   "country": "CN",
+   "name_en": "Beijing"
+  },
+  {
+   "code": "CN-TJ",
+   "country": "CN",
+   "name_en": "Tianjin"
+  },
+  {
+   "code": "CN-HE",
+   "country": "CN",
+   "name_en": "Hebei"
+  },
+  {
+   "code": "CN-SX",
+   "country": "CN",
+   "name_en": "Shanxi"
+  },
+  {
+   "code": "CN-NM",
+   "country": "CN",
+   "name_en": "Inner Mongolia"
+  },
+  {
+   "code": "CN-LN",
+   "country": "CN",
+   "name_en": "Liaoning"
+  },
+  {
+   "code": "CN-JL",
+   "country": "CN",
+   "name_en": "Jilin"
+  },
+  {
+   "code": "CN-HL",
+   "country": "CN",
+   "name_en": "Heilongjiang"
+  },
+  {
+   "code": "CN-SH",
+   "country": "CN",
+   "name_en": "Shanghai"
+  },
+  {
+   "code": "CN-JS",
+   "country": "CN",
+   "name_en": "Jiangsu"
+  },
+  {
+   "code": "CN-ZJ",
+   "country": "CN",
+   "name_en": "Zhejiang"
+  },
+  {
+   "code": "CN-AH",
+   "country": "CN",
+   "name_en": "Anhui"
+  },
+  {
+   "code": "CN-FJ",
+   "country": "CN",
+   "name_en": "Fujian"
+  },
+  {
+   "code": "CN-JX",
+   "country": "CN",
+   "name_en": "Jiangxi"
+  },
+  {
+   "code": "CN-SD",
+   "country": "CN",
+   "name_en": "Shandong"
+  },
+  {
+   "code": "CN-HA",
+   "country": "CN",
+   "name_en": "Henan"
+  },
+  {
+   "code": "CN-HB",
+   "country": "CN",
+   "name_en": "Hubei"
+  },
+  {
+   "code": "CN-HN",
+   "country": "CN",
+   "name_en": "Hunan"
+  },
+  {
+   "code": "CN-GD",
+   "country": "CN",
+   "name_en": "Guangdong"
+  },
+  {
+   "code": "CN-GX",
+   "country": "CN",
+   "name_en": "Guangxi"
+  },
+  {
+   "code": "CN-HI",
+   "country": "CN",
+   "name_en": "Hainan"
+  },
+  {
+   "code": "CN-CQ",
+   "country": "CN",
+   "name_en": "Chongqing"
+  },
+  {
+   "code": "CN-SC",
+   "country": "CN",
+   "name_en": "Sichuan"
+  },
+  {
+   "code": "CN-GZ",
+   "country": "CN",
+   "name_en": "Guizhou"
+  },
+  {
+   "code": "CN-YN",
+   "country": "CN",
+   "name_en": "Yunnan"
+  },
+  {
+   "code": "CN-XZ",
+   "country": "CN",
+   "name_en": "Tibet"
+  },
+  {
+   "code": "CN-SN",
+   "country": "CN",
+   "name_en": "Shaanxi"
+  },
+  {
+   "code": "CN-GS",
+   "country": "CN",
+   "name_en": "Gansu"
+  },
+  {
+   "code": "CN-QH",
+   "country": "CN",
+   "name_en": "Qinghai"
+  },
+  {
+   "code": "CN-NX",
+   "country": "CN",
+   "name_en": "Ningxia"
+  },
+  {
+   "code": "CN-XJ",
+   "country": "CN",
+   "name_en": "Xinjiang"
+  }
+ ]
+}

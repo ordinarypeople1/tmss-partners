@@ -1,8 +1,26 @@
-//! Valuation and, later, the quarterly scheduler.
+//! The simulation: valuation, the monthly scheduler, deal flow, the fund.
 //!
-//! Money is an `i64` count of million KRW. A model multiple is an `i64` count of
+//! Money is an `i64` count of thousand USD. A model multiple is an `i64` count of
 //! thousandths: 7200 means 7.200x. Rounding is half away from zero. Positive
 //! examples match the previous `Math.round` results (2549 × 7.2 = 18353).
+
+pub mod advisers;
+pub mod calendar;
+pub mod company;
+pub mod content;
+pub mod deal;
+pub mod economy;
+pub mod fund;
+pub mod market;
+pub mod math;
+pub mod people;
+pub mod portfolio;
+pub mod rivals;
+pub mod rng;
+pub mod sourcing;
+pub mod story;
+pub mod view;
+pub mod world;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SimError {
@@ -49,11 +67,83 @@ fn div_round_half_away(numerator: i64, denominator: i64) -> i64 {
 
 #[cfg(feature = "wasm")]
 mod wasm_api {
+    use super::world::{Command, Options, World};
     use super::{enterprise_value, equity_value, SimError};
     use wasm_bindgen::prelude::*;
 
     fn into_js(error: SimError) -> JsValue {
         JsValue::from_str(&error.to_string())
+    }
+
+    /// One running game. The host holds it and never reads its fields directly.
+    #[wasm_bindgen]
+    pub struct Session {
+        world: World,
+    }
+
+    #[wasm_bindgen]
+    impl Session {
+        /// Opens a new game on the content generator's universe file.
+        #[wasm_bindgen(constructor)]
+        pub fn new(seed: u64, universe: &str, options: &str) -> Result<Session, JsValue> {
+            // `options` is JSON such as {"difficulty":"hard","era":"cheap_money"}; empty means the defaults.
+            let options: Options = if options.trim().is_empty() {
+                Options::default()
+            } else {
+                serde_json::from_str(options).map_err(|err| JsValue::from_str(&err.to_string()))?
+            };
+            World::new(seed, universe, options)
+                .map(|world| Session { world })
+                .map_err(|err| JsValue::from_str(&err.to_string()))
+        }
+
+        pub fn load(save: &str) -> Result<Session, JsValue> {
+            World::from_save(save)
+                .map(|world| Session { world })
+                .map_err(|err| JsValue::from_str(&err.to_string()))
+        }
+
+        pub fn save(&self) -> String {
+            self.world.to_save()
+        }
+
+        /// Applies one command given as JSON. Returns `{"ok":true}` or
+        /// `{"ok":false,"error":"<code>"}`.
+        pub fn command(&mut self, command: &str) -> String {
+            let parsed: Result<Command, _> = serde_json::from_str(command);
+            let result = match parsed {
+                Ok(command) => self.world.apply(command),
+                Err(err) => {
+                    return format!(
+                        "{{\"ok\":false,\"error\":\"malformed\",\"detail\":{:?}}}",
+                        err.to_string()
+                    )
+                }
+            };
+            match result {
+                Ok(()) => "{\"ok\":true}".to_string(),
+                Err(error) => format!(
+                    "{{\"ok\":false,\"error\":{}}}",
+                    serde_json::to_string(&error).expect("error serializes")
+                ),
+            }
+        }
+
+        /// The state the shell draws, with what the player has not earned held back.
+        pub fn view(&self) -> String {
+            self.world.view().to_string()
+        }
+
+        pub fn company(&self, index: usize) -> String {
+            self.world.company_view(index).to_string()
+        }
+
+        pub fn preview_offer(&self, index: usize, offer: &str) -> String {
+            match serde_json::from_str(offer) {
+                Ok(offer) => self.world.preview_offer(index, &offer).to_string(),
+                Err(_) => "null".to_string(),
+            }
+        }
     }
 
     #[wasm_bindgen]

@@ -1,0 +1,377 @@
+/* Portfolio: every holding at a glance. */
+
+.pf-toggle {
+  border-bottom: 0;
+}
+.pf-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+}
+
+.pf-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 18px;
+}
+
+.pf-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 44px 16px;
+}
+.pf-empty strong {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.pf-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--gap);
+  align-items: start;
+}
+.pf-card {
+  display: grid;
+  gap: 12px;
+  cursor: pointer;
+}
+.pf-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.pf-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.pf-card[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.pf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pf-sector {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--line-soft);
+  color: var(--ink-soft);
+}
+.pf-card-name {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.pf-card-name strong {
+  font-size: 1.02rem;
+}
+.pf-card-name span {
+  font-size: 0.8rem;
+}
+
+.pf-money {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+.pf-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+.pf-flow strong {
+  font-size: 1.3rem;
+}
+.pf-flow .icon {
+  align-self: center;
+  color: var(--muted);
+}
+.pf-meta,
+.pf-tags {
+  gap: 6px;
+}
+
+.pf-bridge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--panel);
+}
+.pf-bridge li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.pf-bridge span {
+  font-size: 0.75rem;
+}
+.pf-bridge b {
+  font-size: 0.86rem;
+}
+.pf-bar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+.pf-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--muted);
+}
+.pf-bridge li[data-tone="good"] .pf-bar i {
+  background: var(--good);
+}
+.pf-bridge li[data-tone="bad"] .pf-bar i {
+  background: var(--bad);
+}
+
+.pf-limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.portfolio [data-tone="good"]:not(.tag, .meter, .stat) {
+  color: var(--good);
+}
+.portfolio [data-tone="bad"]:not(.tag, .meter, .stat) {
+  color: var(--bad);
+}
+.portfolio [data-tone="warn"]:not(.tag, .meter, .stat) {
+  color: var(--warn);
+}
+
+.pf-table-card,
+.pf-scroll {
+  overflow-x: auto;
+}
+.pf-table-card {
+  padding: 4px 6px;
+}
+.pf-table th,
+.pf-static th {
+  background: var(--raised);
+}
+.pf-table th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 28px;
+}
+.pf-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.pf-cell-sector {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pf-cell-alerts {
+  gap: 4px;
+}
+.pf-static tbody tr {
+  cursor: default;
+}
+.pf-static tbody tr:hover {
+  background: none;
+}
+
+.pf-ceo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.pf-traits {
+  gap: 4px;
+}
+.pf-trait {
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+.pf-trait[data-more] {
+  border-style: dashed;
+  color: var(--muted);
+}
+.pf-table .pf-traits {
+  margin-top: 3px;
+}
+.pf-year-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.pf-year-item {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--panel);
+  text-align: left;
+}
+.pf-year-item .meter {
+  width: 100%;
+}
+.pf-year-item[data-met] {
+  border-color: var(--good);
+}
+.pf-year-item[data-met] .pf-year-label .icon {
+  color: var(--good);
+}
+.pf-year-pending {
+  border-color: var(--warn);
+  cursor: pointer;
+}
+.pf-year-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* The cards stay in the page in table mode so a phone can show them instead of the table. */
+.pf-cards[data-mode="table"] {
+  display: none;
+}
+
+/* ---------- phone: cards only ---------- */
+@media (max-width: 760px) {
+  .portfolio .pf-toggle,
+  .portfolio .pf-table-card {
+    display: none;
+  }
+  .pf-cards,
+  .pf-cards[data-mode="table"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Six figures, two across. */
+  .pf-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pf-summary .stat-value {
+    font-size: 1.15rem;
+    overflow-wrap: anywhere;
+  }
+  .pf-card-head {
+    align-items: flex-start;
+  }
+  .pf-card-name strong {
+    overflow-wrap: anywhere;
+  }
+  .pf-meta .tag,
+  .pf-tags .tag {
+    min-height: 26px;
+  }
+  .pf-limits {
+    gap: 10px;
+  }
+  .pf-year-pending {
+    min-height: 44px;
+  }
+
+  /* Realized exits: one block per exit instead of a table row. */
+  .pf-scroll {
+    overflow: visible;
+  }
+  .pf-static,
+  .pf-static tbody {
+    display: block;
+  }
+  .pf-static thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .pf-static tr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px 8px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .pf-static tr:first-child {
+    border-top: 0;
+  }
+  .pf-static tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .pf-static tbody td.name {
+    grid-row: 1;
+    grid-column: 1 / 4;
+    max-width: none;
+    font-size: 0.98rem;
+    overflow-wrap: anywhere;
+  }
+  .pf-static tbody td.pf-route {
+    grid-row: 1;
+    grid-column: 4;
+    justify-self: end;
+  }
+  .pf-static td[data-label] {
+    font-size: 0.88rem;
+  }
+  .pf-static td[data-label]:not(.num) {
+    grid-column: span 2;
+  }
+  .pf-static td.num {
+    text-align: left;
+  }
+  .pf-static td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+}
+
+.pf-art {
+  flex: none;
+  order: 3;
+  margin: -10px -8px -8px 0;
+}
+.pf-card-head {
+  flex-wrap: wrap;
+}
+.pf-card-name {
+  flex: 1 1 120px;
+  min-width: 0;
+}

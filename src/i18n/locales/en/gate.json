@@ -1,0 +1,17 @@
+{
+  "gate.attention": "Needs {need} attention · {left} left",
+  "gate.unchanged": "Nothing has changed.",
+  "gate.needsSave": "Save the offer first.",
+  "gate.inCommittee": "Already with the IC.",
+  "gate.raiseAbove": "Raise it above your current bid.",
+  "gate.atCeiling": "At the IC ceiling.",
+  "gate.planFull": "The 100-day plan holds {max} items.",
+  "gate.amount": "Enter an amount.",
+  "gate.initFull": "{limit} initiatives can run at once.",
+  "gate.wealth": "Needs {amount} of personal wealth",
+  "gate.noWealth": "No personal wealth.",
+  "gate.teamFull": "The team holds {max}.",
+  "gate.teamEmpty": "No one to release.",
+  "gate.noUnread": "No unread messages.",
+  "gate.decided": "Already decided or past due."
+}

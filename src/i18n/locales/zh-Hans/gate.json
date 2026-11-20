@@ -1,0 +1,17 @@
+{
+  "gate.attention": "需要 {need} 精力 · 剩余 {left}",
+  "gate.unchanged": "没有变更。",
+  "gate.needsSave": "请先保存报价。",
+  "gate.inCommittee": "已提交 IC。",
+  "gate.raiseAbove": "需高于当前出价。",
+  "gate.atCeiling": "已达 IC 上限。",
+  "gate.planFull": "百日计划最多 {max} 项。",
+  "gate.amount": "请输入金额。",
+  "gate.initFull": "最多同时进行 {limit} 项举措。",
+  "gate.wealth": "需要个人资产 {amount}",
+  "gate.noWealth": "没有个人资产。",
+  "gate.teamFull": "团队最多 {max} 人。",
+  "gate.teamEmpty": "没有可以释放的成员。",
+  "gate.noUnread": "没有未读消息。",
+  "gate.decided": "已决定或已过期。"
+}

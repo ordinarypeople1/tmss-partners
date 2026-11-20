@@ -1,0 +1,8 @@
+{
+  "objectives.title": "{year, number, ::group-off} objectives",
+  "objectives.count": "{met, number, ::integer}/{total, number, ::integer}",
+  "objectives.met": "Met",
+  "objectives.kept": "On track",
+  "objectives.broken": "Broken",
+  "objectives.progress": "{progress} / {target}"
+}

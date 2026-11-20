@@ -1,0 +1,429 @@
+.journey {
+  display: grid;
+  gap: 12px;
+}
+
+/* The road: eight stops joined by a line. */
+.journey-track {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.journey-track li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.journey-track li::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 50%;
+  left: -50%;
+  height: 2px;
+  background: var(--line);
+}
+.journey-track li:first-child::before {
+  display: none;
+}
+.journey-track i {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
+  color: #fff;
+}
+.journey-track li[data-state="done"]::before,
+.journey-track li[data-state="now"]::before,
+.journey-track li[data-state="skipped"]::before {
+  background: var(--good);
+}
+.journey-track li[data-state="done"] i {
+  border-color: var(--good);
+  background: var(--good);
+}
+.journey-track li[data-state="skipped"] i {
+  border-color: var(--good);
+  border-style: dashed;
+}
+.journey-track li[data-state="now"] i {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.journey-track li[data-state="now"] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.journey-owner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.journey-rel {
+  display: grid;
+  gap: 4px;
+}
+.journey-rel small,
+.journey-intent small {
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.journey-intent {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+
+.journey-next {
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+.journey-next[data-blocked="true"] {
+  border-color: var(--line);
+  background: var(--line-soft);
+}
+.journey-kicker {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.journey-next p {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+.journey-next .journey-block {
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+  margin-top: 5px;
+  color: var(--bad);
+  font-weight: 600;
+}
+.journey-block svg {
+  flex: none;
+  margin-top: 2px;
+}
+.journey-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.journey-buttons .btn {
+  flex: 1 1 150px;
+  justify-content: center;
+}
+.journey-buttons .btn.primary {
+  flex-grow: 2;
+}
+.journey-cost {
+  display: inline-flex;
+  gap: 1px;
+  align-items: center;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: rgb(0 0 0 / 14%);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* The same step, small, for tables and lists. */
+.step-chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.step-chip[data-blocked="true"],
+.step-chip[data-step="wait"],
+.step-chip[data-step="meet"] {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.rel-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+.rel-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.rel-item:hover {
+  border-color: var(--accent);
+}
+.rel-item strong {
+  overflow-wrap: anywhere;
+}
+.rel-item .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .journey-owner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .journey-buttons .btn {
+    min-height: 46px;
+    font-size: 1rem;
+  }
+  .rel-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.journey-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.journey-marks li {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  opacity: 0.6;
+}
+.journey-marks li[data-on="true"] {
+  color: var(--good);
+  font-weight: 600;
+  opacity: 1;
+}
+.journey-odds {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  font-weight: 700;
+}
+
+/* Relationship in a table cell: three pips and an intent dot. */
+.rel-pips {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.rel-pips i {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+}
+.rel-pips i[data-on="true"] {
+  border-color: var(--good);
+  background: var(--good);
+}
+.rel-pips b {
+  width: 9px;
+  height: 9px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.rel-pips b[data-intent="thinking"] {
+  background: var(--warn);
+}
+.rel-pips b[data-intent="open"] {
+  background: var(--accent);
+}
+.rel-pips b[data-intent="eager"] {
+  background: var(--good);
+}
+
+/* The step to take, pinned to the foot of the company panel. */
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.action-text p {
+  margin: 1px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.action-bar[data-blocked="true"] .action-text p {
+  color: var(--bad);
+  font-weight: 600;
+}
+.action-bar .journey-buttons {
+  flex-flow: row;
+}
+.action-bar .journey-buttons .btn {
+  flex: none;
+}
+
+/* A meeting, shown as one. */
+.talk-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--scrim);
+  animation: fade 0.2s ease both;
+}
+.talk {
+  display: grid;
+  gap: 14px;
+  width: min(520px, 100%);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--raised);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 35%);
+  animation: rise-big 0.45s var(--ease) backwards;
+}
+.talk header {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.talk-kicker {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.talk[data-kind="yes"] .talk-kicker {
+  color: var(--good);
+}
+.talk-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+.talk-who {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 130px;
+  text-align: center;
+}
+.talk-line {
+  position: relative;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 4px 16px 16px 16px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  font-size: 1rem;
+  line-height: 1.55;
+  animation: rise 0.5s var(--ease) 0.15s backwards;
+}
+.talk-result {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  animation: rise 0.5s var(--ease) 0.3s backwards;
+}
+.talk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.talk > .btn {
+  justify-self: end;
+  min-width: 110px;
+}
+@media (max-width: 760px) {
+  .action-bar {
+    grid-template-columns: minmax(0, 1fr);
+    bottom: 0;
+  }
+  .action-bar .journey-buttons .btn {
+    flex: 1;
+    min-height: 46px;
+  }
+  .talk-body {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+  .talk > .btn {
+    justify-self: stretch;
+    min-height: 46px;
+  }
+}
+
+.action-suitor {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  animation: rise 0.4s var(--ease) backwards;
+}
+.talk-lines {
+  display: grid;
+  gap: 8px;
+}
+
+.journey-track li.tip:nth-last-child(-n + 3)::after {
+  right: 0;
+  left: auto;
+}

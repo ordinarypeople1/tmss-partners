@@ -1,0 +1,466 @@
+.fundscreen .fund-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
+}
+
+.fundscreen .fund-clock {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+}
+.fundscreen .clock-track {
+  position: relative;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+}
+.fundscreen .clock-invest {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 8px 0 0 8px;
+  background: var(--good-soft);
+}
+.fundscreen .clock-elapsed {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.fundscreen .clock-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.fundscreen .clock-now {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 3px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.fundscreen .clock-today {
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+.fundscreen .clock-labels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+.fundscreen .clock-labels span {
+  display: grid;
+}
+.fundscreen .clock-labels span:nth-child(2) {
+  text-align: center;
+}
+.fundscreen .clock-labels span:last-child {
+  text-align: right;
+}
+.fundscreen .clock-labels small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.fundscreen .clock-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.fundscreen .clock-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.fundscreen .clock-legend i {
+  width: 12px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--good-soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.fundscreen .clock-legend i[data-kind="harvest"] {
+  background: var(--warn-soft);
+}
+
+.fundscreen .flow-bars {
+  gap: 8px;
+}
+
+.fundscreen .waterfall {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+.fundscreen .waterfall li {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.fundscreen .waterfall li:nth-child(1) {
+  min-height: 150px;
+}
+.fundscreen .waterfall li:nth-child(2) {
+  min-height: 128px;
+}
+.fundscreen .waterfall li:nth-child(3) {
+  min-height: 106px;
+}
+.fundscreen .waterfall li[data-done="true"] {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.fundscreen .waterfall b {
+  font-size: 1.1rem;
+}
+.fundscreen .waterfall small {
+  color: var(--muted);
+}
+.fundscreen .step-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--line);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.fundscreen .waterfall li[data-done="true"] .step-mark {
+  background: var(--good);
+  color: #fff;
+}
+.fundscreen .carry-mine {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.fundscreen .fund-bottom {
+  grid-template-columns: minmax(0, 2.2fr) minmax(240px, 1fr);
+  align-items: start;
+}
+.fundscreen .realized-table tbody tr {
+  cursor: default;
+}
+.fundscreen .table .meter {
+  min-width: 110px;
+}
+.fundscreen .row-link {
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .fundscreen .fund-bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fundscreen .fund-investors {
+  grid-template-columns: minmax(0, 1.9fr) minmax(260px, 1fr);
+  align-items: start;
+}
+.fundscreen .reup-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.fundscreen .reup-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fundscreen .reup-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.fundscreen .reup-legend li[data-tone="good"] i {
+  background: var(--good);
+}
+.fundscreen .reup-legend li[data-tone="warn"] i {
+  background: var(--warn);
+}
+.fundscreen .reup-legend li[data-tone="bad"] i {
+  background: var(--bad);
+}
+.fundscreen .lp-list {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+.fundscreen .lp-list li {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.2fr) minmax(84px, auto) minmax(140px, 2fr) minmax(96px, auto);
+  gap: 4px 14px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.fundscreen .lp-who,
+.fundscreen .lp-share {
+  display: grid;
+}
+.fundscreen .lp-share {
+  text-align: right;
+}
+.fundscreen .lp-list small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.fundscreen .lp-list .tag {
+  justify-self: end;
+}
+.fundscreen .lp-mood[data-tone="accent"] .meter-track span {
+  background: var(--accent);
+}
+.fundscreen .next-fund {
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.fundscreen .gp-picks .btn.primary {
+  margin-left: auto;
+}
+
+@media (max-width: 1100px) {
+  .fundscreen .fund-investors {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fundscreen .lp-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 760px) {
+  .fundscreen .page-head .row {
+    flex-wrap: wrap;
+  }
+  /* Eight header stats, two across. */
+  .fundscreen .fund-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px;
+  }
+  .fundscreen .grid.gp-stats,
+  .fundscreen .grid.report-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fundscreen .grid.carry-mine {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fundscreen .carry-mine .stat-value {
+    font-size: 1.05rem;
+  }
+
+  /* The clock: thicker track, every other year tick. */
+  .fundscreen .clock-track {
+    height: 32px;
+  }
+  .fundscreen .clock-elapsed {
+    top: 12px;
+  }
+  .fundscreen .clock-tick:nth-of-type(odd) {
+    display: none;
+  }
+  .fundscreen .clock-labels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  /* Investors: who and share, the meter full width, then the re-up tag. */
+  .fundscreen .lp-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 10px;
+  }
+  .fundscreen .lp-mood {
+    grid-column: 1 / -1;
+  }
+  .fundscreen .lp-mood .meter-track {
+    height: 10px;
+  }
+  .fundscreen .lp-list .tag {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  /* GP commitment: a slider a thumb can hold, quick picks and the button in one row. */
+  .fundscreen .gp-slider input[type="range"] {
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fundscreen .gp-slider input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .fundscreen .gp-slider input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+  .fundscreen .gp-slider input[type="range"]::-webkit-slider-thumb {
+    width: 32px;
+    height: 32px;
+    margin-top: -12px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgb(31 41 37 / 35%);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fundscreen .gp-slider input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--raised);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgb(31 41 37 / 35%);
+  }
+  .fundscreen .gp-slider input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--muted);
+  }
+  .fundscreen .gp-slider output {
+    font-size: 1.15rem;
+  }
+  .fundscreen .gp-picks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
+    gap: 6px;
+  }
+  .fundscreen .gp-picks .btn,
+  .fundscreen .gp-picks .btn.primary {
+    justify-content: center;
+    min-height: 44px;
+    margin-left: 0;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  /* Waterfall: the three steps stacked. */
+  .fundscreen .waterfall {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fundscreen .waterfall li,
+  .fundscreen .waterfall li:nth-child(n) {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 2px 8px;
+    align-items: center;
+    min-height: 0;
+  }
+  .fundscreen .waterfall small {
+    grid-column: 2 / -1;
+  }
+
+  /* Deal tables: one card per deal. */
+  .fundscreen .deal-table,
+  .fundscreen .deal-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+  .fundscreen .deal-table thead {
+    display: none;
+  }
+  .fundscreen .deal-table tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+  .fundscreen .deal-table tr[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .fundscreen .deal-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .fundscreen .deal-table .name {
+    grid-column: 1 / 3;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+  .fundscreen .deal-when {
+    grid-column: 3;
+    font-size: 0.82rem;
+    text-align: right !important;
+  }
+  .fundscreen .realized-table .name {
+    grid-column: 1 / -1;
+  }
+  .fundscreen .realized-table .deal-when {
+    grid-column: 1 / 3;
+    text-align: left !important;
+  }
+  .fundscreen .deal-route {
+    justify-self: end;
+  }
+  .fundscreen .deal-figure,
+  .fundscreen .deal-moic {
+    display: grid;
+    gap: 1px;
+  }
+  .fundscreen .deal-figure::before,
+  .fundscreen .deal-moic::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+  .fundscreen .deal-moic {
+    grid-row: 4;
+    grid-column: 1 / -1;
+  }
+  .fundscreen .deal-table:not(.realized-table) .deal-moic {
+    grid-row: 3;
+  }
+  .fundscreen .table .meter {
+    min-width: 0;
+  }
+  .fundscreen .table .meter-track {
+    height: 10px;
+  }
+  .fundscreen .row-link {
+    min-height: 32px;
+  }
+}
