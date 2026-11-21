@@ -1,8 +1,4 @@
 {
-  "dealroom.step.diligence": "DD",
-  "dealroom.step.offer": "オファー",
-  "dealroom.step.committee": "IC",
-  "dealroom.step.bid": "入札",
   "dealroom.diligence": "デューデリジェンス",
   "dealroom.diligence.spent": "ディール費用累計 {amount}",
   "dealroom.stream.running": "進行中",

@@ -635,11 +635,11 @@
   "process.step.signing": "Exclusivity and signing",
   "process.round1": "Round one · {months, plural, one {# month} other {# months}} to the deadline · {seats, number, ::integer} go through",
   "process.round2": "Round two · {seats, number, ::integer} bidders",
-  "indication.title": "Indication of interest (non-binding)",
+  "indication.title": "Term sheet (non-binding)",
   "indication.due": "Due in {months, plural, one {# month} other {# months}}",
   "indication.in": "Submitted",
   "indication.vsModel": "{pct} of our valuation",
-  "indication.note": "A non-binding term sheet, no committee needed. The terms of the offer below go with the price: debt, lender, rate, rollover. Banks rank a sure-looking buyer a little higher. The top {seats, number, ::integer} go through.",
+  "indication.note": "The offer above goes as it stands, without the committee. The bank weighs the terms' certainty with the price. The top {seats, number, ::integer} go through.",
   "indication.submit": "Submit the term sheet",
   "indication.revise": "Revise the term sheet",
   "banks.title": "Sell-side banks",
@@ -666,5 +666,8 @@
   "reason.growth_capital": "Minority investment",
   "concern.no_protection": "No downside protection",
   "error.minority_no_control": "A minority investor cannot steer the company.",
-  "error.founder_owned_only": "Minority stakes are offered only to founder and family owners."
+  "error.founder_owned_only": "Minority stakes are offered only to founder and family owners.",
+  "indication.dock": "Term sheet at {ev} · due in {months, plural, one {# month} other {# months}}",
+  "indication.sent": "Sent at {ev}. Change the terms to send again.",
+  "indication.changed": "Changed · send again"
 }

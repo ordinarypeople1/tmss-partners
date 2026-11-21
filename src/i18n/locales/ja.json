@@ -635,11 +635,11 @@
   "process.step.signing": "独占交渉・SPA",
   "process.round1": "一次ラウンド · 締切まで{months, plural, other {#か月}} · {seats, number, ::integer}社が最終入札へ",
   "process.round2": "二次ラウンド · 最終入札{seats, number, ::integer}社",
-  "indication.title": "意向表明（法的拘束力なし）",
+  "indication.title": "予備提案書(拘束力なし)",
   "indication.due": "締切{months, plural, other {#か月}}",
   "indication.in": "提出済み",
   "indication.vsModel": "バリュエーション比 {pct}",
-  "indication.note": "IC不要の予備提案書です。価格と一緒に下のオファーの条件(借入、貸し手、金利、再投資)も出ます。銀行は確実に見える買い手を少し高く評価します。上位{seats, number, ::integer}社だけが本入札に進みます。",
+  "indication.note": "上のオファー構造がそのまま出ます。IC不要です。銀行は価格と条件の確実性を見ます。上位{seats, number, ::integer}社だけが本入札に進みます。",
   "indication.submit": "予備提案書を提出",
   "indication.revise": "予備提案書を修正",
   "banks.title": "売り手アドバイザー",
@@ -666,5 +666,8 @@
   "reason.growth_capital": "少数持分投資",
   "concern.no_protection": "下方保護なし",
   "error.minority_no_control": "少数株主は会社を動かせません。",
-  "error.founder_owned_only": "少数持分は創業者・同族企業にのみ提案できます。"
+  "error.founder_owned_only": "少数持分は創業者・同族企業にのみ提案できます。",
+  "indication.dock": "予備提案書 {ev} · 締切{months, plural, other {#か月}}",
+  "indication.sent": "{ev}で提出済み。条件を変えれば再提出できます。",
+  "indication.changed": "変更あり · 再提出"
 }

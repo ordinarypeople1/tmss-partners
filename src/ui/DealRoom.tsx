@@ -373,6 +373,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
 
   const sale = company.sale;
   const locked = deal.bid_submitted;
+  // Round one asks for a non-binding term sheet; the committee and the bid come in round two.
+  const roundOne = sale?.round === 1 && !minority;
+  const indicationSaved = deal.indication === offer.ev && sameOffer(offer, deal.offer);
   const saved = sameOffer(offer, deal.offer);
   const committee = deal.committee;
   const approved = committee?.outcome === "approved";
@@ -394,14 +397,6 @@ export function DealRoom({ company }: { company: CompanyView }) {
     change({ plan: INITIATIVES.filter((item) => next.includes(item)) });
   };
 
-  const steps: { key: string; done: boolean }[] = [
-    { key: "value", done: deal.valuation !== null },
-    { key: "diligence", done: deal.streams_done.length > 0 },
-    { key: "offer", done: deal.offer !== null },
-    { key: "committee", done: approved },
-    { key: "bid", done: deal.bid_submitted },
-  ];
-  const nowStep = steps.findIndex((step) => !step.done);
 
   const financing = preview?.financing;
   const returns = preview?.returns;
@@ -497,6 +492,17 @@ export function DealRoom({ company }: { company: CompanyView }) {
     };
   } else if (locked || !deal.valuation) {
     dock = null;
+  } else if (roundOne) {
+    dock = {
+      label: t(deal.indication === null ? "indication.submit" : "indication.revise"),
+      disabled: indicationSaved || !financing,
+      why: indicationSaved ? t("gate.unchanged") : t("dealroom.previewNone"),
+      note: indicationSaved
+        ? t("indication.sent", { ev: f.money(deal.indication ?? offer.ev) })
+        : t("indication.dock", { ev: f.money(offer.ev), months: sale?.months_left ?? 1 }),
+      tone: indicationSaved ? "good" : "warn",
+      run: () => game.act({ type: "submit_indication", company: company.i, offer }),
+    };
   } else if (!saved) {
     dock = {
       label: t("dealroom.offer.save"),
@@ -563,18 +569,6 @@ export function DealRoom({ company }: { company: CompanyView }) {
         </section>
       ) : null}
       <ValuationCard company={company} />
-      {deal.valuation && !minority ? <Indication company={company} offer={offer} financing={financing ?? null} /> : null}
-      <ol className="dr-steps">
-        {steps.slice(0, nowStep < 0 ? steps.length : nowStep + 1).map((step, index) => (
-          <li
-            key={step.key}
-            data-state={step.done ? "done" : index === nowStep ? "now" : "next"}
-          >
-            <i>{step.done ? <Icon name="check" size={12} /> : index + 1}</i>
-            {t(`dealroom.step.${step.key}`)}
-          </li>
-        ))}
-      </ol>
 
       {/* ---------- diligence: once the valuation is under way ---------- */}
       {deal.valuation || deal.valuation_order ? (
@@ -1172,7 +1166,10 @@ export function DealRoom({ company }: { company: CompanyView }) {
         <section className="card empty">{t("dealroom.previewNone")}</section>
       )}
 
-      {/* ---------- save and committee ---------- */}
+      {roundOne ? <Indication company={company} offer={offer} financing={financing ?? null} /> : null}
+
+      {/* ---------- save and committee: round two, or talks alone ---------- */}
+      {roundOne ? null : (
       <section className="card">
         <h3>
           <Icon name="gavel" size={14} />
@@ -1310,29 +1307,6 @@ export function DealRoom({ company }: { company: CompanyView }) {
         ) : null}
         {locked ? null : (
           <>
-            <div className="dr-actions">
-              <button {...gate(saved ? t("gate.unchanged") : !preview ? t("dealroom.previewNone") : null)}
-                type="button"
-                className={saved ? "btn" : "btn primary"}
-                disabled={saved || !preview}
-                onClick={() =>
-                  game.act({ type: "set_offer", company: company.i, offer })
-                }
-              >
-                {t("dealroom.offer.save")}
-              </button>
-              <button {...gate(!saved ? t("gate.needsSave") : committee || meeting ? t("gate.inCommittee") : null)}
-                type="button"
-                className={saved && !committee && !meeting ? "btn primary" : "btn"}
-                disabled={!saved || Boolean(committee) || Boolean(meeting)}
-                onClick={() =>
-                  game.act({ type: "submit_ic", company: company.i })
-                }
-              >
-                {t("dealroom.committee.submit")}
-                <Cost points={1} />
-              </button>
-            </div>
             <p className="dr-note">
               {t(
                 committee && !saved
@@ -1343,6 +1317,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
           </>
         )}
       </section>
+      )}
 
       </>
       ) : null}
@@ -1550,21 +1525,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             })}
           </p>
         ) : null}
-        <div className="dr-actions">
-          {locked ? null : (
-            <button {...gate(bidBlock && t(bidBlock))}
-              type="button"
-              className="btn primary"
-              disabled={bidBlock !== null}
-              onClick={() =>
-                game.act({ type: "submit_bid", company: company.i })
-              }
-            >
-              {t("dealroom.bid.submit")}
-            </button>
-          )}
-          {dropControl}
-        </div>
+        <div className="dr-actions">{dropControl}</div>
         {bidBlock ? (
           <p className="dr-note" data-tone="warn">
             {t(bidBlock)}

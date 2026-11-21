@@ -1,8 +1,4 @@
 {
-  "dealroom.step.diligence": "Diligence",
-  "dealroom.step.offer": "Offer",
-  "dealroom.step.committee": "IC",
-  "dealroom.step.bid": "Bid",
   "dealroom.diligence": "Due diligence",
   "dealroom.diligence.spent": "Deal costs to date {amount}",
   "dealroom.stream.running": "In progress",

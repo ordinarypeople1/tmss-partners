@@ -635,11 +635,11 @@
   "process.step.signing": "排他·签约",
   "process.round1": "首轮 · 距截止{months, plural, other {#个月}} · {seats, number, ::integer}家进入下一轮",
   "process.round2": "第二轮 · {seats, number, ::integer}家参与约束性报价",
-  "indication.title": "意向报价（无约束力）",
+  "indication.title": "条款书(无约束力)",
   "indication.due": "{months, plural, other {#个月}}后截止",
   "indication.in": "已提交",
   "indication.vsModel": "相当于估值的 {pct}",
-  "indication.note": "无需投委会的非约束性条款书。价格与下方报价的条款(借款、贷款方、利率、再投资)一起提交。银行会略微高看看起来更确定的买方。仅前{seats, number, ::integer}家进入正式竞标。",
+  "indication.note": "上方报价结构原样提交，无需投委会。银行同时看价格和条款的确定性。仅前{seats, number, ::integer}家进入正式竞标。",
   "indication.submit": "提交条款书",
   "indication.revise": "修改条款书",
   "banks.title": "卖方顾问",
@@ -666,5 +666,8 @@
   "reason.growth_capital": "少数股权投资",
   "concern.no_protection": "无下行保护",
   "error.minority_no_control": "少数股东无法左右公司。",
-  "error.founder_owned_only": "少数股权只能向创始人或家族所有的公司提出。"
+  "error.founder_owned_only": "少数股权只能向创始人或家族所有的公司提出。",
+  "indication.dock": "条款书 {ev} · {months, plural, other {#个月}}后截止",
+  "indication.sent": "已按{ev}提交。修改条款后可重新提交。",
+  "indication.changed": "已修改 · 需重新提交"
 }

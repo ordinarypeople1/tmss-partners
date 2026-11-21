@@ -635,11 +635,11 @@
   "process.step.signing": "우협·SPA",
   "process.round1": "1차 라운드 · 마감까지 {months, plural, other {#개월}} · {seats, number, ::integer}곳만 본입찰에 올라갑니다",
   "process.round2": "2차 라운드 · 본입찰 참여 {seats, number, ::integer}곳",
-  "indication.title": "예비입찰 (구속력 없음)",
+  "indication.title": "예비 제안서 (구속력 없음)",
   "indication.due": "마감 {months, plural, other {#개월}}",
   "indication.in": "제출함",
   "indication.vsModel": "밸류에이션 대비 {pct}",
-  "indication.note": "IC 없이 낼 수 있는 예비 제안서입니다. 가격과 함께 아래 오퍼의 조건(차입, 대주, 금리, 재투자)이 같이 나갑니다. 은행은 확실해 보이는 매수자를 조금 더 높이 칩니다. 상위 {seats, number, ::integer}곳만 본입찰에 올라갑니다.",
+  "indication.note": "위 오퍼 구조가 그대로 나갑니다. IC 없이 냅니다. 은행은 가격과 함께 조건의 확실성을 봅니다. 상위 {seats, number, ::integer}곳만 본입찰에 올라갑니다.",
   "indication.submit": "예비 제안서 제출",
   "indication.revise": "예비 제안서 수정",
   "banks.title": "매각 자문사",
@@ -666,5 +666,8 @@
   "reason.growth_capital": "소수지분 투자",
   "concern.no_protection": "하방 보호 없음",
   "error.minority_no_control": "소수지분 투자자는 회사를 움직일 수 없습니다.",
-  "error.founder_owned_only": "소수지분은 창업자·가족이 가진 회사에만 제안할 수 있습니다."
+  "error.founder_owned_only": "소수지분은 창업자·가족이 가진 회사에만 제안할 수 있습니다.",
+  "indication.dock": "예비 제안서 {ev} · 마감 {months, plural, other {#개월}}",
+  "indication.sent": "{ev}로 제출함. 조건을 바꾸면 다시 낼 수 있습니다.",
+  "indication.changed": "바뀜 · 다시 제출"
 }

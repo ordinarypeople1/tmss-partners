@@ -89,11 +89,11 @@ export function ProcessCard({ company }: { company: CompanyView }) {
 }
 
 /**
- * Round one: a non-binding term sheet. The price and the terms come from the offer
- * editor below; the bank reads both, and a sure-looking buyer ranks above a slightly higher price.
+ * Round one: the term sheet that goes to the bank, summed up under the offer it comes from.
+ * The bank reads the price and the terms; a sure-looking buyer ranks above a slightly higher
+ * price. It is sent from the panel's one action bar, not from here.
  */
 export function Indication({ company, offer, financing }: { company: CompanyView; offer: Offer; financing: Financing | null }) {
-  const game = useGame();
   const t = useT();
   const f = useFormat();
   const deal = company.deal;
@@ -103,6 +103,7 @@ export function Indication({ company, offer, financing }: { company: CompanyView
   }
   const model = deal.valuation?.mid ?? 0;
   const saved = deal.indication === offer.ev && sameOffer(offer, deal.offer);
+  const changed = deal.indication !== null && !saved;
   const cushion = financing ? financing.equity / Math.max(offer.ev, 1) : 0;
   const lender = offer.lender ?? "bank";
   const rate = offer.rate ?? "floating";
@@ -111,7 +112,13 @@ export function Indication({ company, offer, financing }: { company: CompanyView
       <h3>
         <Icon name="flag" size={14} />
         {t("indication.title")}
-        {deal.indication === null ? <Tag tone="warn">{t("indication.due", { months: sale.months_left })}</Tag> : <Tag tone="good">{t("indication.in")}</Tag>}
+        {deal.indication === null ? (
+          <Tag tone="warn">{t("indication.due", { months: sale.months_left })}</Tag>
+        ) : changed ? (
+          <Tag tone="warn">{t("indication.changed")}</Tag>
+        ) : (
+          <Tag tone="good">{t("indication.in")}</Tag>
+        )}
       </h3>
       <div className="indication-value">
         <strong>{f.money(offer.ev)}</strong>
@@ -148,16 +155,6 @@ export function Indication({ company, offer, financing }: { company: CompanyView
         {offer.rollover_bps > 0 && deal.can_roll ? <Tag tone="good">{t("indication.signal.alongside")}</Tag> : null}
       </div>
       <p className="muted indication-note">{t("indication.note", { seats: sale.seats })}</p>
-      <button
-        {...gate((saved && t("gate.unchanged")) || (!financing && t("dealroom.previewNone")))}
-        type="button"
-        className="btn primary"
-        disabled={saved || !financing}
-        onClick={() => game.act({ type: "submit_indication", company: company.i, offer })}
-      >
-        <Icon name="flag" size={15} />
-        {t(deal.indication === null ? "indication.submit" : "indication.revise")}
-      </button>
     </section>
   );
 }

@@ -1,8 +1,4 @@
 {
-  "dealroom.step.diligence": "실사",
-  "dealroom.step.offer": "오퍼",
-  "dealroom.step.committee": "IC",
-  "dealroom.step.bid": "입찰",
   "dealroom.diligence": "실사",
   "dealroom.diligence.spent": "딜 비용 누계 {amount}",
   "dealroom.stream.running": "진행 중",

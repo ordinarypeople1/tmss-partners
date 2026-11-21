@@ -222,7 +222,8 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         {current === "overview" && sourcing ? <Journey company={company} /> : null}
         {current === "overview" && sourcing ? <MinorityCard company={company} /> : null}
       </div>
-      {sourcing ? <ActionBar company={company} onOpenDeal={() => setTab("deal")} /> : null}
+      {/* The deal tab brings its own action bar; one bar at a time. */}
+      {sourcing && !(current === "deal" && company.deal) ? <ActionBar company={company} onOpenDeal={() => setTab("deal")} /> : null}
     </div>
   );
 }

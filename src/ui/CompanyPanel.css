@@ -446,8 +446,40 @@
 }
 
 /* The pinned next step. A phone only. */
+/* The deal's one next action, pinned at the bottom of the panel. The cards above hold the
+   inputs; this bar holds the button that sends them. */
 .cp-dock {
-  display: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 12px -12px -12px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 20px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.cp-dock > .btn {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.cp-dock-note {
+  flex: 1 1 12rem;
+  min-width: 0;
+  color: var(--ink-soft);
+}
+.cp-dock-note[data-tone="warn"] {
+  color: var(--warn-ink);
+}
+.cp-dock-note[data-tone="good"] {
+  color: var(--good);
+}
+.cp-dock-note[data-tone="bad"] {
+  color: var(--bad);
 }
 
 /* ---------- phone: a full-screen sheet above the tab bar ---------- */
@@ -564,16 +596,10 @@
   }
 
   .cp-dock {
-    position: sticky;
-    bottom: 0;
-    z-index: 4;
     display: grid;
     gap: 6px;
     margin: auto -10px -10px;
     padding: 8px 10px;
-    border-top: 1px solid var(--line);
-    background: var(--panel);
-    box-shadow: 0 -6px 14px rgb(31 41 37 / 8%);
   }
   .cp-body > .stack {
     margin-bottom: 10px;
@@ -584,15 +610,8 @@
     font-size: 1rem;
   }
   .cp-dock-note {
-    color: var(--ink-soft);
     font-size: 0.867rem;
     text-align: center;
-  }
-  .cp-dock-note[data-tone="warn"] {
-    color: var(--warn-ink);
-  }
-  .cp-dock-note[data-tone="bad"] {
-    color: var(--bad);
   }
 }
 /* Below 390 the three sparklines are a few pixels wider than their column. */

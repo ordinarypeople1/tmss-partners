@@ -1,8 +1,4 @@
 {
-  "dealroom.step.diligence": "尽调",
-  "dealroom.step.offer": "方案",
-  "dealroom.step.committee": "IC",
-  "dealroom.step.bid": "报价",
   "dealroom.diligence": "尽职调查",
   "dealroom.diligence.spent": "交易费用累计 {amount}",
   "dealroom.stream.running": "进行中",

@@ -6,47 +6,6 @@
   grid-auto-flow: column;
   gap: 4px;
 }
-.dr-steps li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 4px 6px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--raised);
-  color: var(--muted);
-  font-size: 0.933rem;
-  font-weight: 600;
-}
-.dr-steps i {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--line-soft);
-  font-size: 0.867rem;
-  font-style: normal;
-}
-.dr-steps li[data-state="done"] {
-  color: var(--good);
-}
-.dr-steps li[data-state="done"] i {
-  background: var(--good);
-  color: #fff;
-}
-.dr-steps li[data-state="now"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-}
-.dr-steps li[data-state="now"] i {
-  background: var(--accent);
-  color: #fff;
-}
 .dr-aside {
   margin-left: auto;
   font-weight: 400;
