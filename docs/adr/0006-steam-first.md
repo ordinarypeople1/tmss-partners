@@ -34,7 +34,7 @@
 - **Steam 오버레이.** 오버레이는 게임의 그래픽 출력에 끼어드는 방식이다. 웹뷰 창(WebView2)에서는 뜨지 않을 수 있다. 첫 Windows 빌드에서 확인한다. 안 되면 오버레이 없이 출시하거나 껍질을 다시 본다.
 - **Steam Deck.** 네이티브 Linux 빌드는 WebKitGTK 위에서 돈다. MapLibre의 WebGL 성능이 Windows보다 낮을 수 있다. Proton 위의 Windows 빌드는 WebView2 설치가 걸린다. 둘 다 Deck 실기에서 잰다.
 - **툴체인.** Rust stable과 Tauri 2.12로 올렸다. Linux 릴리스 빌드에서 타이틀, 새 게임, 지도가 돈다. Windows 실행 파일은 CI 첫 실행에서 확인한다.
-- **빌드 머신.** 이 개발 컨테이너에는 WebKit도 Windows도 없다. Windows 빌드는 CI(GitHub Actions의 Windows 러너)나 실제 Windows 기기에서 한다.
+- **빌드 머신.** 클라우드 개발 환경은 Linux다. setup script가 WebKitGTK를 깔아 Linux 빌드와 실행은 된다. Windows 빌드는 CI(GitHub Actions의 Windows 러너)나 실제 Windows 기기에서 한다.
 
 ## 순서
 
