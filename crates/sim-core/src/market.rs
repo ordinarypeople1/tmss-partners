@@ -105,6 +105,15 @@ pub struct HouseRecord {
     pub mood_months: u32,
 }
 
+/// What the seller's bank says about the player's bid before the final round.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FeedbackBand {
+    Leading,
+    Close,
+    Behind,
+}
+
 /// Where the player's bid stands once the final round opens.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Standing {
@@ -314,6 +323,9 @@ impl World {
             }
             return;
         }
+        if stage == Stage::Bidding && months_left == 2 {
+            self.bank_feedback(index);
+        }
         if stage == Stage::Bidding && months_left == 1 {
             self.open_final_round(index);
         }
@@ -390,7 +402,8 @@ impl World {
                     );
                 }
                 let rivals = self.cut_shortlist(index, rivals);
-                let months = self.rng.range(2, 3) as u32;
+                // Round two: the data room, the offer, a committee that sits the month after, the bid.
+                let months = self.rng.range(2, 3) as u32 + 1;
                 let process = self.companies[index]
                     .process
                     .as_mut()
@@ -564,6 +577,37 @@ impl World {
                 Some(index),
             );
         }
+    }
+
+    /// Before the final round the seller's bank calls with a hint: how far off
+    /// the bid is, and whether the seller cares more about price or certainty.
+    fn bank_feedback(&mut self, index: usize) {
+        let Some(standing) = self.standing(index) else {
+            return;
+        };
+        let Some(bid) = self.companies[index]
+            .process
+            .as_ref()
+            .and_then(|process| process.player_bid.as_ref())
+            .map(|bid| mul_bps(bid.ev, 10_000 + bid.certainty_bps))
+        else {
+            return;
+        };
+        let gap_bps = if standing.lead_ev > 0 {
+            crate::math::ratio_bps(standing.lead_ev - bid, standing.lead_ev)
+        } else {
+            0
+        };
+        let band = if standing.rank == 1 {
+            FeedbackBand::Leading
+        } else if gap_bps <= 300 {
+            FeedbackBand::Close
+        } else {
+            FeedbackBand::Behind
+        };
+        let certainty = matches!(self.companies[index].stance, crate::company::Stance::Sentimental)
+            || self.companies[index].relationship >= 50;
+        self.post(MessageKind::BankFeedback { band, certainty }, Some(index));
     }
 
     /// Where the player's bid ranks, counting the seller's certainty premium.

@@ -1,0 +1,18 @@
+{
+  "cover.title": "Coverage meeting",
+  "cover.role": "Managing director, {bank}",
+  "cover.line.market.expansion": "Pipelines are full. Sellers think this is the time. Be ready to pay up.",
+  "cover.line.market.slowdown": "It is cooling. Sellers have not lowered their hopes yet, and a few deals have broken.",
+  "cover.line.market.recession": "Frankly, nobody wants to sell. Only the ones who have to. There will be distressed chances.",
+  "cover.line.market.recovery": "I think the bottom is behind us. Everything that was held back will come out in the first half.",
+  "cover.line.credit.tight.1": "Lenders have gone picky. Spreads at {spread}% make high leverage hard.",
+  "cover.line.credit.tight.2": "Banks are cutting new acquisition loans. At {spread}% you will need more equity.",
+  "cover.line.credit.easy.1": "Acquisition finance is plentiful. Spreads around {spread}%; lenders are chasing deals.",
+  "cover.line.credit.easy.2": "Lending terms are good. {spread}%. That is when rival houses bid hard.",
+  "cover.line.sector.1": "An owner in {sector} is talking to banks. I cannot give you the name yet, but it will come out within {months} months.",
+  "cover.line.sector.2": "Lots of succession talk among {sector} owners. One of them will be on the market in about {months} months.",
+  "cover.line.rival": "{house} keeps looking at {sector}. Expect them in nearly every sale there.",
+  "cover.line.pipeline": "Between us: we have the mandate for {company}. The teaser goes out within {months} months. Take a look first.",
+  "cover.line.reputation.good": "Your house has a good name on the street right now. Sellers know who you are.",
+  "cover.line.reputation.bad": "Your house's name is not great right now. Sellers worry whether you close."
+}

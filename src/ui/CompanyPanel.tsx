@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useT, type Translate } from "../i18n/useT";
 import type { CompanyView, Financials, Owner, Stage, View } from "../sim/types";
 import {
-  LineChart,
   Meter,
   Radar,
   Rating,
@@ -23,6 +22,8 @@ import { ActionBar, Journey } from "./Journey";
 import { bidderName } from "./messages";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
+import { FiveYearChart, StatementTables } from "./Statements";
+import { CompanyStory } from "./CompanyStory";
 
 type TabId = "overview" | "financials" | "deal" | "operations";
 type Tone = "good" | "bad" | "warn";
@@ -204,22 +205,12 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         </div>
       </header>
       <div className="cp-body" role="tabpanel">
-        <p className="cp-story">
-          {t("company.story", {
-            year: company.founded,
-            abroad: company.country !== HOME ? "yes" : "no",
-            country: t(`country.${company.country}`),
-            region: t(`admin1.${company.admin1}`),
-            site: company.site_name,
-            product: t(`product.${company.sector}.${company.product}`),
-            count: company.employees,
-          })}
-        </p>
+        <CompanyStory company={company} full={current === "overview"} />
         {current === "overview" ? (
           <Overview game={game} company={company} />
         ) : null}
         {current === "financials" ? (
-          <FinancialsTab company={company} t={t} f={f} view={view} />
+          <FinancialsTab company={company} t={t} f={f} />
         ) : null}
         {current === "deal" && company.deal ? (
           <DealRoom company={company} />
@@ -318,9 +309,15 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             ) : null}
           </Stat>
           <Stat
-            label={t("term.ev")}
-            value={f.figure(company.ev)}
-            hint={fin ? f.multiple(fin.multiple_millis) : undefined}
+            label={t(company.held ? "term.ev" : "valuation.label")}
+            value={company.ev ? f.figure(company.ev) : t("valuation.none")}
+            hint={
+              company.deal?.valuation
+                ? f.multiple(company.deal.valuation.multiple_millis)
+                : fin?.multiple_millis != null
+                  ? f.multiple(fin.multiple_millis)
+                  : undefined
+            }
           />
         </div>
         {fogged ? (
@@ -601,63 +598,14 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
   );
 }
 
-interface Line {
-  key: string;
-  value: number;
-  /** A subtotal or total row. */
-  total?: boolean;
-  /** Shown as a deduction. */
-  minus?: boolean;
-}
-
-function Statement({
-  title,
-  lines,
-  t,
-  f,
-}: {
-  title: string;
-  lines: Line[];
-  t: Translate;
-  f: Format;
-}) {
-  return (
-    <table className="table cp-statement">
-      <thead>
-        <tr>
-          <th scope="col">{title}</th>
-          <th scope="col" className="num">
-            {t("company.fin.lastMonth")}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {lines.map((line) => {
-          const value = line.minus ? -line.value : line.value;
-          return (
-            <tr key={line.key} data-total={line.total || undefined}>
-              <th scope="row">{t(`company.fin.${line.key}`)}</th>
-              <td className="num" data-negative={value < 0 || undefined}>
-                {f.money(value)}
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
-
 function FinancialsTab({
   company,
   t,
   f,
-  view,
 }: {
   company: CompanyView;
   t: Translate;
   f: Format;
-  view: View;
 }) {
   const fin = company.financials;
   if (!fin) {
@@ -669,101 +617,14 @@ function FinancialsTab({
       </div>
     );
   }
-  const { last, books } = fin;
-  const income: Line[] = [
-    { key: "revenue", value: last.revenue },
-    { key: "cogs", value: last.cogs, minus: true },
-    { key: "grossProfit", value: last.revenue - last.cogs, total: true },
-    { key: "sga", value: last.sga, minus: true },
-    { key: "ebitda", value: last.ebitda, total: true },
-    { key: "da", value: last.da, minus: true },
-    { key: "interest", value: last.interest, minus: true },
-    { key: "tax", value: last.tax, minus: true },
-    { key: "netIncome", value: last.net_income, total: true },
-  ];
-  const cash: Line[] = [
-    { key: "openingCash", value: last.opening_cash },
-    { key: "netIncome", value: last.net_income },
-    { key: "da", value: last.da },
-    { key: "nwc", value: last.change_in_nwc, minus: true },
-    { key: "capex", value: last.capex, minus: true },
-    { key: "debtDraw", value: last.debt_draw },
-    { key: "debtRepayment", value: last.debt_repayment, minus: true },
-    { key: "dividends", value: last.dividends, minus: true },
-    { key: "closingCash", value: last.closing_cash, total: true },
-  ];
-  const balance: Line[] = [
-    { key: "cash", value: books.cash },
-    { key: "receivable", value: books.accounts_receivable },
-    { key: "inventory", value: books.inventory },
-    { key: "netPpe", value: fin.net_ppe },
-    { key: "goodwill", value: books.goodwill },
-    { key: "totalAssets", value: fin.total_assets, total: true },
-    { key: "payable", value: books.accounts_payable },
-    { key: "debt", value: books.debt },
-    { key: "shareCapital", value: books.share_capital },
-    { key: "retained", value: books.retained_earnings },
-    { key: "totalEquity", value: fin.total_equity, total: true },
-  ];
-  const months = fin.revenue_history.length;
   return (
     <div className="stack">
       <section className="card">
-        <h3>{t("term.ttm")}</h3>
-        <div className="cp-figures">
-          <Stat label={t("term.revenue")} value={f.money(fin.ttm_revenue)} />
-          <Stat
-            label={t("term.ebitda")}
-            value={f.money(fin.ttm_ebitda)}
-            tone={fin.ttm_ebitda < 0 ? "bad" : undefined}
-          />
-          <Stat
-            label={t("term.margin")}
-            value={f.pct(fin.margin_bps)}
-            hint={`${t("term.grossMargin")} ${f.pct(fin.gross_margin_bps)}`}
-          />
-          <Stat
-            label={t("term.fcf")}
-            value={f.money(fin.ttm_fcf)}
-            tone={fin.ttm_fcf < 0 ? "bad" : "good"}
-          />
-        </div>
+        <h3>{t("statement.chartTitle", { years: fin.statements.years.length })}</h3>
+        <FiveYearChart years={fin.statements.years} t={t} f={f} />
       </section>
 
-      <section className="card">
-        <h3>{t("company.fin.history")}</h3>
-        <div className="cp-charts">
-          <LineChart
-            height={110}
-            format={f.money}
-            series={[{ label: t("term.revenue"), values: fin.revenue_history }]}
-            xLabels={[
-              t("company.fin.monthsAgo", { months }),
-              f.shortDate(view.date),
-            ]}
-          />
-          <LineChart
-            height={120}
-            format={f.money}
-            series={[
-              {
-                label: t("term.ebitda"),
-                values: fin.ebitda_history,
-                color: SERIES[1],
-              },
-              {
-                label: t("term.fcf"),
-                values: fin.fcf_history,
-                color: SERIES[2],
-              },
-            ]}
-            xLabels={[
-              t("company.fin.monthsAgo", { months }),
-              f.shortDate(view.date),
-            ]}
-          />
-        </div>
-      </section>
+      <StatementTables data={fin.statements} t={t} f={f} />
 
       <section className="card">
         <h3>{t("company.fin.debtAndValue")}</h3>
@@ -783,29 +644,23 @@ function FinancialsTab({
             value={f.multiple(fin.cover_millis)}
             tone={coverTone(fin.cover_millis)}
           />
-          <Stat
-            label={t("company.fin.modelMultiple")}
-            value={f.multiple(fin.multiple_millis)}
-            hint={t("company.fin.sectorMultiple", {
-              multiple: f.multiple(company.sector_multiple_millis),
-            })}
-          />
-          <Stat label={t("term.ev")} value={f.money(fin.model_ev)} />
-          <Stat label={t("term.equity")} value={f.money(fin.model_equity)} />
+          {fin.multiple_millis != null && fin.model_ev != null && fin.model_equity != null ? (
+            <>
+              <Stat
+                label={t("company.fin.modelMultiple")}
+                value={f.multiple(fin.multiple_millis)}
+                hint={t("company.fin.sectorMultiple", {
+                  multiple: f.multiple(company.sector_multiple_millis),
+                })}
+              />
+              <Stat label={t("term.ev")} value={f.money(fin.model_ev)} />
+              <Stat label={t("term.equity")} value={f.money(fin.model_equity)} />
+            </>
+          ) : null}
         </div>
-        <p className="cp-hint">{t("term.modelNotPrice")}</p>
+        {fin.model_ev != null ? <p className="cp-hint">{t("term.modelNotPrice")}</p> : null}
       </section>
 
-      <section className="card cp-statements">
-        <Statement title={t("company.fin.income")} lines={income} t={t} f={f} />
-        <Statement title={t("company.fin.cashFlow")} lines={cash} t={t} f={f} />
-        <Statement
-          title={t("company.fin.balance")}
-          lines={balance}
-          t={t}
-          f={f}
-        />
-      </section>
     </div>
   );
 }

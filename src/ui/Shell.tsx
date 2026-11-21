@@ -1,5 +1,6 @@
 import { applyTheme, currentTheme, type Theme } from "./theme";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Splitter, useStoredSize } from "./Splitter";
 import { LOCALES, type Locale } from "../i18n/config";
 import { useLocale } from "../i18n/LocaleProvider";
 import { useT } from "../i18n/useT";
@@ -430,8 +431,28 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
   const game = useGame();
   const t = useT();
   const [choosing, setChoosing] = useState(false);
+  // The company panel's width, dragged by the player and remembered.
+  const clampPanel = useCallback((value: number) => Math.round(Math.min(Math.max(value, 340), Math.max(380, Math.min(760, window.innerWidth * 0.55)))), []);
+  const [panelWidth, setPanelWidth] = useStoredSize("panel", clampPanel);
+  const panelRef = useRef<HTMLElement>(null);
+  const [panelEdge, setPanelEdge] = useState(0);
+  useEffect(() => {
+    const node = panelRef.current;
+    if (!node) {
+      return;
+    }
+    const observer = new ResizeObserver(() => setPanelEdge(node.getBoundingClientRect().width));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [game.selected]);
+  const open = game.selected !== null;
   return (
-    <div className="shell" data-panel={game.selected === null ? "closed" : "open"}>
+    <div
+      className="shell"
+      data-panel={open ? "open" : "closed"}
+      data-sized={panelWidth !== null || undefined}
+      style={panelWidth !== null ? ({ "--panel-w": `${panelWidth}px` } as CSSProperties) : undefined}
+    >
       <Sidebar onNewGame={() => setChoosing(true)} />
       <div className="main">
         <Topbar />
@@ -439,7 +460,23 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
           {children}
         </main>
       </div>
-      {game.selected === null ? null : <aside className="panel">{panel}</aside>}
+      {open ? (
+        <aside className="panel" ref={panelRef}>
+          {panel}
+        </aside>
+      ) : null}
+      {open && panelEdge > 0 ? (
+        <Splitter
+          axis="x"
+          className="panel-splitter"
+          label={t("layout.panel")}
+          style={{ right: panelEdge - 5 }}
+          direction={-1}
+          measure={() => panelRef.current?.getBoundingClientRect().width ?? panelEdge}
+          onResize={setPanelWidth}
+          onReset={() => setPanelWidth(null)}
+        />
+      ) : null}
       <TabBar onNewGame={() => setChoosing(true)} />
       <Toasts />
       <Moments />

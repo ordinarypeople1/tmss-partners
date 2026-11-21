@@ -1,0 +1,80 @@
+/* The committee meeting, on the owner-talk card. */
+.ic {
+  width: min(600px, 100%);
+}
+.ic-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-progress li {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 40px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  opacity: 0.55;
+}
+.ic-progress li[data-state="now"] {
+  border-color: var(--accent);
+  opacity: 1;
+}
+.ic-progress li[data-state="yes"] {
+  border-color: var(--good);
+  opacity: 1;
+}
+.ic-progress li[data-state="no"] {
+  border-color: var(--bad);
+  opacity: 1;
+}
+.ic-said {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.talk-line[data-tone="good"] {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+.talk-line[data-tone="bad"] {
+  box-shadow: inset 3px 0 0 var(--bad);
+}
+.ic-answers {
+  display: grid;
+  gap: 8px;
+}
+.ic-answer {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ic-answer:hover {
+  border-color: var(--ink);
+}
+.ic-answer strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+.ic-answer span {
+  color: var(--ink-soft, var(--ink));
+  font-size: 0.9rem;
+}
+.ic-verdict {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}

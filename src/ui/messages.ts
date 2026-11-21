@@ -43,6 +43,10 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   achievement_unlocked: ["flag", "good"],
   objectives_review: ["check"],
   diligence_report: ["search"],
+  valuation_ready: ["market"],
+  committee_convened: ["gavel", "good"],
+  owner_considering: ["clock"],
+  bank_feedback: ["career"],
   committee_decision: ["gavel"],
   deal_closed: ["check", "good"],
   deal_broken: ["alert", "bad"],
@@ -131,6 +135,15 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
       values.stream = t(`stream.${message.stream}`);
       values.issues = message.found.map((issue) => t(`issue.${issue}`)).join(", ");
       bodyId = message.found.length ? "msg.diligence_report.found" : "msg.diligence_report.clean";
+      break;
+    case "owner_considering":
+      values.months = String(message.months);
+      break;
+    case "bank_feedback":
+      bodyId = `msg.bank_feedback.${message.band}.${message.certainty ? "certainty" : "price"}`;
+      break;
+    case "valuation_ready":
+      values.kind = t(`valuation.kind.${message.kind}`);
       break;
     case "committee_decision":
       values.outcome = t(`outcome.${message.outcome}`);

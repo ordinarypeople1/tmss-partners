@@ -167,7 +167,7 @@ impl World {
             "sale": self.sale_view(index),
             "revenue": figure(company.ttm_revenue(), 1),
             "ebitda": figure(company.ttm_ebitda(), 2),
-            "ev": figure(self.model_ev(index), 3),
+            "ev": self.value_seen(index),
             "alert": alert,
             "access": self.access(index),
             "intent": intent,
@@ -234,6 +234,7 @@ impl World {
                 "perks": self.career.perks,
             },
             "attention": { "left": self.attention_left, "max": self.attention_max() },
+            "valuation_fee": self.valuation_fee(),
             "options": self.options,
             "insight": self.insight,
             "league": self.league(),
@@ -299,7 +300,9 @@ impl World {
                 "tier": adviser.tier,
                 "focus": adviser.focus,
                 "coverage": self.coverage(id as u8),
+                "banker": self.banker_json(id as u8),
             })).collect::<Vec<_>>(),
+            "cover_talk": self.cover_talk,
             "coverage_marks": [crate::advisers::LIST_AT, crate::advisers::FAVOUR_AT, crate::advisers::HEADS_UP_AT],
             "companies": active.iter().map(|index| self.row(*index)).collect::<Vec<_>>(),
             "deals": self.deals.iter().map(|deal| deal.company).collect::<Vec<_>>(),
@@ -388,6 +391,7 @@ impl World {
             }),
         );
         detail.insert("country".into(), json!(company.country));
+        detail.insert("pending".into(), json!(company.pending));
         detail.insert(
             "sector_multiple_millis".into(),
             json!(industry.base_multiple_millis),
@@ -447,6 +451,7 @@ impl World {
                 Value::Null
             },
         );
+        let held = company.is_player_owned();
         if revealed {
             detail.insert(
                 "financials".into(),
@@ -466,14 +471,16 @@ impl World {
                     "leverage_millis": company.leverage_millis(),
                     "cover_millis": company.interest_cover_millis(&self.economy),
                     "interest_rate_bps": company.interest_rate_bps(&self.economy),
-                    "multiple_millis": company.multiple_millis(industry, &self.economy),
-                    "quality_bps": company.quality_bps(industry),
-                    "model_ev": self.model_ev(index),
-                    "model_equity": company.model_equity(industry, &self.economy),
+                    // The model's numbers are the fund's mark on its own holdings, and nobody's business before that.
+                    "multiple_millis": held.then(|| company.multiple_millis(industry, &self.economy)),
+                    "quality_bps": held.then(|| company.quality_bps(industry)),
+                    "model_ev": held.then(|| self.model_ev(index)),
+                    "model_equity": held.then(|| company.model_equity(industry, &self.economy)),
                     "min_cash": company.min_cash(industry),
                     "revenue_history": company.revenue_history,
                     "ebitda_history": company.ebitda_history,
                     "fcf_history": company.fcf_history,
+                    "statements": statements(company),
                 }),
             );
         }
@@ -489,6 +496,12 @@ impl World {
                     "opened": deal.opened,
                     "streams_done": deal.streams_done,
                     "streams_running": deal.streams_running,
+                    "valuation": deal.valuation,
+                    "valuation_order": deal.valuation_order,
+                    "ic_meeting": deal.ic_meeting,
+                    "ic_record": deal.ic_record,
+                    "ic_conditions": deal.ic_conditions,
+                    "ic_facts": self.ic_facts(index),
                     "costs": deal.costs,
                     "diligence_cost": self.diligence_cost(index),
                     "offer": deal.offer,
@@ -589,8 +602,15 @@ impl World {
     }
 
     fn offer_view(&self, index: usize, offer: &Offer) -> Value {
+        // The screen compares the price with the fund's valuation, never with the model.
+        let mut financing = serde_json::to_value(self.financing(index, offer)).unwrap_or(Value::Null);
+        let valued = self
+            .deal_index(index)
+            .and_then(|deal| self.deals[deal].valuation.as_ref())
+            .map(|valuation| crate::math::ratio_bps(offer.ev, valuation.mid.max(1)));
+        financing["price_to_model_bps"] = json!(valued.unwrap_or(10_000));
         json!({
-            "financing": self.financing(index, offer),
+            "financing": financing,
             "returns": self.project_returns(index, offer),
             "reserve_hint": Value::Null,
         })
@@ -645,5 +665,133 @@ mod short_name_tests {
         );
         assert_eq!(short_name("Pennington Kitchens Ltd"), "Pennington Kitchens");
         assert_eq!(short_name("Plain Name"), "Plain Name");
+    }
+}
+
+/// The three statements for one period, with the subtotals written out.
+fn period_json(period: &crate::ledger::Period) -> Value {
+    let books = &period.books;
+    json!({
+        "year": period.year,
+        "quarter": period.quarter,
+        "months": period.months,
+        "income": {
+            "revenue": period.revenue,
+            "cogs": period.cogs,
+            "gross_profit": period.gross_profit(),
+            "sga": period.sga,
+            "ebitda": period.ebitda,
+            "da": period.da,
+            "ebit": period.ebit(),
+            "interest": period.interest,
+            "ebt": period.ebt(),
+            "tax": period.tax,
+            "net_income": period.net_income,
+        },
+        "balance": {
+            "cash": books.cash,
+            "receivables": books.accounts_receivable,
+            "inventory": books.inventory,
+            "net_ppe": books.net_ppe(),
+            "goodwill": books.goodwill,
+            "total_assets": books.total_assets(),
+            "payables": books.accounts_payable,
+            "debt": books.debt,
+            "total_liabilities": books.total_liabilities(),
+            "share_capital": books.share_capital,
+            "retained_earnings": books.retained_earnings,
+            "total_equity": books.total_equity(),
+        },
+        "cashflow": {
+            "net_income": period.net_income,
+            "da": period.da,
+            "change_in_nwc": -period.change_in_nwc,
+            "operating": period.cash_from_operations(),
+            "capex": -period.capex,
+            "free_cash_flow": period.free_cash_flow(),
+            "debt_net": period.debt_draw - period.debt_repayment,
+            "dividends": -period.dividends,
+            "other": period.other_financing(),
+            "net_change": period.closing_cash - period.opening_cash,
+            "closing_cash": period.closing_cash,
+        },
+    })
+}
+
+/// Fiscal years (up to five, oldest first), the last twelve months, and the
+/// last eight quarters: the layout a PE or banking model starts from.
+fn statements(company: &Company) -> Value {
+    let years = company.fiscal_years();
+    let years: Vec<Value> = years[years.len().saturating_sub(5)..].iter().map(period_json).collect();
+    let quarters: Vec<Value> = company.ledger[company.ledger.len().saturating_sub(8)..]
+        .iter()
+        .map(period_json)
+        .collect();
+    json!({
+        "years": years,
+        "ltm": company.last_twelve_months().as_ref().map(period_json),
+        "quarters": quarters,
+    })
+}
+
+impl World {
+    /// The value the player may see: the mark on a holding, the range of a
+    /// valuation they ordered, or nothing.
+    pub fn value_seen(&self, company: usize) -> Value {
+        if self.companies[company].is_player_owned() {
+            let ev = self.model_ev(company);
+            return json!([ev, ev]);
+        }
+        match self
+            .deal_index(company)
+            .and_then(|index| self.deals[index].valuation.as_ref())
+        {
+            Some(valuation) => json!([valuation.low, valuation.high]),
+            None => Value::Null,
+        }
+    }
+}
+
+impl World {
+    /// The figures the partners quote in their questions, for the offer on the table.
+    fn ic_facts(&self, company: usize) -> Value {
+        let Some(index) = self.deal_index(company) else {
+            return Value::Null;
+        };
+        let deal = &self.deals[index];
+        let Some(offer) = deal.offer.as_ref() else {
+            return Value::Null;
+        };
+        let financing = self.financing(company, offer);
+        let returns = self.project_returns(company, offer);
+        let target = &self.companies[company];
+        let missing: Vec<DdStream> = crate::company::DD_STREAMS
+            .iter()
+            .copied()
+            .filter(|stream| !deal.has(*stream))
+            .collect();
+        let issues: Vec<_> = target.issues.iter().filter(|issue| issue.found).map(|issue| issue.kind).collect();
+        json!({
+            "ev": offer.ev,
+            "leverage_millis": financing.leverage_millis,
+            "cover_millis": financing.cover_millis,
+            "multiple_millis": financing.multiple_millis,
+            "price_bps": deal.valuation.as_ref().map(|valuation| crate::math::ratio_bps(offer.ev, valuation.mid.max(1))),
+            "irr_bps": returns.irr_bps,
+            "equity": financing.equity,
+            "limit": self.fund.concentration_limit(),
+            "missing": missing,
+            "issues": issues,
+            "plan": offer.plan.len(),
+            "union_bps": target.union_strength_bps,
+            "phase": self.economy.phase,
+        })
+    }
+}
+
+impl World {
+    fn banker_json(&self, adviser: u8) -> Value {
+        let (name, feminine) = self.banker(adviser);
+        json!({ "name": name, "feminine": feminine })
     }
 }

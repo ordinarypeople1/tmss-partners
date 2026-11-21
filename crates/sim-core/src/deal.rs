@@ -138,6 +138,24 @@ pub struct Deal {
     /// The indication of interest given in round one, as an enterprise value.
     #[serde(default)]
     pub indication: Option<i64>,
+    /// The fund's own view of value. Nothing on screen shows a model value without it.
+    #[serde(default)]
+    pub valuation: Option<crate::valuation::Valuation>,
+    /// Ordered this month; it comes in when the month closes.
+    #[serde(default)]
+    pub valuation_order: Option<crate::valuation::ValuationKind>,
+    /// The committee booked for next month, or sitting now.
+    #[serde(default)]
+    pub ic_meeting: Option<crate::ic::Meeting>,
+    /// The last meeting, with the questions and answers.
+    #[serde(default)]
+    pub ic_record: Option<crate::ic::Meeting>,
+    /// Reports the committee wants in before a bid.
+    #[serde(default)]
+    pub ic_conditions: Vec<DdStream>,
+    /// Concessions taken off the 5% room to raise above the approval.
+    #[serde(default)]
+    pub ic_cut_bps: i64,
 }
 
 impl Deal {
@@ -181,6 +199,12 @@ impl World {
             opened: self.date,
             streams_done: Vec::new(),
             streams_running: Vec::new(),
+            valuation: None,
+            valuation_order: None,
+            ic_meeting: None,
+            ic_record: None,
+            ic_conditions: Vec::new(),
+            ic_cut_bps: 0,
             costs: 0,
             offer: None,
             ic: None,
@@ -255,9 +279,14 @@ impl World {
         if self.deals[deal].bid_submitted {
             return Err(CommandError::AlreadyDone);
         }
+        if self.deals[deal].valuation.is_none() {
+            return Err(CommandError::NeedsValuation);
+        }
         self.validate_offer(company, &offer)?;
         if self.deals[deal].offer.as_ref() != Some(&offer) {
             self.deals[deal].ic = None;
+            self.deals[deal].ic_meeting = None;
+            self.deals[deal].ic_conditions.clear();
         }
         self.deals[deal].offer = Some(offer);
         Ok(())
@@ -525,40 +554,37 @@ impl World {
         }
     }
 
+    /// Books the committee for next month. The vote comes at the meeting.
     pub(crate) fn submit_ic(&mut self, company: usize) -> Result<(), CommandError> {
         let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
         let offer = self.deals[index]
             .offer
             .clone()
             .ok_or(CommandError::NoOffer)?;
-        if self.deals[index].ic.is_some() {
+        if self.deals[index].ic.is_some() || self.deals[index].ic_meeting.is_some() {
             return Err(CommandError::AlreadyDone);
         }
         self.validate_offer(company, &offer)?;
         self.spend_attention(1)?;
         let mut votes = self.committee_votes(company, &self.deals[index], &offer);
         self.weigh_by_trust(&mut votes);
-        let outcome = self.committee_outcome(&votes);
-        if outcome == IcOutcome::Approved {
-            self.deals[index].approved_ev = offer.ev;
-        }
-        match outcome {
-            IcOutcome::Approved => self.career.adjust_reputation(1),
-            IcOutcome::Held => {}
-            IcOutcome::Rejected => {
-                self.career.adjust_reputation(-2);
-                self.career.ic_rejections += 1;
-                self.year.rejections += 1;
-            }
-        }
-        self.deals[index].ic = Some(IcResult {
-            outcome,
-            votes,
-            date: self.date,
+        let questions = self.ic_questions(&votes);
+        self.deals[index].ic_meeting = Some(crate::ic::Meeting {
+            date: self.date.next(),
+            open: false,
+            questions,
+            cut_bps: 0,
+            conditions: Vec::new(),
         });
-        self.post(MessageKind::CommitteeDecision { outcome }, Some(company));
-        // A large check: an investor asks to come in alongside.
-        let equity = self.financing(company, &offer).equity;
+        Ok(())
+    }
+
+    /// A large check: an investor asks to come in alongside.
+    pub(crate) fn offer_coinvest(&mut self, company: usize, offer: &Offer, outcome: IcOutcome) {
+        let Some(index) = self.deal_index(company) else {
+            return;
+        };
+        let equity = self.financing(company, offer).equity;
         if outcome == IcOutcome::Approved
             && !self.deals[index].coinvest_asked
             && equity > self.fund.committed / 10
@@ -574,7 +600,6 @@ impl World {
                 2,
             );
         }
-        Ok(())
     }
 
     /// What the seller adds to the player's price for being a sure closer.
@@ -616,6 +641,14 @@ impl World {
         if !self.fund.investing(self.date) {
             return Err(CommandError::InvestmentPeriodOver);
         }
+        // The committee's conditions: the promised reports must be in.
+        if self.deals[index]
+            .ic_conditions
+            .iter()
+            .any(|stream| !self.deals[index].has(*stream))
+        {
+            return Err(CommandError::ConditionOpen);
+        }
         let financing = self.financing(company, &offer);
         if financing.equity > self.fund.uncalled() {
             return Err(CommandError::FundExhausted);
@@ -654,7 +687,7 @@ impl World {
     /// The most the player may bid without returning to the committee.
     pub fn bid_ceiling(&self, company: usize) -> i64 {
         self.deal_index(company)
-            .map(|index| mul_bps(self.deals[index].approved_ev, 10_500))
+            .map(|index| mul_bps(self.deals[index].approved_ev, 10_500 - self.deals[index].ic_cut_bps))
             .unwrap_or(0)
     }
 
@@ -703,18 +736,16 @@ impl World {
         if target.relationship < crate::sourcing::PROPOSAL_AT {
             return Err(CommandError::NeedsRelationship);
         }
-        self.spend_attention(1)?;
-        let process = self.companies[company]
-            .process
-            .as_mut()
-            .expect("process exists");
-        process.stage = Stage::Exclusive;
-        // The owner deals directly: no bank, no list, no rounds.
-        process.adviser = None;
-        process.months_left = 4;
-        if self.deal_index(company).is_none() {
-            self.sign_nda(company)?;
+        if target.pending.is_some() {
+            return Err(CommandError::AlreadyDone);
         }
+        self.spend_attention(1)?;
+        // The owner answers at month end: before the bank gets going, or not at all.
+        self.companies[company].pending = Some(crate::sourcing::Pending {
+            kind: crate::sourcing::ProposalKind::Exclusive,
+            months_left: 1,
+        });
+        self.post(MessageKind::OwnerConsidering { months: 1 }, Some(company));
         Ok(())
     }
 

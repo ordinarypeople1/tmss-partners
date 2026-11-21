@@ -7,6 +7,7 @@ import { StepRange } from "./DealRoom";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { BankerTalk } from "./BankerTalk";
 import "./Process.css";
 
 /** A bank-run sale, start to finish. Talks the owner holds alone skip to the last two. */
@@ -94,7 +95,7 @@ export function Indication({ company }: { company: CompanyView }) {
   const f = useFormat();
   const deal = company.deal;
   const sale = company.sale;
-  const model = company.financials?.model_ev ?? company.ev[0];
+  const model = deal?.valuation?.mid ?? 0;
   const [value, setValue] = useState(deal?.indication ?? model);
   useEffect(() => {
     if (deal?.indication) {
@@ -133,8 +134,15 @@ export function Banks() {
   const t = useT();
   const { view } = game;
   const [list, favour, headsUp] = view.coverage_marks;
+  const [talking, setTalking] = useState(false);
+  const cover = (adviser: number) => {
+    if (game.act({ type: "cover_bank", adviser })) {
+      setTalking(true);
+    }
+  };
   return (
     <section className="card banks">
+      {talking && view.cover_talk ? <BankerTalk talk={view.cover_talk} onClose={() => setTalking(false)} /> : null}
       <h2>
         <Icon name="career" size={15} />
         {t("banks.title")}
@@ -167,7 +175,7 @@ export function Banks() {
               ) : null}
             </div>
             <Meter value={adviser.coverage} max={100} markers={[list, favour, headsUp]} tone={adviser.coverage >= headsUp ? "good" : adviser.coverage >= list ? "accent" : "ink"} text={String(adviser.coverage)} label={t("banks.coverage")} />
-            <button {...gate(view.attention.left < 1 && t("gate.attention", { need: 1, left: view.attention.left }))} type="button" className="btn small" disabled={view.attention.left < 1} onClick={() => game.act({ type: "cover_bank", adviser: index })}>
+            <button {...gate(view.attention.left < 1 && t("gate.attention", { need: 1, left: view.attention.left }))} type="button" className="btn small" disabled={view.attention.left < 1} onClick={() => cover(index)}>
               <Icon name="handshake" size={13} />
               {t("banks.call")}
               <span className="journey-cost">

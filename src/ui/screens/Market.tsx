@@ -235,7 +235,7 @@ export function Market() {
           name,
           standing: view.league.find((entry) => entry.house === house) ?? null,
           owned,
-          ev: owned.reduce((sum, row) => sum + mid(row.ev), 0),
+          ev: owned.reduce((sum, row) => sum + mid(row.revenue), 0),
           deals,
         };
       }),

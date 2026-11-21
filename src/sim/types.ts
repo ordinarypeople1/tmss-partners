@@ -167,6 +167,7 @@ export type Step =
   | "offer"
   | "committee"
   | "indicate"
+  | "value"
   | "bid"
   | "raise"
   | "wait"
@@ -185,7 +186,10 @@ export type Block =
   | "investment_period_over"
   | "not_invited"
   | "first_round_closed"
-  | "awaiting_shortlist";
+  | "awaiting_shortlist"
+  | "valuation_due"
+  | "committee_scheduled"
+  | "owner_considering";
 export type Difficulty = "relaxed" | "standard" | "hard";
 export type Era = "high_rates" | "cheap_money" | "late_cycle";
 export interface Options {
@@ -256,6 +260,8 @@ export interface Adviser {
   focus: string | null;
   /** 0 to 100: how well the bank knows the fund. */
   coverage: number;
+  /** The banker who covers the fund there. */
+  banker: { name: string; feminine: boolean };
 }
 
 export interface CompanyRow {
@@ -287,7 +293,8 @@ export interface CompanyRow {
   revenue: Figure;
   ebitda: Figure;
   /** Model value. Not a price. */
-  ev: Figure;
+  /** The mark on a holding, the range of an ordered valuation, or null. */
+  ev: Figure | null;
   alert: boolean;
   exiting: boolean;
   access: Access;
@@ -345,15 +352,17 @@ export interface Financials {
   leverage_millis: number;
   cover_millis: number;
   interest_rate_bps: number;
-  multiple_millis: number;
-  quality_bps: number;
-  model_ev: number;
-  model_equity: number;
+  /** The model's numbers: only on the fund's own holdings. */
+  multiple_millis: number | null;
+  quality_bps: number | null;
+  model_ev: number | null;
+  model_equity: number | null;
   min_cash: number;
   /** Monthly, oldest first, up to 36. */
   revenue_history: number[];
   ebitda_history: number[];
   fcf_history: number[];
+  statements: Statements;
 }
 
 export interface Offer {
@@ -415,6 +424,16 @@ export interface DealView {
   opened: GameDate;
   streams_done: DdStream[];
   streams_running: DdStream[];
+  valuation: Valuation | null;
+  valuation_order: ValuationKind | null;
+  /** The committee booked for next month, or sitting now. */
+  ic_meeting: IcMeeting | null;
+  /** The last meeting, with its questions and answers. */
+  ic_record: IcMeeting | null;
+  /** Reports the committee wants in before a bid. */
+  ic_conditions: DdStream[];
+  /** Figures the partners quote, for the offer on the table. */
+  ic_facts: IcFacts | null;
   costs: number;
   diligence_cost: number;
   offer: Offer | null;
@@ -496,6 +515,8 @@ export interface CompanyView extends CompanyRow {
    * `cooldown` to 12 months. The thresholds are the relationship levels that unlock things.
    */
   approach: { odds_pct: number | null; cooldown: number; known_at: number; early_notice_at: number; proposal_at: number };
+  /** The player's proposal while the owner thinks it over. */
+  pending: { kind: "acquisition" | "exclusive"; months_left: number } | null;
   sector_multiple_millis: number;
   union_strength_bps: number;
   /** 1 through 20. Null until operational diligence. */
@@ -549,6 +570,10 @@ export type MessageBody =
   | { type: "objectives_review"; met: number; total: number; bonus: number }
   | { type: "diligence_report"; stream: DdStream; found: IssueKind[] }
   | { type: "committee_decision"; outcome: IcOutcome }
+  | { type: "valuation_ready"; kind: ValuationKind }
+  | { type: "committee_convened" }
+  | { type: "owner_considering"; months: number }
+  | { type: "bank_feedback"; band: "leading" | "close" | "behind"; certainty: boolean }
   | { type: "deal_closed"; ev: number; equity: number; debt: number }
   | { type: "deal_broken" }
   | { type: "initiative_done"; kind: InitiativeKind }
@@ -668,6 +693,8 @@ export interface View {
     total_proceeds: number;
   };
   attention: { left: number; max: number };
+  /** What an outside valuation costs this house. */
+  valuation_fee: number;
   limits: { deals: number; initiatives: number };
   economy: {
     policy_rate_bps: number;
@@ -710,6 +737,8 @@ export interface View {
   rivals: string[];
   /** The sell-side banks. */
   advisers: Adviser[];
+  /** The last coverage meeting, for the banker's lines. */
+  cover_talk: CoverTalk | null;
   /** Coverage that puts the fund on targeted lists, earns favour at the shortlist, and earns a call before the teaser. */
   coverage_marks: [number, number, number];
   companies: CompanyRow[];
@@ -727,6 +756,8 @@ export type Command =
   | { type: "cover_bank"; adviser: number }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
+  | { type: "order_valuation"; company: number; kind: ValuationKind }
+  | { type: "answer_ic"; company: number; answer: IcAnswer }
   | { type: "set_offer"; company: number; offer: Offer }
   | { type: "submit_ic"; company: number }
   | { type: "submit_bid"; company: number }
@@ -750,3 +781,99 @@ export type Command =
 
 /** `error` is a code from sim-core's CommandError, e.g. "no_attention". */
 export type CommandResult = { ok: true } | { ok: false; error: string };
+
+/** One period of the three statements, from `World::view`. Amounts are thousand USD. */
+export interface StatementPeriod {
+  year: number;
+  /** 1–4 for a quarter; 0 for a fiscal year. */
+  quarter: number;
+  months: number;
+  income: Record<"revenue" | "cogs" | "gross_profit" | "sga" | "ebitda" | "da" | "ebit" | "interest" | "ebt" | "tax" | "net_income", number>;
+  balance: Record<
+    | "cash" | "receivables" | "inventory" | "net_ppe" | "goodwill" | "total_assets"
+    | "payables" | "debt" | "total_liabilities" | "share_capital" | "retained_earnings" | "total_equity",
+    number
+  >;
+  cashflow: Record<
+    | "net_income" | "da" | "change_in_nwc" | "operating" | "capex" | "free_cash_flow"
+    | "debt_net" | "dividends" | "other" | "net_change" | "closing_cash",
+    number
+  >;
+}
+
+export interface Statements {
+  /** Up to five fiscal years, oldest first. */
+  years: StatementPeriod[];
+  ltm: StatementPeriod | null;
+  /** The last eight closed quarters, oldest first. */
+  quarters: StatementPeriod[];
+}
+
+export type ValuationKind = "internal" | "adviser";
+
+/** The fund's own view of value, from `valuation.rs`. */
+export interface Valuation {
+  kind: ValuationKind;
+  date: GameDate;
+  low: number;
+  mid: number;
+  high: number;
+  error_bps: number;
+  ebitda: number;
+  multiple_millis: number;
+  /** The adviser's sector comparables; 0 for a desk valuation. */
+  sector_multiple_millis: number;
+  net_debt: number;
+  fee: number;
+}
+
+/** A committee question's subject: one of the partner's concerns, or a routine one. */
+export type IcTopic = { concern: Concern } | "exit" | "value_creation" | "cycle";
+export type IcAnswer = "evidence" | "concede" | "push_back";
+
+export interface IcQuestion {
+  partner: number;
+  topic: IcTopic;
+  answer: IcAnswer | null;
+  landed: boolean | null;
+}
+
+/** The committee as a meeting, from `ic.rs`. */
+export interface IcMeeting {
+  date: GameDate;
+  open: boolean;
+  questions: IcQuestion[];
+  cut_bps: number;
+  conditions: DdStream[];
+}
+
+export interface IcFacts {
+  ev: number;
+  leverage_millis: number;
+  cover_millis: number;
+  multiple_millis: number;
+  price_bps: number | null;
+  irr_bps: number;
+  equity: number;
+  limit: number;
+  missing: DdStream[];
+  issues: IssueKind[];
+  plan: number;
+  union_bps: number;
+  phase: Phase;
+}
+
+export type CoverLine =
+  | { kind: "market"; phase: Phase }
+  | { kind: "credit"; spread_bps: number }
+  | { kind: "sector"; sector: string; months: number }
+  | { kind: "rival"; house: number; sector: string }
+  | { kind: "pipeline"; company: string; months: number }
+  | { kind: "reputation"; good: boolean };
+
+export interface CoverTalk {
+  adviser: number;
+  before: number;
+  after: number;
+  lines: CoverLine[];
+}

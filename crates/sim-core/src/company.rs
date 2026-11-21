@@ -280,6 +280,12 @@ pub struct Company {
     pub revenue_history: Vec<i64>,
     pub ebitda_history: Vec<i64>,
     pub fcf_history: Vec<i64>,
+    /// Closed quarters, oldest first. See `ledger.rs`.
+    #[serde(default)]
+    pub ledger: Vec<crate::ledger::Period>,
+    /// The quarter still running.
+    #[serde(default)]
+    pub open_quarter: crate::ledger::Period,
 
     pub owner: Owner,
     pub budget: Budget,
@@ -301,6 +307,9 @@ pub struct Company {
     /// A rival house that has proposed to the owner.
     #[serde(default)]
     pub suitor: Option<crate::rivals::Suitor>,
+    /// The player's proposal, while the owner thinks it over.
+    #[serde(default)]
+    pub pending: Option<crate::sourcing::Pending>,
 }
 
 fn monthly_ebitda(
@@ -526,6 +535,8 @@ impl Company {
             revenue_history: vec![seed.monthly_revenue; 12],
             ebitda_history: vec![ebitda; 12],
             fcf_history: vec![free_cash; 12],
+            ledger: Vec::new(),
+            open_quarter: crate::ledger::Period::default(),
             owner,
             budget: Budget::default(),
             process: None,
@@ -537,6 +548,7 @@ impl Company {
             sponsor_cost: 0,
             approach_cooldown: 0,
             suitor: None,
+            pending: None,
         }
     }
 
@@ -805,6 +817,8 @@ impl Company {
         Self::push_history(&mut self.ebitda_history, ebitda);
         let fcf = self.last.free_cash_flow();
         Self::push_history(&mut self.fcf_history, fcf);
+        let month = self.last.clone();
+        self.open_quarter.add_month(&month);
 
         match &mut self.owner {
             Owner::Sponsor { months_held, .. } => *months_held += 1,
@@ -897,6 +911,15 @@ impl Company {
         self.books.gross_ppe += target.books.gross_ppe;
         self.books.accumulated_depreciation += target.books.accumulated_depreciation;
         self.books.accounts_payable += target.books.accounts_payable;
+        for mine in &mut self.ledger {
+            if let Some(theirs) = target
+                .ledger
+                .iter()
+                .find(|period| period.year == mine.year && period.quarter == mine.quarter)
+            {
+                mine.absorb(theirs);
+            }
+        }
     }
 }
 

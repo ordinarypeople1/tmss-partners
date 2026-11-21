@@ -147,7 +147,8 @@ export function Deals() {
   );
   const watching = forSale.filter((row) => row.watched && !row.in_deal);
   const limit = view.fund.concentration_limit;
-  const withinReach = (row: CompanyRow) => row.ev[0] * EQUITY_SHARE <= limit;
+  // Size by revenue: the fund has not valued most of these.
+  const withinReach = (row: CompanyRow) => row.revenue[0] * EQUITY_SHARE <= limit;
 
   const shown = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -158,7 +159,7 @@ export function Deals() {
       if (stages.length > 0 && !(row.sale && stages.includes(row.sale.stage))) {
         return false;
       }
-      if (reach && row.ev[0] * EQUITY_SHARE > limit) {
+      if (reach && !withinReach(row)) {
         return false;
       }
       if (country !== "" && (row.country === HOME) !== (country === "home")) {
@@ -193,7 +194,7 @@ export function Deals() {
         case "ebitda":
           return mid(row.ebitda);
         case "ev":
-          return mid(row.ev);
+          return row.ev ? mid(row.ev) : -1;
         default:
           return row.relationship;
       }
@@ -577,7 +578,7 @@ export function Deals() {
                         {f.shortFigure(row.ebitda)}
                       </td>
                       <td className="num deals-cell-figure" data-label={t("term.ev")}>
-                        {f.shortFigure(row.ev)}
+                        {row.ev ? f.shortFigure(row.ev) : t("term.none")}
                         {withinReach(row) ? null : <span className="sub">{t("deals.outOfReach")}</span>}
                       </td>
                       <td className="deals-rel" data-label={t("term.relationship")}>
@@ -686,7 +687,7 @@ function SaleCard({ row, locked, reach }: { row: CompanyRow; locked: boolean; re
         </span>
         <span>
           <small>{t("term.evShort")}</small>
-          <b>{f.shortFigure(row.ev)}</b>
+          <b>{row.ev ? f.shortFigure(row.ev) : t("term.none")}</b>
         </span>
       </span>
       <span className="sale-card-foot">
@@ -846,7 +847,7 @@ function DealCard({ item }: { item: MyDeal }) {
         <span className="deals-card-offer">
           <span>
             <small>{t("term.ev")}</small>
-            <b>{f.figure(row.ev)}</b>
+            <b>{row.ev ? f.figure(row.ev) : t("term.none")}</b>
           </span>
         </span>
       )}
