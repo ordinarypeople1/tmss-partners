@@ -1,11 +1,5 @@
 /* The deal tab of the company dossier. Tokens come from styles.css. */
 
-.dr-steps {
-  display: grid;
-  grid-auto-columns: 1fr;
-  grid-auto-flow: column;
-  gap: 4px;
-}
 .dr-aside {
   margin-left: auto;
   font-weight: 400;
@@ -519,12 +513,6 @@
 
 /* ---------- phone ---------- */
 @media (max-width: 760px) {
-  .dr-steps li {
-    gap: 2px 5px;
-    min-height: 40px;
-    padding: 4px;
-    font-size: 0.867rem;
-  }
 
   .dr-streams .btn.small {
     justify-self: stretch;
