@@ -95,6 +95,17 @@ async function prepare(page, company) {
   return true;
 }
 
+/** Answers a sitting committee: a concession to each question, which always lands. */
+async function attend(page, company) {
+  for (let question = 0; question < 3; question += 1) {
+    const detail = await page.evaluate((i) => window.__game.company(i), company);
+    if (!detail || !detail.deal || !detail.deal.ic_meeting || !detail.deal.ic_meeting.open) {
+      return;
+    }
+    await cmd(page, { type: "answer_ic", company, answer: "concede" });
+  }
+}
+
 /** Plays until the fund owns a company. Returns its index, or null after `maxMonths`. */
 async function acquire(page, maxMonths = 72) {
   for (let i = 0; i < maxMonths; i += 1) {
@@ -111,6 +122,7 @@ async function acquire(page, maxMonths = 72) {
     }
     state = await view(page);
     for (const company of state.deals) {
+      await attend(page, company);
       const row = state.companies.find((item) => item.i === company);
       if (row && row.sale && row.sale.stage === "bidding" && !row.sale.bid_in) {
         await cmd(page, { type: "submit_bid", company });
@@ -121,4 +133,4 @@ async function acquire(page, maxMonths = 72) {
   return null;
 }
 
-module.exports = { open, cmd, view, months, openDeal, prepare, acquire };
+module.exports = { open, cmd, view, months, openDeal, prepare, attend, acquire };

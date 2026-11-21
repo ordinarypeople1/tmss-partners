@@ -1844,3 +1844,88 @@ th,
   right: 0;
   left: auto;
 }
+
+/* ---------- drag handles between areas ---------- */
+.splitter {
+  position: absolute;
+  z-index: 25;
+  touch-action: none;
+}
+.splitter::after {
+  content: "";
+  position: absolute;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.splitter:hover::after,
+.splitter:focus-visible::after,
+body[data-resizing] .splitter::after {
+  opacity: 0.7;
+}
+.splitter-x {
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+}
+.splitter-x::after {
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 2px;
+}
+.splitter-y {
+  right: 0;
+  left: 0;
+  height: 10px;
+  cursor: row-resize;
+}
+.splitter-y::after {
+  top: 4px;
+  right: 0;
+  left: 0;
+  height: 2px;
+}
+body[data-resizing] {
+  user-select: none;
+}
+body[data-resizing="x"] {
+  cursor: col-resize;
+}
+body[data-resizing="y"] {
+  cursor: row-resize;
+}
+/* The panel width the player set, when they set one. */
+.shell {
+  position: relative;
+}
+.shell[data-panel="open"][data-sized] {
+  grid-template-columns: 196px minmax(0, 1fr) var(--panel-w);
+}
+.map-hub[data-drawer="open"][data-sized] {
+  grid-template-rows: minmax(0, 1fr) var(--drawer-h);
+}
+.map-drawer {
+  position: relative;
+}
+.map-drawer > .splitter-y {
+  top: -5px;
+}
+@media (max-width: 1100px) {
+  .splitter {
+    display: none;
+  }
+  .shell[data-panel="open"][data-sized] {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .shell[data-panel="open"][data-sized] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .map-hub[data-drawer="open"][data-sized] {
+    grid-template-rows: minmax(0, 1fr) minmax(150px, 44%);
+  }
+}

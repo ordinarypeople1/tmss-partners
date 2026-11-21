@@ -1,5 +1,6 @@
 import { currentTheme, onTheme, token, type Theme } from "./theme";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Splitter, useStoredSize } from "./Splitter";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection, Geometry, Position } from "geojson";
@@ -174,6 +175,10 @@ function MapHubView() {
   const [onlyWatched, setOnlyWatched] = useState(false);
   const [onlyMine, setOnlyMine] = useState(false);
   const [drawer, setDrawer] = useState(true);
+  // The table's height under the map, dragged by the player and remembered.
+  const clampDrawer = useCallback((value: number) => Math.round(Math.min(Math.max(value, 140), Math.max(200, window.innerHeight - 280))), []);
+  const [drawerHeight, setDrawerHeight] = useStoredSize("drawer", clampDrawer);
+  const drawerRef = useRef<HTMLElement>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const [sort, setSort] = useState<{ key: SortKey; down: boolean }>({ key: "revenue", down: true });
   const selectRef = useRef(game.select);
@@ -653,7 +658,12 @@ function MapHubView() {
   };
 
   return (
-    <div className="map-hub" data-drawer={drawer ? "open" : "closed"}>
+    <div
+      className="map-hub"
+      data-drawer={drawer ? "open" : "closed"}
+      data-sized={drawerHeight !== null || undefined}
+      style={drawerHeight !== null ? ({ "--drawer-h": `${drawerHeight}px` } as CSSProperties) : undefined}
+    >
       <section className="map-stage" aria-label={t("map.label")}>
         <div ref={node} className="map-canvas" />
         <div className="map-layers" role="group" aria-label={t("map.layers")}>
@@ -771,7 +781,17 @@ function MapHubView() {
         ) : null}
       </section>
 
-      <section className="map-drawer">
+      <section className="map-drawer" ref={drawerRef}>
+        {drawer ? (
+          <Splitter
+            axis="y"
+            label={t("layout.drawer")}
+            direction={-1}
+            measure={() => drawerRef.current?.getBoundingClientRect().height ?? 240}
+            onResize={setDrawerHeight}
+            onReset={() => setDrawerHeight(null)}
+          />
+        ) : null}
         <div className="drawer-bar">
           <button type="button" className="btn small ghost" aria-expanded={drawer} onClick={() => setDrawer((open) => !open)}>
             <Icon name="table" size={15} />
