@@ -9,10 +9,15 @@ const HIDE_KEY = "deal-atlas.guide.hidden";
 
 function stored(): boolean {
   try {
-    return window.localStorage.getItem(HIDE_KEY) === "1";
+    const saved = window.localStorage.getItem(HIDE_KEY);
+    if (saved !== null) {
+      return saved === "1";
+    }
   } catch {
-    return false;
+    // Storage blocked: fall through to the default.
   }
+  // On a phone the checklist starts folded, so it does not cover the map.
+  return typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)").matches === true;
 }
 
 /**

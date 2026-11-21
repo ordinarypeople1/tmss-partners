@@ -70,6 +70,20 @@ function fullWorldZoom(node: HTMLElement): number {
   return Math.max(0, Math.log2(side / TILE_SIZE));
 }
 
+const TOOLS_KEY = "deal-atlas.map.tools";
+/** The map's floating controls start open on a wide screen and folded on a phone. */
+function initialTools(): boolean {
+  try {
+    const saved = window.localStorage.getItem(TOOLS_KEY);
+    if (saved !== null) {
+      return saved === "1";
+    }
+  } catch {
+    // Storage blocked: fall through.
+  }
+  return !(window.matchMedia?.("(max-width: 760px)").matches ?? false);
+}
+
 const HOME_BOUNDS: [[number, number], [number, number]] = [
   [-125, 24.5],
   [-66.5, 49.5],
@@ -175,6 +189,16 @@ function MapHubView() {
   const [onlyWatched, setOnlyWatched] = useState(false);
   const [onlyMine, setOnlyMine] = useState(false);
   const [drawer, setDrawer] = useState(true);
+  // Everything that floats on the map sits behind one button, so the map can be seen bare.
+  const [tools, setToolsState] = useState(initialTools);
+  const setTools = (open: boolean) => {
+    setToolsState(open);
+    try {
+      window.localStorage.setItem(TOOLS_KEY, open ? "1" : "0");
+    } catch {
+      // Private window: the choice lasts until reload.
+    }
+  };
   // The table's height under the map, dragged by the player and remembered.
   const clampDrawer = useCallback((value: number) => Math.round(Math.min(Math.max(value, 140), Math.max(200, window.innerHeight - 280))), []);
   const [drawerHeight, setDrawerHeight] = useStoredSize("drawer", clampDrawer);
@@ -666,14 +690,32 @@ function MapHubView() {
     >
       <section className="map-stage" aria-label={t("map.label")}>
         <div ref={node} className="map-canvas" />
-        <div className="map-layers" role="group" aria-label={t("map.layers")}>
-          {LAYERS.map((item) => (
-            <button key={item.id} type="button" aria-pressed={layer === item.id} onClick={() => setLayer(item.id)}>
+        <div className="map-layers" role="group" aria-label={t("map.layers")} data-open={tools || undefined}>
+          <button
+            type="button"
+            className="map-tools-toggle"
+            aria-expanded={tools}
+            aria-label={t(tools ? "map.tools.hide" : "map.tools.show")}
+            title={t(tools ? "map.tools.hide" : "map.tools.show")}
+            onClick={() => setTools(!tools)}
+          >
+            <Icon name={tools ? "close" : "more"} size={16} />
+          </button>
+          {tools ? LAYERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={layer === item.id}
+              aria-label={t(`map.layer.${item.id}`)}
+              title={t(`map.layer.${item.id}`)}
+              onClick={() => setLayer(item.id)}
+            >
               <Icon name={item.icon} size={16} />
-              <span>{t(`map.layer.${item.id}`)}</span>
             </button>
-          ))}
+          )) : null}
         </div>
+        {tools ? (
+        <>
         <div className="map-zoom">
           <button type="button" className="btn small" onClick={() => fly("world")}>
             {t("map.zoom.world")}
@@ -774,6 +816,8 @@ function MapHubView() {
           </span>
         </div>
         <Guide />
+        </>
+        ) : null}
         {hover ? (
           <div className="map-tip" style={{ left: hover.x, top: hover.y }}>
             {hover.text}

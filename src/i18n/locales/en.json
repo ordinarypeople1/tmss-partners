@@ -518,7 +518,7 @@
   "intent.open": "Open to it",
   "intent.eager": "Wants out",
   "intent.unknown": "Meet them to find out",
-  "step.meet": "Meet the owner",
+  "step.meet": "Request a meeting",
   "step.approach": "Propose a deal",
   "step.propose_exclusive": "Ask for exclusivity",
   "step.sign_nda": "Sign NDA",
@@ -529,7 +529,7 @@
   "step.raise": "Raise bid",
   "step.wait": "Next month",
   "step.operate": "Run the company",
-  "step.meet.why": "A closer owner tells you more and will hear a proposal.",
+  "step.meet.why": "Meetings build the relationship. At first an executive receives you; once there is trust, the owner comes in person.",
   "step.approach.why": "Yes: four months of talks alone. No: closed for a year.",
   "step.propose_exclusive.why": "Four months of talks with no rivals.",
   "step.sign_nda.why": "The NDA gets you the memorandum and the real figures.",
@@ -648,5 +648,13 @@
   "banks.call": "Coverage call",
   "banks.mark.list": "On targeted lists",
   "banks.mark.favour": "Favour at the shortlist",
-  "banks.mark.headsUp": "A call before the teaser"
+  "banks.mark.headsUp": "A call before the teaser",
+  "talk.exec.role.cfo": "Chief financial officer",
+  "talk.exec.role.coo": "Chief operating officer",
+  "talk.exec.role.strategy": "Head of strategy",
+  "talk.exec.first.1": "Our chief executive could not make it today, so I am meeting you first. Let me tell you about the company.",
+  "talk.exec.first.2": "You are from an investment firm, I hear. I will pass the word on. Today, let us just talk about the business.",
+  "talk.exec.again.1": "Good to see you again. I passed on what you said last time. The owner is still cautious.",
+  "talk.exec.again.2": "You keep coming back, and people here have noticed. Give it a little more time.",
+  "talk.exec.intro": "Next time I will bring the owner."
 }

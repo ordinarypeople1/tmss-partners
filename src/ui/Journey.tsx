@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Overlay } from "./Overlay";
 import { gate } from "./Gate";
 import { useT } from "../i18n/useT";
 import type { Access, CompanyRow, CompanyView, Intent, Step } from "../sim/types";
@@ -13,7 +14,7 @@ import "./Journey.css";
 const NODES = ["contact", "trust", "talks", "nda", "ioi", "diligence", "committee", "bid", "close"] as const;
 
 const STEP_ICON: Record<Step, string> = {
-  meet: "handshake",
+  meet: "meet",
   approach: "flag",
   propose_exclusive: "flag",
   sign_nda: "search",
@@ -246,7 +247,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
         <div className="journey-buttons">
           {canAlsoMeet ? (
             <button {...gate(view.attention.left < (abroad ? 2 : 1) && t("gate.attention", { need: abroad ? 2 : 1, left: view.attention.left }))} type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={meet}>
-              <Icon name="handshake" size={15} />
+              <Icon name="meet" size={15} />
               {t("step.meet")}
               <span className="journey-cost">
                 <Icon name="bolt" size={11} />
@@ -283,8 +284,14 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
   const unlocked = MARKS.filter((_, index) => talk.before < marks[index] && after >= marks[index]);
   const variant = ((company.i + talk.before) % 2) + 1;
   const street = game.view.career.street;
-  const line =
-    talk.kind === "think"
+  // Until the fund is known there, a senior executive takes the meeting, not the owner.
+  const gatekeeper = talk.kind === "meet" && talk.before < approach.known_at && company.owner.kind !== "public";
+  const executive = company.executive;
+  const line = gatekeeper
+    ? talk.before === 0
+      ? `talk.exec.first.${variant}`
+      : `talk.exec.again.${variant}`
+    : talk.kind === "think"
       ? `talk.think.${variant}`
       : talk.kind === "yes"
       ? "talk.yes"
@@ -300,6 +307,7 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
               ? `talk.meet.${company.intent}.${variant}`
               : "talk.meet.unknown";
   return (
+    <Overlay>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t(`talk.title.${talk.kind}`)} onClick={onClose}>
       <div className="talk" data-kind={talk.kind} onClick={(event) => event.stopPropagation()}>
         <header>
@@ -308,12 +316,23 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
         </header>
         <div className="talk-body">
           <div className="talk-who">
+            {gatekeeper ? (
+              <>
+                <Portrait seed={executive.name} feminine={executive.feminine} country={company.country} size={104} />
+                <b>{executive.name}</b>
+                <small className="muted">{t(`talk.exec.role.${executive.role}`)}</small>
+              </>
+            ) : (
+              <>
             <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} country={company.country} size={104} />
             <b>{founder ? company.ceo.name : t(`talk.role.${company.owner.kind}`, { house })}</b>
             {founder ? <small className="muted">{t("talk.role.founder")}</small> : null}
+              </>
+            )}
           </div>
           <div className="talk-lines">
             <blockquote className="talk-line">{t(line, { house: company.suitor ? (game.view.rivals[company.suitor.house] ?? "") : "" })}</blockquote>
+            {gatekeeper && after >= approach.known_at ? <blockquote className="talk-line">{t("talk.exec.intro")}</blockquote> : null}
             {talk.kind === "meet" && Math.abs(street) >= 8 ? <blockquote className="talk-line">{t(street > 0 ? "talk.street.good" : "talk.street.bad")}</blockquote> : null}
           </div>
         </div>
@@ -335,5 +354,6 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
         </button>
       </div>
     </div>
+    </Overlay>
   );
 }

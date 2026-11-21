@@ -2,6 +2,7 @@
 //! view holds back what the player has not earned. Before an NDA a company's
 //! figures are ranges, and what diligence has not found is absent.
 
+use serde::Serialize;
 use serde_json::{json, Value};
 
 use crate::company::{Company, DdStream, Owner};
@@ -392,6 +393,7 @@ impl World {
         );
         detail.insert("country".into(), json!(company.country));
         detail.insert("pending".into(), json!(company.pending));
+        detail.insert("executive".into(), self.executive_json(index));
         detail.insert(
             "sector_multiple_millis".into(),
             json!(industry.base_multiple_millis),
@@ -793,5 +795,25 @@ impl World {
     fn banker_json(&self, adviser: u8) -> Value {
         let (name, feminine) = self.banker(adviser);
         json!({ "name": name, "feminine": feminine })
+    }
+}
+
+/// Who meets the fund before the owner will: a senior executive.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecutiveRole {
+    Cfo,
+    Coo,
+    Strategy,
+}
+
+impl World {
+    /// The executive who takes the fund's first meetings at a company. The same
+    /// person all game, named for the company's country.
+    fn executive_json(&self, company: usize) -> Value {
+        let mut rng = crate::rng::Rng::new(self.seed ^ (company as u64 + 1).wrapping_mul(0xD6E8_FEB8_6659_FD93));
+        let (name, feminine) = crate::people::name(&mut rng, &self.companies[company].country);
+        let role = [ExecutiveRole::Cfo, ExecutiveRole::Coo, ExecutiveRole::Strategy][rng.below(3) as usize];
+        json!({ "name": name, "feminine": feminine, "role": role })
     }
 }

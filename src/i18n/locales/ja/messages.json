@@ -185,7 +185,7 @@
   "msg.rival_rebuffed.title": "{company}: オーナーが{house}を断りました",
   "msg.rival_rebuffed.body": "提案は拒否されました。会社はオーナーのもとに残ります。",
   "msg.house_fundraised.title": "{house}、{size}のファンドを組成",
-  "msg.house_fundraised.body": "新ファンドをクローズ。1年間、入札で高値を付けます。",
+  "msg.house_fundraised.body": "新ファンドを組成しました。1年間、入札で高値を付けます。",
   "msg.house_partner_left.title": "{house}、主要パートナーが離脱",
   "msg.house_partner_left.body": "ディールチームが動揺。1年間、入札が弱まります。",
   "msg.house_distress.title": "{house}の{company}、レンダーの要求で売却",

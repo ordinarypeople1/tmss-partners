@@ -40,5 +40,7 @@
   "map.col.monthsLeft": "{months, plural, other {#개월}}",
   "map.empty": "조건에 맞는 회사가 없습니다.",
   "map.ping": "이번 달 소식",
-  "map.legend.fogShort": "NDA 전"
+  "map.legend.fogShort": "NDA 전",
+  "map.tools.show": "지도 도구",
+  "map.tools.hide": "도구 숨기기"
 }

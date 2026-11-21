@@ -15,6 +15,10 @@ const PATHS: Record<string, ReactNode> = {
   close: <path d="M5 5l14 14M19 5L5 19" />,
   eye: <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />,
   handshake: <path d="M2 9l5-3 5 3 5-3 5 3v6l-5 3-5-3-5 3-5-3zM12 9v6" />,
+  /** Two speech bubbles: a meeting, a conversation. */
+  meet: <path d="M3 4h12v9H8l-4 3v-3H3zM18 8h3v9h-1v3l-4-3h-5v-2" />,
+  /** Three bars: a menu of controls. */
+  more: <path d="M4 6h16M4 12h16M4 18h16" />,
   search: <path d="M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM15 15l6 6" />,
   gavel: <path d="M13 4l7 7-3 3-7-7zM11 9l-8 8 2 2 8-8M14 20h8" />,
   flag: <path d="M5 21V4h12l-2 4 2 4H5" />,

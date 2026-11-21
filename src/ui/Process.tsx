@@ -176,7 +176,7 @@ export function Banks() {
             </div>
             <Meter value={adviser.coverage} max={100} markers={[list, favour, headsUp]} tone={adviser.coverage >= headsUp ? "good" : adviser.coverage >= list ? "accent" : "ink"} text={String(adviser.coverage)} label={t("banks.coverage")} />
             <button {...gate(view.attention.left < 1 && t("gate.attention", { need: 1, left: view.attention.left }))} type="button" className="btn small" disabled={view.attention.left < 1} onClick={() => cover(index)}>
-              <Icon name="handshake" size={13} />
+              <Icon name="meet" size={13} />
               {t("banks.call")}
               <span className="journey-cost">
                 <Icon name="bolt" size={11} />1

@@ -40,5 +40,7 @@
   "map.col.monthsLeft": "{months, plural, one {# mo} other {# mo}}",
   "map.empty": "No companies match.",
   "map.ping": "News this month",
-  "map.legend.fogShort": "Pre-NDA"
+  "map.legend.fogShort": "Pre-NDA",
+  "map.tools.show": "Map tools",
+  "map.tools.hide": "Hide tools"
 }
