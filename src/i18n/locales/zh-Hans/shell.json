@@ -48,5 +48,6 @@
   "shell.tip.credit": "信用利差，即在基准利率上的加点。扩大时贷款方会收紧借款额度。",
   "shell.tip.forSale": "当前可见的出售数量。准备阶段仅在关系达到40或研究该行业时可见。",
   "shell.tip.uncalled": "未缴出资：基金尚未投出的承诺额。投资期结束后不能用于新交易。",
-  "shell.wire": "市场快讯"
+  "shell.wire": "市场快讯",
+  "shell.toTitle": "返回标题"
 }

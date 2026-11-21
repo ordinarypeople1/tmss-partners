@@ -1,0 +1,8 @@
+{
+  "title.tagline": "사모펀드 VP의 10년",
+  "title.menu": "시작 메뉴",
+  "title.continue": "계속하기",
+  "title.saved": "{date} · {house} {rank} · 딜 {deals, number, ::integer}건",
+  "title.newGame": "새 게임",
+  "title.storage": "진행은 이 기기에 저장됩니다."
+}

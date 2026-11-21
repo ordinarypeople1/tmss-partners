@@ -1,0 +1,8 @@
+{
+  "title.tagline": "PEファンドVPの10年",
+  "title.menu": "スタートメニュー",
+  "title.continue": "つづきから",
+  "title.saved": "{date} · {house} {rank} · 案件 {deals, number, ::integer}件",
+  "title.newGame": "新しいゲーム",
+  "title.storage": "進行はこの端末に保存されます。"
+}

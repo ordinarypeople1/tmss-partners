@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useT } from "../i18n/useT";
-import type { Difficulty, Era } from "../sim/types";
-import { useGame } from "./game";
+import type { Difficulty, Era, Options } from "../sim/types";
 import { Icon } from "./icons";
 import "./NewGame.css";
 
@@ -61,12 +60,26 @@ function Picker<T extends string>({
   );
 }
 
-/** The dialog that starts a new game: difficulty and era. */
-export function NewGame({ onClose }: { onClose: () => void }) {
+const DEFAULTS: Options = { difficulty: "standard", era: "high_rates" };
+
+/**
+ * The dialog that starts a new game: difficulty and era. `initial` is the last game's choice;
+ * `replaces` warns that the game on this device will be gone.
+ */
+export function NewGame({
+  onClose,
+  onStart,
+  initial = DEFAULTS,
+  replaces,
+}: {
+  onClose: () => void;
+  onStart: (options: Options) => void;
+  initial?: Options;
+  replaces: boolean;
+}) {
   const t = useT();
-  const game = useGame();
-  const [difficulty, setDifficulty] = useState<Difficulty>(game.view.options.difficulty);
-  const [era, setEra] = useState<Era>(game.view.options.era);
+  const [difficulty, setDifficulty] = useState<Difficulty>(initial.difficulty);
+  const [era, setEra] = useState<Era>(initial.era);
   const card = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -97,8 +110,8 @@ export function NewGame({ onClose }: { onClose: () => void }) {
   };
 
   const start = () => {
-    game.newGame({ difficulty, era });
     onClose();
+    onStart({ difficulty, era });
   };
 
   return (
@@ -136,10 +149,12 @@ export function NewGame({ onClose }: { onClose: () => void }) {
           onChange={setEra}
           label={(id) => ({ title: t(`era.${id}`), effect: t(`era.${id}.effect`) })}
         />
-        <p className="newgame-warning">
-          <Icon name="alert" size={16} />
-          {t("newgame.warning")}
-        </p>
+        {replaces ? (
+          <p className="newgame-warning">
+            <Icon name="alert" size={16} />
+            {t("newgame.warning")}
+          </p>
+        ) : null}
         <div className="row newgame-actions">
           <button type="button" className="btn" onClick={onClose}>
             {t("newgame.cancel")}

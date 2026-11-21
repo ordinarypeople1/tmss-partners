@@ -1,0 +1,8 @@
+{
+  "title.tagline": "私募股权 VP 的十年",
+  "title.menu": "开始菜单",
+  "title.continue": "继续",
+  "title.saved": "{date} · {house} {rank} · 交易 {deals, number, ::integer} 笔",
+  "title.newGame": "新游戏",
+  "title.storage": "进度保存在此设备上。"
+}

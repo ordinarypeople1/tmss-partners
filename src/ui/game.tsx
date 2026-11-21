@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GameSession } from "../sim/wasm";
-import type { Command, CompanyRow, CompanyView, GameDate, Message, Offer, OfferPreview, Options, View } from "../sim/types";
+import type { Command, CompanyRow, CompanyView, GameDate, Message, Offer, OfferPreview, Options, Rank, View } from "../sim/types";
 import { joinBase } from "./publicPath";
+import { readSave, writeSave } from "./saveStore";
 import { playSound, soundFor } from "./sound";
 
 export type Screen = "map" | "inbox" | "deals" | "portfolio" | "market" | "league" | "fund" | "career";
@@ -18,7 +19,8 @@ export interface TurnReport {
   /** Everything that arrived, oldest first. */
   messages: Message[];
 }
-const SAVE_KEY = "deal-atlas.save.v5";
+/** How long after the last command the game is saved. Each save writes megabytes, so not on every click. */
+const SAVE_DELAY_MS = 1_500;
 
 export interface Toast {
   id: number;
@@ -54,8 +56,39 @@ export interface Game {
   dismissTurn(): void;
   /** Starts over. Without options the defaults apply (standard difficulty, high-rates era). */
   newGame(options?: Options): void;
+  /** Saves and goes back to the title screen. */
+  toTitle(): void;
   toasts: Toast[];
   dismissToast(id: number): void;
+}
+
+/** What the title screen shows of the saved game. */
+export interface SaveSummary {
+  date: GameDate;
+  rank: Rank;
+  house: View["house"];
+  deals: number;
+  exits: number;
+  options: Options;
+}
+
+/** What the title screen can do before a game is open. */
+export interface TitleControls {
+  /** The game on this device, or null when there is none (or it is from an older version). */
+  saved: SaveSummary | null;
+  resume(): void;
+  newGame(options?: Options): void;
+}
+
+function summarize(view: View): SaveSummary {
+  return {
+    date: view.date,
+    rank: view.career.rank,
+    house: view.house,
+    deals: view.career.deals_closed,
+    exits: view.career.exits,
+    options: view.options,
+  };
 }
 
 const GameContext = createContext<Game | null>(null);
@@ -68,22 +101,6 @@ export function useGame(): Game {
   return game;
 }
 
-function readSave(): string | null {
-  try {
-    return window.localStorage.getItem(SAVE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeSave(save: string) {
-  try {
-    window.localStorage.setItem(SAVE_KEY, save);
-  } catch {
-    // Private windows refuse storage. The game still runs for this visit.
-  }
-}
-
 async function fetchUniverse(): Promise<string> {
   const response = await fetch(joinBase(import.meta.env.BASE_URL, "content/universe.json"));
   if (!response.ok) {
@@ -92,15 +109,21 @@ async function fetchUniverse(): Promise<string> {
   return response.text();
 }
 
-async function open(fresh: boolean, options?: Options): Promise<GameSession> {
-  const save = fresh ? null : readSave();
-  if (save) {
-    try {
-      return await GameSession.resume(save);
-    } catch {
-      // A save from another schema starts a new game.
-    }
+/** The saved game, or null when there is none or it is from another schema. */
+async function resumeSaved(): Promise<GameSession | null> {
+  const save = await readSave();
+  if (!save) {
+    return null;
   }
+  try {
+    return await GameSession.resume(save);
+  } catch {
+    // A save from another schema starts a new game.
+    return null;
+  }
+}
+
+async function startNew(options?: Options): Promise<GameSession> {
   const seed = Math.floor(Date.now() % 1_000_000_000);
   return GameSession.start(seed, await fetchUniverse(), options);
 }
@@ -109,12 +132,21 @@ export function GameProvider({
   children,
   loading,
   failed,
+  title,
 }: {
   children: ReactNode;
   loading: ReactNode;
   failed: ReactNode;
+  /** The screen before a game opens: continue or start over. */
+  title: (controls: TitleControls) => ReactNode;
 }) {
   const session = useRef<GameSession | null>(null);
+  /** The saved game, read on boot and kept until the player continues or starts over. */
+  const saved = useRef<GameSession | null>(null);
+  /** Undefined while the save is being read. */
+  const [summary, setSummary] = useState<SaveSummary | null | undefined>(undefined);
+  const [playing, setPlaying] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [view, setView] = useState<View | null>(null);
   const [error, setError] = useState(false);
   const [screen, setScreen] = useState<Screen>("map");
@@ -124,6 +156,7 @@ export function GameProvider({
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
   const selectedRef = useRef<number | null>(null);
+  const saveTimer = useRef<number | undefined>(undefined);
   const lastMessage = useRef(-1);
 
   const redraw = useCallback(() => {
@@ -138,28 +171,80 @@ export function GameProvider({
     return next;
   }, []);
 
-  const start = useCallback(
-    (fresh: boolean, options?: Options) => {
-      open(fresh, options)
-        .then((opened) => {
-          session.current = opened;
-          selectedRef.current = null;
-          setSelected(null);
-          setTurn(null);
-          const first = redraw();
-          lastMessage.current = Math.max(-1, ...(first?.messages ?? []).map((message) => message.id));
-          if (fresh) {
-            writeSave(opened.save());
-          }
-        })
-        .catch(() => setError(true));
+  /** Saves now, dropping any save still waiting. */
+  const persist = useCallback(() => {
+    window.clearTimeout(saveTimer.current);
+    saveTimer.current = undefined;
+    if (session.current) {
+      void writeSave(session.current.save());
+    }
+  }, []);
+  const persistSoon = useCallback(() => {
+    window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(persist, SAVE_DELAY_MS);
+  }, [persist]);
+
+  const enter = useCallback(
+    (opened: GameSession) => {
+      session.current = opened;
+      selectedRef.current = null;
+      setSelected(null);
+      setTurn(null);
+      setScreen("map");
+      const first = redraw();
+      lastMessage.current = Math.max(-1, ...(first?.messages ?? []).map((message) => message.id));
+      setPlaying(true);
     },
     [redraw],
   );
 
   useEffect(() => {
-    start(false);
-  }, [start]);
+    let live = true;
+    resumeSaved()
+      .then((found) => {
+        if (!live) {
+          return;
+        }
+        saved.current = found;
+        setSummary(found ? summarize(found.view()) : null);
+      })
+      .catch(() => live && setError(true));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const resume = useCallback(() => {
+    if (saved.current) {
+      enter(saved.current);
+    }
+  }, [enter]);
+
+  const start = useCallback(
+    (options?: Options) => {
+      setBusy(true);
+      startNew(options)
+        .then((opened) => {
+          saved.current = opened;
+          void writeSave(opened.save());
+          setSummary(summarize(opened.view()));
+          enter(opened);
+        })
+        .catch(() => setError(true))
+        .finally(() => setBusy(false));
+    },
+    [enter],
+  );
+
+  const toTitle = useCallback(() => {
+    const current = session.current;
+    if (current) {
+      persist();
+      saved.current = current;
+      setSummary(summarize(current.view()));
+    }
+    setPlaying(false);
+  }, [persist]);
 
   const toast = useCallback((messageId: string, tone: Toast["tone"]) => {
     toastId.current += 1;
@@ -182,9 +267,10 @@ export function GameProvider({
       }
       playSound("act");
       redraw();
+      persistSoon();
       return true;
     },
-    [redraw, toast],
+    [redraw, toast, persistSoon],
   );
 
   const advance = useCallback(
@@ -215,7 +301,7 @@ export function GameProvider({
         return;
       }
       redraw();
-      writeSave(current.save());
+      persist();
       playSound("month");
       const loudest = arrived.map(soundFor).find((sound) => sound !== null);
       if (loudest) {
@@ -223,20 +309,27 @@ export function GameProvider({
       }
       setTurn({ from, months, messages: arrived });
     },
-    [redraw],
+    [redraw, persist],
   );
   const nextMonth = useCallback(() => advance(1), [advance]);
   const skipAhead = useCallback(() => advance(SKIP_LIMIT), [advance]);
 
   useEffect(() => {
+    // A save still waiting is written when the page goes to the background. On a phone that is
+    // often the last moment the app runs; IndexedDB is asynchronous, so the earlier the better.
     const flush = () => {
-      if (session.current) {
-        writeSave(session.current.save());
+      if (saveTimer.current !== undefined) {
+        persist();
       }
     };
+    const hidden = () => document.visibilityState === "hidden" && flush();
+    document.addEventListener("visibilitychange", hidden);
     window.addEventListener("pagehide", flush);
-    return () => window.removeEventListener("pagehide", flush);
-  }, []);
+    return () => {
+      document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("pagehide", flush);
+    };
+  }, [persist]);
 
   const select = useCallback((index: number | null) => {
     selectedRef.current = index;
@@ -283,17 +376,21 @@ export function GameProvider({
       skipAhead,
       turn,
       dismissTurn: () => setTurn(null),
-      newGame: (options) => start(true, options),
+      newGame: start,
+      toTitle,
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, selected, company, select, act, nextMonth, skipAhead, turn, start, toasts]);
+  }, [view, rows, screen, selected, company, select, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
 
   if (error) {
     return <>{failed}</>;
   }
-  if (!game) {
+  if (summary === undefined || busy) {
     return <>{loading}</>;
+  }
+  if (!playing || !game) {
+    return <>{title({ saved: summary, resume, newGame: start })}</>;
   }
   return <GameContext.Provider value={game}>{children}</GameContext.Provider>;
 }

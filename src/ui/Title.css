@@ -1,0 +1,98 @@
+/* The title screen. One card on the paper, a faint survey grid behind it. */
+
+.title-screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 16px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.title-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.title-grid line {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.title-card {
+  position: relative;
+  display: grid;
+  gap: 28px;
+  width: min(400px, 100%);
+  padding: 32px 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.title-brand {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.title-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+}
+.title-brand h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+}
+.title-brand p {
+  margin: 0;
+  color: var(--muted);
+}
+.title-actions {
+  display: grid;
+  gap: 10px;
+}
+.title-actions .btn {
+  min-height: 48px;
+  font-size: 1rem;
+}
+.title-continue {
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+}
+.title-continue-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.title-continue small {
+  font-weight: 400;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  overflow-wrap: anywhere;
+}
+.title-footer {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+.title-footer .language {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}

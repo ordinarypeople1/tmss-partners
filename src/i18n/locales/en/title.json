@@ -1,0 +1,8 @@
+{
+  "title.tagline": "Ten years as a private equity VP",
+  "title.menu": "Start menu",
+  "title.continue": "Continue",
+  "title.saved": "{date} · {rank}, {house} · {deals, plural, one {# deal} other {# deals}}",
+  "title.newGame": "New game",
+  "title.storage": "Progress is saved on this device."
+}

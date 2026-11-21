@@ -22,6 +22,9 @@ async function open(port = 5173, viewport = { width: 1440, height: 900 }) {
     window.localStorage.setItem("deal-atlas.locale", "ko");
   });
   await page.reload();
+  // Through the title screen: no save, so only "new game" is there.
+  await page.click('[data-title="new"]', { timeout: 20000 });
+  await page.click(".newgame .btn.primary");
   await page.waitForSelector(".sidebar", { timeout: 20000 });
   return { browser, page, errors };
 }

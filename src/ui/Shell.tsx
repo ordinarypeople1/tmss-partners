@@ -1,8 +1,5 @@
-import { applyTheme, currentTheme, type Theme } from "./theme";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Splitter, useStoredSize } from "./Splitter";
-import { LOCALES, type Locale } from "../i18n/config";
-import { useLocale } from "../i18n/LocaleProvider";
 import { useT } from "../i18n/useT";
 import { Meter, Tag } from "./charts";
 import { monthsBetween, useFormat } from "./format";
@@ -12,7 +9,7 @@ import { describeMessage } from "./messages";
 import { Moments } from "./Moments";
 import { NewGame } from "./NewGame";
 import { Objectives } from "./Objectives";
-import { isMuted, setMuted } from "./sound";
+import { Preferences } from "./Preferences";
 
 const NAV_ICON: Record<Screen, string> = {
   map: "map",
@@ -97,49 +94,18 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
   );
 }
 
-/** Language, sound and a new game: the same controls in the sidebar and in the phone's menu. */
+/** Language, theme, sound, a new game and the way back to the title: the same controls in the sidebar and in the phone's menu. */
 function Settings({ onNewGame }: { onNewGame: () => void }) {
   const t = useT();
-  const [muted, setMutedState] = useState(isMuted);
-  const { locale, setLocale } = useLocale();
-  const [theme, setTheme] = useState<Theme>(currentTheme);
+  const game = useGame();
   return (
     <div className="settings">
-      <select className="language" value={locale} aria-label={t("language.label")} onChange={(event) => setLocale(event.target.value as Locale)}>
-        {LOCALES.map((code) => (
-          <option key={code} value={code}>
-            {t(`language.${code}`)}
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        className="icon-btn"
-        aria-label={t("shell.theme.label")}
-        title={t(`shell.theme.${theme}`)}
-        onClick={() => {
-          const next = theme === "dark" ? "light" : "dark";
-          applyTheme(next, true);
-          setTheme(next);
-        }}
-      >
-        <Icon name={theme === "dark" ? "moon" : "sun"} size={16} />
-      </button>
-      <button
-        type="button"
-        className="icon-btn"
-        aria-pressed={muted}
-        aria-label={muted ? t("shell.sound.off") : t("shell.sound.on")}
-        title={muted ? t("shell.sound.off") : t("shell.sound.on")}
-        onClick={() => {
-          setMuted(!muted);
-          setMutedState(!muted);
-        }}
-      >
-        <Icon name={muted ? "mute" : "sound"} size={16} />
-      </button>
+      <Preferences />
       <button type="button" className="icon-btn" aria-label={t("shell.newGame")} title={t("shell.newGame")} onClick={onNewGame}>
         <Icon name="restart" size={16} />
+      </button>
+      <button type="button" className="icon-btn" aria-label={t("shell.toTitle")} title={t("shell.toTitle")} onClick={game.toTitle}>
+        <Icon name="exit" size={16} />
       </button>
     </div>
   );
@@ -480,7 +446,7 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
       <TabBar onNewGame={() => setChoosing(true)} />
       <Toasts />
       <Moments />
-      {choosing ? <NewGame onClose={() => setChoosing(false)} /> : null}
+      {choosing ? <NewGame onClose={() => setChoosing(false)} onStart={game.newGame} initial={game.view.options} replaces /> : null}
       {game.view.career.fired ? (
         <div className="overlay" role="alertdialog" aria-modal="true">
           <div className="card">

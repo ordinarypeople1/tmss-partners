@@ -4,6 +4,7 @@ import { CompanyPanel } from "./CompanyPanel";
 import { GameProvider, useGame } from "./game";
 import { MapHub } from "./MapHub";
 import { Shell } from "./Shell";
+import { Title } from "./Title";
 import { Career } from "./screens/Career";
 import { Deals } from "./screens/Deals";
 import { FundScreen } from "./screens/FundScreen";
@@ -40,7 +41,9 @@ export function App() {
     document.title = t("app.title");
   }, [t]);
   return (
-    <GameProvider loading={<p className="boot">{t("app.loading")}</p>} failed={<p className="boot">{t("app.loadError")}</p>}>
+    <GameProvider loading={<p className="boot">{t("app.loading")}</p>} failed={<p className="boot">{t("app.loadError")}</p>}
+      title={(controls) => <Title {...controls} />}
+    >
       <Shell panel={<CompanyPanel />}>
         <Screens />
       </Shell>
