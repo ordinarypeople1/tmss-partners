@@ -1,0 +1,120 @@
+/* The five-year chart and the statement tables on the financials tab. */
+
+.five-year svg {
+  width: 100%;
+  height: auto;
+}
+.five-year-x {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.five-year-pct {
+  fill: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.statements {
+  display: grid;
+  gap: 10px;
+}
+.statements-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+}
+.segmented button {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.segmented button[aria-selected="true"] {
+  background: var(--raised);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--ink);
+}
+
+/* Wide tables scroll inside the card; the line names stay put. */
+.statements-scroll {
+  overflow-x: auto;
+  margin-inline: -4px;
+  padding-inline: 4px;
+}
+.statement-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+/* The unit sits between the two switches, pushed to the right. */
+.statements-unit {
+  align-self: center;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.five-year figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.statement-table th,
+.statement-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line-soft, var(--line));
+  font-size: 0.85rem;
+}
+.statement-table thead th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.statement-table th[scope="row"],
+.statement-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 128px;
+  background: var(--raised);
+  font-weight: 500;
+  text-align: left;
+}
+.statement-table td.num,
+.statement-table th.num {
+  min-width: 64px;
+  text-align: right;
+}
+.statement-table tr[data-total] th,
+.statement-table tr[data-total] td {
+  border-top: 1px solid var(--ink);
+  font-weight: 800;
+}
+.statement-table tr[data-pct] th,
+.statement-table tr[data-pct] td {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+.statement-table td[data-negative] {
+  color: var(--bad);
+}
+.statement-table [data-ltm] {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}

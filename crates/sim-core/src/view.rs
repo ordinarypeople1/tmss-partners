@@ -474,6 +474,7 @@ impl World {
                     "revenue_history": company.revenue_history,
                     "ebitda_history": company.ebitda_history,
                     "fcf_history": company.fcf_history,
+                    "statements": statements(company),
                 }),
             );
         }
@@ -646,4 +647,70 @@ mod short_name_tests {
         assert_eq!(short_name("Pennington Kitchens Ltd"), "Pennington Kitchens");
         assert_eq!(short_name("Plain Name"), "Plain Name");
     }
+}
+
+/// The three statements for one period, with the subtotals written out.
+fn period_json(period: &crate::ledger::Period) -> Value {
+    let books = &period.books;
+    json!({
+        "year": period.year,
+        "quarter": period.quarter,
+        "months": period.months,
+        "income": {
+            "revenue": period.revenue,
+            "cogs": period.cogs,
+            "gross_profit": period.gross_profit(),
+            "sga": period.sga,
+            "ebitda": period.ebitda,
+            "da": period.da,
+            "ebit": period.ebit(),
+            "interest": period.interest,
+            "ebt": period.ebt(),
+            "tax": period.tax,
+            "net_income": period.net_income,
+        },
+        "balance": {
+            "cash": books.cash,
+            "receivables": books.accounts_receivable,
+            "inventory": books.inventory,
+            "net_ppe": books.net_ppe(),
+            "goodwill": books.goodwill,
+            "total_assets": books.total_assets(),
+            "payables": books.accounts_payable,
+            "debt": books.debt,
+            "total_liabilities": books.total_liabilities(),
+            "share_capital": books.share_capital,
+            "retained_earnings": books.retained_earnings,
+            "total_equity": books.total_equity(),
+        },
+        "cashflow": {
+            "net_income": period.net_income,
+            "da": period.da,
+            "change_in_nwc": -period.change_in_nwc,
+            "operating": period.cash_from_operations(),
+            "capex": -period.capex,
+            "free_cash_flow": period.free_cash_flow(),
+            "debt_net": period.debt_draw - period.debt_repayment,
+            "dividends": -period.dividends,
+            "other": period.other_financing(),
+            "net_change": period.closing_cash - period.opening_cash,
+            "closing_cash": period.closing_cash,
+        },
+    })
+}
+
+/// Fiscal years (up to five, oldest first), the last twelve months, and the
+/// last eight quarters: the layout a PE or banking model starts from.
+fn statements(company: &Company) -> Value {
+    let years = company.fiscal_years();
+    let years: Vec<Value> = years[years.len().saturating_sub(5)..].iter().map(period_json).collect();
+    let quarters: Vec<Value> = company.ledger[company.ledger.len().saturating_sub(8)..]
+        .iter()
+        .map(period_json)
+        .collect();
+    json!({
+        "years": years,
+        "ltm": company.last_twelve_months().as_ref().map(period_json),
+        "quarters": quarters,
+    })
 }

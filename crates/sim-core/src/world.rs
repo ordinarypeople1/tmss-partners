@@ -516,6 +516,14 @@ impl World {
         let career = Career::new();
         let sectors = universe.industries.len();
         let economy = Economy::new(universe.industries.len(), &mut rng, options.era);
+        // Five years of statements behind each company, from a seed of its own
+        // so the main stream of the game is untouched.
+        for (index, company) in companies.iter_mut().enumerate() {
+            let rate = company.interest_rate_bps(&economy);
+            let industry = &universe.industries[company.sector];
+            let history_seed = seed ^ (index as u64 + 1).wrapping_mul(0x9E37_79B9_7F4A_7C15);
+            company.backfill(industry, universe.opens.year - 1, rate, history_seed);
+        }
         let mut world = World {
             schema_version: SAVE_SCHEMA_VERSION,
             seed,
@@ -854,6 +862,9 @@ impl World {
             let industry = &self.industries[self.companies[index].sector];
             let dividends = self.companies[index].step(industry, &self.economy, &mut self.rng);
             self.collect_dividends(index, dividends);
+            if closes_quarter {
+                self.companies[index].close_quarter(closing.year, closing.month.div_ceil(3));
+            }
             if closing.month == 12 {
                 self.companies[index].new_year();
             }
@@ -1478,6 +1489,21 @@ pub mod tests {
         let view = world.view();
         assert_eq!(view["league"].as_array().unwrap().len(), RIVAL_HOUSES + 1);
         assert_eq!(view["objectives"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn every_company_opens_with_five_years_and_keeps_closing_quarters() {
+        let mut world = world(4);
+        for company in &world.companies {
+            assert_eq!(company.fiscal_years().len(), 5);
+            assert!(company.ledger.iter().all(|period| period.books.balances()));
+        }
+        run(&mut world, 6);
+        for company in world.companies.iter().filter(|company| company.is_active()) {
+            let last = company.ledger.last().unwrap();
+            assert_eq!((last.year, last.quarter, last.months), (2027, 2, 3));
+            assert!(last.books.balances());
+        }
     }
 
     #[test]

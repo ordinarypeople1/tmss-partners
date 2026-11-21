@@ -354,6 +354,7 @@ export interface Financials {
   revenue_history: number[];
   ebitda_history: number[];
   fcf_history: number[];
+  statements: Statements;
 }
 
 export interface Offer {
@@ -750,3 +751,30 @@ export type Command =
 
 /** `error` is a code from sim-core's CommandError, e.g. "no_attention". */
 export type CommandResult = { ok: true } | { ok: false; error: string };
+
+/** One period of the three statements, from `World::view`. Amounts are thousand USD. */
+export interface StatementPeriod {
+  year: number;
+  /** 1–4 for a quarter; 0 for a fiscal year. */
+  quarter: number;
+  months: number;
+  income: Record<"revenue" | "cogs" | "gross_profit" | "sga" | "ebitda" | "da" | "ebit" | "interest" | "ebt" | "tax" | "net_income", number>;
+  balance: Record<
+    | "cash" | "receivables" | "inventory" | "net_ppe" | "goodwill" | "total_assets"
+    | "payables" | "debt" | "total_liabilities" | "share_capital" | "retained_earnings" | "total_equity",
+    number
+  >;
+  cashflow: Record<
+    | "net_income" | "da" | "change_in_nwc" | "operating" | "capex" | "free_cash_flow"
+    | "debt_net" | "dividends" | "other" | "net_change" | "closing_cash",
+    number
+  >;
+}
+
+export interface Statements {
+  /** Up to five fiscal years, oldest first. */
+  years: StatementPeriod[];
+  ltm: StatementPeriod | null;
+  /** The last eight closed quarters, oldest first. */
+  quarters: StatementPeriod[];
+}
