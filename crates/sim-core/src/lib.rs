@@ -9,6 +9,7 @@ pub mod calendar;
 pub mod company;
 pub mod content;
 pub mod deal;
+pub mod diligence;
 pub mod economy;
 pub mod fund;
 pub mod ic;

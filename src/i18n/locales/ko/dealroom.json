@@ -8,7 +8,7 @@
   "dealroom.stream.running": "진행 중",
   "dealroom.stream.done": "완료",
   "dealroom.stream.arrives": "월말에 보고서 도착",
-  "dealroom.stream.clean": "발견된 이슈 없음",
+  "dealroom.stream.clean": "보고서 대기",
   "dealroom.stream.run": "착수 · {cost}",
   "dealroom.offer": "오퍼 구조",
   "dealroom.offer.draft": "초안",

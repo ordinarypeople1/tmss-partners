@@ -1665,6 +1665,30 @@ pub mod tests {
     }
 
     #[test]
+    fn diligence_reports_size_what_they_find_and_set_two_cases_side_by_side() {
+        use crate::diligence::FindingKind;
+        let mut world = world(7);
+        run(&mut world, 12);
+        let company = joinable(&mut world);
+        world.apply(Command::SignNda { company }).unwrap();
+        world.apply(Command::RunDiligence { company, stream: DdStream::Financial }).unwrap();
+        world.finish_diligence();
+        let deal = &world.deals[world.deal_index(company).unwrap()];
+        let report = deal.reports.iter().find(|report| report.stream == DdStream::Financial).unwrap();
+        assert_eq!(report.findings[0].kind, FindingKind::QualityOfEarnings);
+        assert!(report.findings.iter().any(|finding| finding.kind == FindingKind::NetDebt));
+        let outlook = report.outlook.as_ref().unwrap();
+        // The memorandum is the optimist.
+        assert!(outlook.management_growth_bps > outlook.diligence_growth_bps);
+        assert!(outlook.management_margin_bps > outlook.diligence_margin_bps);
+        assert!(world.companies[company]
+            .issues
+            .iter()
+            .filter(|issue| issue.kind.stream() == DdStream::Financial)
+            .all(|issue| issue.found));
+    }
+
+    #[test]
     fn deals_abroad_wait_for_a_principal() {
         let mut world = world(2);
         run(&mut world, 14);

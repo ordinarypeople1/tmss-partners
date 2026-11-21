@@ -1,6 +1,7 @@
 import { Indication, ProcessCard } from "./Process";
 import { ValuationCard } from "./Valuation";
 import { IcMeetingDialog } from "./IcMeeting";
+import { ReportDialog, ReportSummary } from "./DiligenceReport";
 import { gate } from "./Gate";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
@@ -293,6 +294,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const meeting = deal?.ic_meeting ?? null;
   const meetingKey = meeting ? `${meeting.date.year}-${meeting.date.month}-${meeting.open}` : "";
   const [meetingShown, setMeetingShown] = useState(false);
+  const [reading, setReading] = useState<DdStream | null>(null);
   const [seenMeeting, setSeenMeeting] = useState("");
   // The committee walks in: open the room once, when it sits.
   useEffect(() => {
@@ -533,6 +535,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             const found = company.issues.filter(
               (issue) => issue.found && ISSUE_STREAM[issue.kind] === stream,
             );
+            const report = deal.reports?.find((item) => item.stream === stream);
             return (
               <li
                 key={stream}
@@ -556,20 +559,21 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 </div>
                 {done ? (
                   <div className="dr-found">
-                    {found.length ? (
-                      found.map((issue) => (
-                        <Tag
-                          key={issue.kind}
-                          tone="bad"
-                          icon={<Icon name="alert" size={12} />}
-                        >
-                          {t(`issue.${issue.kind}`)}
-                        </Tag>
-                      ))
-                    ) : (
-                      <span className="muted">
-                        {t("dealroom.stream.clean")}
-                      </span>
+                    {found.map((issue) => (
+                      <Tag key={issue.kind} tone="bad" icon={<Icon name="alert" size={12} />}>
+                        {t(`issue.${issue.kind}`)}
+                      </Tag>
+                    ))}
+                    {report ? (
+                      <>
+                        <ReportSummary report={report} />
+                        <button type="button" className="btn small ghost" onClick={() => setReading(stream)}>
+                          <Icon name="table" size={13} />
+                          {t("dd.read")}
+                        </button>
+                      </>
+                    ) : found.length ? null : (
+                      <span className="muted">{t("dealroom.stream.clean")}</span>
                     )}
                   </div>
                 ) : running ? (
@@ -1422,6 +1426,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
         <div className="dr-actions">{dropControl}</div>
       )}
     </div>
+    {reading && deal.reports?.find((item) => item.stream === reading) ? (
+      <ReportDialog report={deal.reports.find((item) => item.stream === reading)!} company={company.short} onClose={() => setReading(null)} />
+    ) : null}
     {meetingShown ? <IcMeetingDialog company={company} onClose={() => setMeetingShown(false)} /> : null}
     {dock ? (
       <div className="cp-dock dr-dock">

@@ -1,0 +1,52 @@
+.dd-summary,
+.dd-findings {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dd-summary li,
+.dd-findings li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.dd-summary li svg,
+.dd-findings li svg {
+  margin-top: 2px;
+}
+[data-tone="good"] > svg {
+  color: var(--good);
+}
+[data-tone="bad"] > svg {
+  color: var(--bad);
+}
+[data-tone="neutral"] > svg {
+  color: var(--muted);
+}
+.dd-report {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+.dd-findings li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  font-size: 0.92rem;
+}
+.dd-outlook caption {
+  padding-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: left;
+}
+.dd-outlook td[data-tone="bad"] {
+  color: var(--bad);
+  font-weight: 700;
+}

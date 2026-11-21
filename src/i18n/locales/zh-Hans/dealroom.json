@@ -8,7 +8,7 @@
   "dealroom.stream.running": "进行中",
   "dealroom.stream.done": "完成",
   "dealroom.stream.arrives": "报告月底送达",
-  "dealroom.stream.clean": "未发现问题",
+  "dealroom.stream.clean": "等待报告",
   "dealroom.stream.run": "启动 · {cost}",
   "dealroom.offer": "报价方案",
   "dealroom.offer.draft": "草稿",

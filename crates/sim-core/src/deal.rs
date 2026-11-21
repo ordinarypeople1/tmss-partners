@@ -191,6 +191,9 @@ pub struct Deal {
     /// Concessions taken off the 5% room to raise above the approval.
     #[serde(default)]
     pub ic_cut_bps: i64,
+    /// The diligence reports in, one per stream.
+    #[serde(default)]
+    pub reports: Vec<crate::diligence::Report>,
 }
 
 impl Deal {
@@ -240,6 +243,7 @@ impl World {
             ic_record: None,
             ic_conditions: Vec::new(),
             ic_cut_bps: 0,
+            reports: Vec::new(),
             costs: 0,
             offer: None,
             ic: None,
@@ -293,13 +297,15 @@ impl World {
             let running = std::mem::take(&mut self.deals[deal].streams_running);
             let company = self.deals[deal].company;
             for stream in running {
-                let mut found = Vec::new();
-                for issue in &mut self.companies[company].issues {
-                    if issue.kind.stream() == stream && !issue.found {
-                        issue.found = true;
-                        found.push(issue.kind);
-                    }
-                }
+                let found: Vec<IssueKind> = self.companies[company]
+                    .issues
+                    .iter()
+                    .filter(|issue| issue.kind.stream() == stream && !issue.found)
+                    .map(|issue| issue.kind)
+                    .collect();
+                let report = self.write_report(company, stream);
+                self.deals[deal].reports.retain(|old| old.stream != stream);
+                self.deals[deal].reports.push(report);
                 self.deals[deal].streams_done.push(stream);
                 self.post(
                     MessageKind::DiligenceReport { stream, found },
