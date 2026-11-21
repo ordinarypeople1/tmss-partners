@@ -111,5 +111,11 @@
   "holding.lever.family_workforce": "长工龄员工 · 罢工·声誉风险 ↑",
   "holding.lever.fragmented_market": "市场分散 · 协同 ↑",
   "holding.lever.aging_equipment": "设备老化 · 维持性资本开支 ↑",
-  "holding.lever.single_plant": "单一工厂 · 停产风险"
+  "holding.lever.single_plant": "单一工厂 · 停产风险",
+  "holding.minority.title": "少数股权",
+  "holding.minority.body": "由所有者经营公司：预算、举措、补强收购和再融资都由其决定。基金收取分红并选择出售时机。",
+  "holding.minority.preferred": "优先股：退出时先收回{amount}。",
+  "holding.minority.common": "普通股：退出款项与所有者按比例分配。",
+  "holding.exit.minority.secondary": "仅出售股权给其他投资者 · 因无控制权而折价",
+  "holding.exit.minority.ipo": "EBITDA $25M以上 · 与所有者共同上市 · 上市时60%，6个月后余下部分"
 }

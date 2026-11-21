@@ -262,6 +262,9 @@ impl World {
                 "credit_spread_bps": self.economy.credit_spread_bps,
                 "valuation_index": self.economy.valuation_index(),
                 "max_senior_millis": self.economy.max_senior_millis(),
+                "private_credit_extra_millis": crate::deal::PRIVATE_CREDIT_EXTRA_MILLIS,
+                "private_credit_premium_bps": crate::deal::PRIVATE_CREDIT_PREMIUM_BPS,
+                "fixed_premium_bps": crate::deal::FIXED_PREMIUM_BPS,
                 "max_mezz_millis": self.economy.max_mezz_millis(),
                 "senior_rate_bps": self.economy.senior_rate_bps(),
                 "mezz_rate_bps": self.economy.mezz_rate_bps(),
@@ -389,6 +392,22 @@ impl World {
                 "known_at": crate::sourcing::KNOWN_AT,
                 "early_notice_at": self.early_notice_threshold(),
                 "proposal_at": self.proposal_threshold(index),
+            }),
+        );
+        detail.insert(
+            "minority".into(),
+            json!({
+                "at": crate::sourcing::MINORITY_AT,
+                "founder": matches!(company.owner, Owner::Founder { .. }),
+                "open": matches!(company.owner, Owner::Founder { .. })
+                    && company.is_active()
+                    && !company.is_player_owned()
+                    && company.process.is_none()
+                    && company.pending.is_none()
+                    && company.approach_cooldown == 0
+                    && company.relationship >= crate::sourcing::MINORITY_AT,
+                "min_stake_bps": crate::deal::MIN_STAKE_BPS,
+                "max_stake_bps": crate::deal::MAX_STAKE_BPS,
             }),
         );
         detail.insert("country".into(), json!(company.country));
@@ -577,6 +596,9 @@ impl World {
                     "entry_equity": entry_equity,
                     "cost": holding.cost,
                     "ownership_bps": own,
+                    "minority": holding.minority,
+                    "preferred": holding.preferred,
+                    "fixed_rate_bps": company.fixed_rate_bps,
                     "dividends": holding.dividends,
                     "value": value,
                     "moic_millis": ratio_millis(value + holding.dividends, holding.cost),
@@ -616,6 +638,30 @@ impl World {
             "financing": financing,
             "returns": self.project_returns(index, offer),
             "reserve_hint": Value::Null,
+        })
+    }
+
+    /// A minority proposal before any NDA: what the fund would pay, what it would own,
+    /// and how the owner is likely to take it. Amounts are rounded; the books are not open yet.
+    pub fn preview_minority(&self, index: usize, offer: &Offer) -> Value {
+        let Some(company) = self.companies.get(index) else {
+            return Value::Null;
+        };
+        if offer.kind != crate::deal::DealKind::Minority || !matches!(company.owner, Owner::Founder { .. }) {
+            return Value::Null;
+        }
+        let round = |value: i64| {
+            let unit = 10_i64.pow((value.abs().max(1) as f64).log10().floor().max(2.0) as u32 - 1);
+            (value + unit / 2) / unit * unit
+        };
+        let financing = self.financing(index, offer);
+        json!({
+            "equity": round(financing.equity),
+            "fees": round(financing.fees),
+            "primary": financing.primary,
+            "ownership_bps": financing.ownership_bps / 100 * 100,
+            "odds_pct": self.minority_odds(index, offer),
+            "valid": self.validate_offer(index, offer).is_ok(),
         })
     }
 

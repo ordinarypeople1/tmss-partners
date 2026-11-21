@@ -121,5 +121,11 @@
   "dealroom.raise.submit": "입찰가 인상",
   "dealroom.raise.exhausted": "IC 승인 한도를 다 썼습니다. 더 올릴 수 없습니다.",
   "dealroom.listedNote": "상장사: 이사회는 모델 가치보다 15% 안팎의 프리미엄을 요구합니다.",
-  "dealroom.stream.round2": "2차 라운드에 열림"
+  "dealroom.stream.round2": "2차 라운드에 열림",
+  "dealroom.minority.noPlan": "소수지분은 경영 계획을 내지 않습니다. 오너가 회사를 계속 운영하고, 펀드는 배당을 받으며 엑시트를 기다립니다.",
+  "dealroom.minority.check": "펀드 출자",
+  "dealroom.minority.checkHint": "수수료 {fees} 포함",
+  "dealroom.minority.owns": "인수 후 지분",
+  "dealroom.minority.ownerKeeps": "오너 지분",
+  "dealroom.say.0.no_protection": "경영권도 없는데 보통주로 들어가면 손실을 막을 장치가 없습니다."
 }

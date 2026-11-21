@@ -111,5 +111,11 @@
   "holding.lever.family_workforce": "長期勤続の従業員 · スト・評判リスク ↑",
   "holding.lever.fragmented_market": "分散した市場 · シナジー ↑",
   "holding.lever.aging_equipment": "老朽設備 · 維持設備投資 ↑",
-  "holding.lever.single_plant": "単一工場 · 操業停止リスク"
+  "holding.lever.single_plant": "単一工場 · 操業停止リスク",
+  "holding.minority.title": "少数持分",
+  "holding.minority.body": "オーナーが会社を運営します。予算、施策、ボルトオン、リキャップはオーナーが決めます。ファンドは配当を受け、売却の時期を選びます。",
+  "holding.minority.preferred": "優先株：エグジット時に{amount}を先に回収します。",
+  "holding.minority.common": "普通株：エグジット代金をオーナーと同じ比率で分けます。",
+  "holding.exit.minority.secondary": "持分のみ他の投資家へ · 経営権がないため割引",
+  "holding.exit.minority.ipo": "EBITDA $25M以上 · オーナーと共に上場 · 公募時60%、6か月後に残り"
 }

@@ -121,5 +121,11 @@
   "dealroom.raise.submit": "Raise bid",
   "dealroom.raise.exhausted": "The IC-approved ceiling is used up. No further raise.",
   "dealroom.listedNote": "Public company: the board wants a premium of about 15% over model value.",
-  "dealroom.stream.round2": "Opens in round two"
+  "dealroom.stream.round2": "Opens in round two",
+  "dealroom.minority.noPlan": "A minority stake comes with no plan. The owner keeps running the company; the fund collects dividends and waits for an exit.",
+  "dealroom.minority.check": "Fund check",
+  "dealroom.minority.checkHint": "Includes {fees} of fees",
+  "dealroom.minority.owns": "Stake after closing",
+  "dealroom.minority.ownerKeeps": "Owner keeps",
+  "dealroom.say.0.no_protection": "No control and common shares: nothing stands between us and a loss."
 }

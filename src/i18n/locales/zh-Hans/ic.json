@@ -112,5 +112,9 @@
   "error.condition_open": "IC 要求的尽调还没完成。",
   "talk.title.think": "所有者的答复",
   "talk.think.1": "提议不错。我和家里人商量一下，一两个月内给您回复。",
-  "talk.think.2": "数字我明白了。先听听会计师和银行的意见再答复您。"
+  "talk.think.2": "数字我明白了。先听听会计师和银行的意见再答复您。",
+  "ic.q.no_protection": "没有控制权，又是普通股。所有者出错时，我们靠什么保护资金？",
+  "ic.a.no_protection.evidence": "我认识所有者多年，尽调也没发现问题。",
+  "ic.a.no_protection.concede": "下一笔少数股权起，我们用优先股进入。",
+  "ic.a.no_protection.push_back": "要求优先股，所有者就会拒绝。只有这个条件才能进。"
 }

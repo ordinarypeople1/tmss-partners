@@ -1,0 +1,63 @@
+/* The minority proposal: a card on the company's overview and the dialog it opens. */
+
+.minority-card {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.minority-card p {
+  margin: 0;
+}
+.minority-fields {
+  display: grid;
+  gap: 12px;
+}
+.minority-result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.minority-result div {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.minority-result dt {
+  color: var(--muted);
+  font-size: 0.867rem;
+}
+.minority-result dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+.minority-result [data-mood="warm"] dd {
+  color: var(--good);
+}
+.minority-result [data-mood="cool"] dd {
+  color: var(--bad);
+}
+.minority-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dr-minority-note {
+  margin: 8px 0 0;
+}
+.indication-terms {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+}
+.indication-terms dt {
+  color: var(--muted);
+}
+.indication-terms dd {
+  margin: 0;
+  font-weight: 600;
+}
+.indication-signals {
+  flex-wrap: wrap;
+  gap: 6px;
+}

@@ -19,6 +19,7 @@ import { useGame, type Game } from "./game";
 import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
 import { ActionBar, Journey } from "./Journey";
+import { MinorityCard } from "./Minority";
 import { bidderName } from "./messages";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
@@ -219,6 +220,7 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
           <HoldingTab company={company} />
         ) : null}
         {current === "overview" && sourcing ? <Journey company={company} /> : null}
+        {current === "overview" && sourcing ? <MinorityCard company={company} /> : null}
       </div>
       {sourcing ? <ActionBar company={company} onOpenDeal={() => setTab("deal")} /> : null}
     </div>

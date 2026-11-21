@@ -16,7 +16,7 @@ export type Figure = [number, number];
 export type Phase = "expansion" | "slowdown" | "recession" | "recovery";
 export type Rank = "vice_president" | "principal" | "partner" | "founder";
 export type Stage = "preparing" | "marketing" | "bidding" | "exclusive";
-export type SaleReason = "retirement" | "succession" | "fund_exit" | "non_core" | "distress" | "strategic_review";
+export type SaleReason = "retirement" | "succession" | "fund_exit" | "non_core" | "distress" | "strategic_review" | "growth_capital";
 export type DdStream = "financial" | "commercial" | "operational" | "legal";
 export type IssueKind =
   | "inventory_overstated"
@@ -50,6 +50,7 @@ export type Choice =
   | "second";
 export type Stance = "for" | "hold" | "against";
 export type Concern =
+  | "no_protection"
   | "leverage"
   | "price"
   | "interest_cover"
@@ -375,9 +376,30 @@ export interface Offer {
   mezz_kind: MezzKind;
   /** New shares the fund subscribes; the cash goes into the company. */
   primary: number;
+  /** A buyout takes control; a minority stake leaves the company with its owner. */
+  kind?: DealKind;
+  /** Minority only: the share of the existing shares bought from the owner. */
+  stake_bps?: number;
+  /** Minority only: preferred shares, which take their money back first at an exit. */
+  preferred?: boolean;
+  lender?: Lender;
+  rate?: RateKind;
 }
 
 export type MezzKind = "notes" | "convertible";
+export type DealKind = "buyout" | "minority";
+export type Lender = "bank" | "private_credit";
+export type RateKind = "floating" | "fixed";
+
+/** A minority proposal before the books are open: rounded amounts and the owner's mood. */
+export interface MinorityPreview {
+  equity: number;
+  fees: number;
+  primary: number;
+  ownership_bps: number;
+  odds_pct: number;
+  valid: boolean;
+}
 
 export interface Financing {
   ebitda: number;
@@ -396,6 +418,8 @@ export interface Financing {
   multiple_millis: number;
   primary: number;
   convertible: number;
+  /** The all-in rate on the debt. */
+  rate_bps: number;
   /** Fully diluted shares after closing: the seller's rolled stake, the bonds as converted. */
   seller_bps: number;
   converted_bps: number;
@@ -493,6 +517,12 @@ export interface HoldingView {
   entry_equity: number;
   cost: number;
   ownership_bps: number;
+  /** A minority stake: the owner runs the company. */
+  minority: boolean;
+  /** What preferred shares take back first at an exit; 0 for common shares. */
+  preferred: number;
+  /** The fixed all-in rate when the debt was swapped; null floats. */
+  fixed_rate_bps: number | null;
   dividends: number;
   /** The fund's share of model equity. A mark, not a price. */
   value: number;
@@ -531,7 +561,8 @@ export interface CompanyView extends CompanyRow {
   /** The senior executive who takes the fund's first meetings. */
   executive: { name: string; feminine: boolean; role: "cfo" | "coo" | "strategy" };
   /** The player's proposal while the owner thinks it over. */
-  pending: { kind: "acquisition" | "exclusive"; months_left: number } | null;
+  pending: { kind: "acquisition" | "exclusive" | "minority"; months_left: number } | null;
+  minority: { at: number; founder: boolean; open: boolean; min_stake_bps: number; max_stake_bps: number };
   sector_multiple_millis: number;
   union_strength_bps: number;
   /** 1 through 20. Null until operational diligence. */
@@ -721,6 +752,9 @@ export interface View {
     valuation_index: number;
     max_senior_millis: number;
     max_mezz_millis: number;
+    private_credit_extra_millis: number;
+    private_credit_premium_bps: number;
+    fixed_premium_bps: number;
     senior_rate_bps: number;
     mezz_rate_bps: number;
     history: { policy_rate_bps: number; credit_spread_bps: number; valuation_index: number }[];
@@ -767,7 +801,8 @@ export type Command =
   | { type: "watch"; company: number; on: boolean }
   | { type: "meet_owner"; company: number }
   | { type: "approach_owner"; company: number }
-  | { type: "submit_indication"; company: number; ev: number }
+  | { type: "submit_indication"; company: number; offer: Offer }
+  | { type: "propose_minority"; company: number; offer: Offer }
   | { type: "cover_bank"; adviser: number }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }

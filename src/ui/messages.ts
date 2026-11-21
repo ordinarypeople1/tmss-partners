@@ -90,6 +90,10 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     case "owner_opened":
     case "sale_started":
       values.reason = t(`reason.${message.reason}`);
+      // Minority talks end where they started; there is no auction behind them.
+      if (message.type === "owner_opened" && message.reason === "growth_capital") {
+        bodyId = "msg.owner_opened.minority";
+      }
       break;
     case "teaser_received":
       values.adviser = view.advisers[message.adviser]?.name ?? "";

@@ -734,11 +734,11 @@ function ExitCard({ company, holding }: SectionProps) {
         </div>
       ) : (
         <ul className="hd-list hd-routes">
-          {ROUTES.map((route) => (
+          {ROUTES.filter((route) => !(holding.minority && route === "strategic")).map((route) => (
             <li key={route} className="hd-item">
               <div className="hd-item-main">
                 <b>{t(`route.${route}`)}</b>
-                <span className="muted">{t(`holding.exit.${route}`)}</span>
+                <span className="muted">{t(holding.minority ? `holding.exit.minority.${route}` : `holding.exit.${route}`)}</span>
               </div>
               <ConfirmButton
                 label={t("holding.exit.start")}
@@ -754,6 +754,27 @@ function ExitCard({ company, holding }: SectionProps) {
   );
 }
 
+/** What a minority stake is: a share, a class of shares, and an owner who still decides. */
+function MinorityCard({ holding }: SectionProps) {
+  const t = useT();
+  const f = useFormat();
+  return (
+    <section className="card hd-card">
+      <h3>
+        <Icon name="handshake" size={14} />
+        <span>{t("holding.minority.title")}</span>
+        <Tag tone="accent">{f.pct(holding.ownership_bps, 1)}</Tag>
+      </h3>
+      <p className="muted">{t("holding.minority.body")}</p>
+      <p>
+        {holding.preferred > 0
+          ? t("holding.minority.preferred", { amount: f.money(holding.preferred) })
+          : t("holding.minority.common")}
+      </p>
+    </section>
+  );
+}
+
 /** The operations tab for a company the fund owns. */
 export function HoldingTab(props: { company: CompanyView }) {
   const { company } = props;
@@ -762,6 +783,18 @@ export function HoldingTab(props: { company: CompanyView }) {
     return null;
   }
   const section = { company, holding, financials };
+  if (holding.minority) {
+    // The owner runs the company. The fund watches, collects its dividends and waits for an exit.
+    return (
+      <div className="holding-tab stack">
+        <PendingBanner company={company} />
+        <MinorityCard {...section} />
+        <PeopleCard {...section} />
+        <ValueCard {...section} />
+        <ExitCard {...section} />
+      </div>
+    );
+  }
   return (
     <div className="holding-tab stack">
       <PendingBanner company={company} />

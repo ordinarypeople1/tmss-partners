@@ -42,5 +42,6 @@
   "story.intent.open": "좋은 조건이면 팔 수 있다는 게 오너의 속내입니다.",
   "story.intent.eager": "오너는 빨리 정리하고 싶어 합니다.",
   "story.more": "더 보기",
-  "story.less": "접기"
+  "story.less": "접기",
+  "story.sale.growth_capital": "오너는 회사를 팔 생각은 없지만, 성장 자금과 함께할 투자자를 찾고 있습니다."
 }

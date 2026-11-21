@@ -11,12 +11,15 @@ use crate::company::Stance;
 use crate::deal::{IcOutcome, DD_STREAM_COUNT};
 use crate::fund::Rank;
 use crate::market::{Process, Stage};
+use crate::math::ratio_bps;
 use crate::world::{CommandError, MessageKind, World};
 
 /// Relationship at which an owner says how they feel about selling.
 pub const KNOWN_AT: i64 = 20;
 /// Relationship at which an owner will hear an unsolicited proposal, or agree to talk alone.
 pub const PROPOSAL_AT: i64 = 60;
+/// A minority proposal asks less of the owner than a sale, and needs less trust.
+pub const MINORITY_AT: i64 = 40;
 
 /// How the owner knows the player.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -102,6 +105,8 @@ pub enum ProposalKind {
     Acquisition,
     /// Talk alone before the bank starts an auction.
     Exclusive,
+    /// Buy a minority stake from an owner who keeps the company.
+    Minority,
 }
 
 /// A proposal the owner is still thinking over.
@@ -109,6 +114,9 @@ pub enum ProposalKind {
 pub struct Pending {
     pub kind: ProposalKind,
     pub months_left: u32,
+    /// The terms of a minority proposal.
+    #[serde(default)]
+    pub offer: Option<crate::deal::Offer>,
 }
 
 impl World {
@@ -153,6 +161,130 @@ impl World {
         // A rival at the door makes the owner take the question seriously.
         let courted = if target.suitor.is_some() { 10 } else { 0 };
         (base + warmth + stance + courted + self.street_swing()).clamp(3, 95)
+    }
+
+    /// How likely an owner is to take a minority proposal on these terms, in percent.
+    /// Price and new money for the company help; a big stake and preferred shares cost.
+    pub fn minority_odds(&self, company: usize, offer: &crate::deal::Offer) -> i64 {
+        let target = &self.companies[company];
+        let warmth = (target.relationship - MINORITY_AT).max(0) / 2;
+        let price_bps = ratio_bps(offer.ev, self.model_ev(company).max(1));
+        let price = match price_bps {
+            i64::MIN..=8_999 => -25,
+            9_000..=9_499 => -10,
+            9_500..=9_999 => 0,
+            10_000..=10_999 => 8,
+            _ => 15,
+        };
+        let stake = match offer.stake_bps {
+            i64::MIN..=2_000 => 5,
+            2_001..=3_499 => 0,
+            _ => -10,
+        };
+        let financing = self.financing(company, offer);
+        // New money for the business is what most owners want from a minority investor.
+        let growth = if financing.primary * 2 >= financing.equity - financing.fees { 10 } else { 0 };
+        let preferred = if offer.preferred { -12 } else { 0 };
+        let stance = match target.stance {
+            Stance::Sentimental => 5,
+            Stance::PriceMaximizer => -5,
+            _ => 0,
+        };
+        // An owner who wants out wants all of it out.
+        let intent = match self.intent(company) {
+            Intent::Eager => -10,
+            Intent::Open => -5,
+            _ => 0,
+        };
+        (45 + warmth + price + stake + growth + preferred + stance + intent + self.street_swing())
+            .clamp(3, 90)
+    }
+
+    /// Proposes a minority stake on stated terms. The owner answers in a month or two;
+    /// a yes opens talks alone at that price.
+    pub(crate) fn propose_minority(
+        &mut self,
+        company: usize,
+        offer: crate::deal::Offer,
+    ) -> Result<(), CommandError> {
+        let target = self
+            .companies
+            .get(company)
+            .ok_or(CommandError::UnknownCompany)?;
+        if !target.is_active() || target.is_player_owned() {
+            return Err(CommandError::UnknownCompany);
+        }
+        if target.process.is_some() {
+            return Err(CommandError::AlreadyForSale);
+        }
+        if !matches!(target.owner, Owner::Founder { .. }) {
+            return Err(CommandError::FounderOwnedOnly);
+        }
+        if target.relationship < MINORITY_AT {
+            return Err(CommandError::NeedsRelationship);
+        }
+        if offer.kind != crate::deal::DealKind::Minority {
+            return Err(CommandError::InvalidOffer);
+        }
+        match self.approach_block(company) {
+            Some(Block::CrossBorderLocked) => return Err(CommandError::CrossBorderLocked),
+            Some(Block::InvestmentPeriodOver) => return Err(CommandError::InvestmentPeriodOver),
+            Some(Block::OwnerNotReady) => return Err(CommandError::OwnerNotReady),
+            Some(Block::TooManyDeals) => return Err(CommandError::TooManyDeals),
+            _ => {}
+        }
+        if self.companies[company].pending.is_some() {
+            return Err(CommandError::AlreadyDone);
+        }
+        self.validate_offer(company, &offer)?;
+        if self.financing(company, &offer).equity > self.fund.uncalled() {
+            return Err(CommandError::FundExhausted);
+        }
+        self.spend_attention(1)?;
+        let months = self.rng.range(1, 2) as u32;
+        self.companies[company].pending = Some(Pending {
+            kind: ProposalKind::Minority,
+            months_left: months,
+            offer: Some(offer),
+        });
+        self.post(MessageKind::OwnerConsidering { months }, Some(company));
+        Ok(())
+    }
+
+    fn answer_minority(&mut self, company: usize, offer: crate::deal::Offer) {
+        if self.companies[company].process.is_some() {
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
+        }
+        let odds = self.minority_odds(company, &offer);
+        if !self.rng.chance_bps((odds * 100) as u32) || self.deals.len() >= self.career.rank.max_live_deals() {
+            let target = &mut self.companies[company];
+            target.approach_cooldown = 6;
+            target.relationship = (target.relationship - 2).max(0);
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
+        }
+        let reason = crate::market::SaleReason::GrowthCapital;
+        self.companies[company].process = Some(Process {
+            reason,
+            stage: Stage::Exclusive,
+            months_left: 4,
+            rivals: Vec::new(),
+            player_bid: None,
+            final_round: false,
+            adviser: None,
+            format: crate::advisers::Format::Broad,
+            codename: String::new(),
+            shortlisted: None,
+        });
+        if self.sign_nda(company).is_ok() {
+            if let Some(index) = self.deal_index(company) {
+                // The agreed terms are the draft; the agreed price is the floor of the talks.
+                self.deals[index].indication = Some(offer.ev);
+                self.deals[index].offer = Some(offer);
+            }
+            self.post(MessageKind::OwnerOpened { reason }, Some(company));
+        }
     }
 
     /// The relationship an unsolicited proposal needs: lower when a rival has already made one.
@@ -217,7 +349,7 @@ impl World {
         self.spend_attention(1)?;
         // The owner takes a month or two: family, the bank, the accountant.
         let months = self.rng.range(1, 2) as u32;
-        self.companies[company].pending = Some(Pending { kind: ProposalKind::Acquisition, months_left: months });
+        self.companies[company].pending = Some(Pending { kind: ProposalKind::Acquisition, months_left: months, offer: None });
         self.post(MessageKind::OwnerConsidering { months }, Some(company));
         Ok(())
     }
@@ -233,6 +365,7 @@ impl World {
                 continue;
             }
             let kind = pending.kind;
+            let offer = pending.offer.clone();
             self.companies[company].pending = None;
             if !self.companies[company].is_active() || self.companies[company].is_player_owned() {
                 continue;
@@ -240,6 +373,11 @@ impl World {
             match kind {
                 ProposalKind::Acquisition => self.answer_acquisition(company),
                 ProposalKind::Exclusive => self.answer_exclusive(company),
+                ProposalKind::Minority => {
+                    if let Some(offer) = offer {
+                        self.answer_minority(company, offer);
+                    }
+                }
             }
         }
     }

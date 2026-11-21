@@ -42,5 +42,6 @@
   "story.intent.open": "条件が良ければ売ってもいい、というのがオーナーの本音です。",
   "story.intent.eager": "オーナーは早く手放したがっています。",
   "story.more": "もっと見る",
-  "story.less": "閉じる"
+  "story.less": "閉じる",
+  "story.sale.growth_capital": "オーナーは会社を売るつもりはありませんが、成長資金と共に歩む投資家を探しています。"
 }

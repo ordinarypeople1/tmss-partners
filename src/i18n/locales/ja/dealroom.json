@@ -121,5 +121,11 @@
   "dealroom.raise.submit": "入札額引き上げ",
   "dealroom.raise.exhausted": "IC承認の上限に達しました。これ以上は上げられません。",
   "dealroom.listedNote": "上場企業: 取締役会はモデル価値に対して15%前後のプレミアムを求めます。",
-  "dealroom.stream.round2": "二次ラウンドで開放"
+  "dealroom.stream.round2": "二次ラウンドで開放",
+  "dealroom.minority.noPlan": "少数持分では経営計画を出しません。オーナーが経営を続け、ファンドは配当を受けてエグジットを待ちます。",
+  "dealroom.minority.check": "ファンド出資",
+  "dealroom.minority.checkHint": "手数料{fees}を含む",
+  "dealroom.minority.owns": "取得後の持分",
+  "dealroom.minority.ownerKeeps": "オーナー持分",
+  "dealroom.say.0.no_protection": "経営権もなく普通株では、損失を防ぐ手立てがありません。"
 }

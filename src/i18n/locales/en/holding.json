@@ -111,5 +111,11 @@
   "holding.lever.family_workforce": "Long-tenured workforce · strike and reputation risk ↑",
   "holding.lever.fragmented_market": "Fragmented market · synergies ↑",
   "holding.lever.aging_equipment": "Aging equipment · maintenance capex ↑",
-  "holding.lever.single_plant": "Single plant · outage risk"
+  "holding.lever.single_plant": "Single plant · outage risk",
+  "holding.minority.title": "Minority stake",
+  "holding.minority.body": "The owner runs the company: budget, initiatives, add-ons and recaps are theirs to decide. The fund collects dividends and picks when to sell its shares.",
+  "holding.minority.preferred": "Preferred: the first {amount} at an exit is the fund's.",
+  "holding.minority.common": "Common: the exit is shared with the owner pro rata.",
+  "holding.exit.minority.secondary": "The stake alone, to another investor · discounted for lack of control",
+  "holding.exit.minority.ipo": "EBITDA $25M+ · listed with the owner · 60% at listing, the rest 6 months later"
 }

@@ -201,5 +201,6 @@
   "msg.not_shortlisted.title": "{company}: ショートリスト落選",
   "msg.not_shortlisted.body": "意向表明の価格が不足したか、未提出でした。ディールファイルを閉じます。",
   "msg.bank_pitch.title": "{adviser}: {company}を紹介",
-  "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。"
+  "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。",
+  "msg.owner_opened.minority": "4か月間、少数持分の条件を交渉します。理由は{reason}。合意した価格より下げられず、期限内にまとまらなければ話は終わります。"
 }

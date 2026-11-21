@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { gate } from "./Gate";
 import { useT } from "../i18n/useT";
-import type { CompanyView, SaleView } from "../sim/types";
+import type { CompanyView, Financing, Offer, SaleView } from "../sim/types";
 import { Meter, Tag } from "./charts";
-import { StepRange } from "./DealRoom";
+import { sameOffer } from "./DealRoom";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
@@ -88,25 +88,24 @@ export function ProcessCard({ company }: { company: CompanyView }) {
   );
 }
 
-/** Round one: a non-binding number, read by the bank against the others. */
-export function Indication({ company }: { company: CompanyView }) {
+/**
+ * Round one: a non-binding term sheet. The price and the terms come from the offer
+ * editor below; the bank reads both, and a sure-looking buyer ranks above a slightly higher price.
+ */
+export function Indication({ company, offer, financing }: { company: CompanyView; offer: Offer; financing: Financing | null }) {
   const game = useGame();
   const t = useT();
   const f = useFormat();
   const deal = company.deal;
   const sale = company.sale;
-  const model = deal?.valuation?.mid ?? 0;
-  const [value, setValue] = useState(deal?.indication ?? model);
-  useEffect(() => {
-    if (deal?.indication) {
-      setValue(deal.indication);
-    }
-  }, [deal?.indication]);
   if (!deal || !sale || sale.round !== 1) {
     return null;
   }
-  const step = Math.max(Math.round(model / 100), 1);
-  const saved = deal.indication === value;
+  const model = deal.valuation?.mid ?? 0;
+  const saved = deal.indication === offer.ev && sameOffer(offer, deal.offer);
+  const cushion = financing ? financing.equity / Math.max(offer.ev, 1) : 0;
+  const lender = offer.lender ?? "bank";
+  const rate = offer.rate ?? "floating";
   return (
     <section className="card indication" data-done={deal.indication !== null || undefined}>
       <h3>
@@ -115,12 +114,47 @@ export function Indication({ company }: { company: CompanyView }) {
         {deal.indication === null ? <Tag tone="warn">{t("indication.due", { months: sale.months_left })}</Tag> : <Tag tone="good">{t("indication.in")}</Tag>}
       </h3>
       <div className="indication-value">
-        <strong>{f.money(value)}</strong>
-        <span className="muted">{t("indication.vsModel", { pct: f.pct((value / (model || 1)) * 10_000, 0) })}</span>
+        <strong>{f.money(offer.ev)}</strong>
+        <span className="muted">{t("indication.vsModel", { pct: f.pct((offer.ev / (model || 1)) * 10_000, 0) })}</span>
       </div>
-      <StepRange id={`ioi-${company.i}`} label={t("indication.title")} min={Math.round(model * 0.7)} max={Math.round(model * 1.4)} step={step} value={value} onChange={setValue} />
+      <dl className="indication-terms">
+        <dt>{t("structure.senior")}</dt>
+        <dd>
+          {t("indication.term.senior", {
+            turns: f.multiple(offer.senior_millis),
+            lender: t(`structure.lender.${lender}`),
+            rate: t(`structure.rate.${rate}`),
+            pct: f.pct(financing?.rate_bps ?? 0, 2),
+          })}
+        </dd>
+        {offer.mezz_millis > 0 ? (
+          <>
+            <dt>{t("structure.mezz")}</dt>
+            <dd>{`${f.multiple(offer.mezz_millis)} · ${t(`structure.mezz.${offer.mezz_kind}`)}`}</dd>
+          </>
+        ) : null}
+        {offer.rollover_bps > 0 ? (
+          <>
+            <dt>{t("structure.rollover")}</dt>
+            <dd>{f.pct(offer.rollover_bps, 0)}</dd>
+          </>
+        ) : null}
+        <dt>{t("indication.term.equity")}</dt>
+        <dd>{f.pct(cushion * 10_000, 0)}</dd>
+      </dl>
+      <div className="row indication-signals">
+        {lender === "private_credit" ? <Tag tone="good">{t("indication.signal.committed")}</Tag> : null}
+        {cushion >= 0.4 ? <Tag tone="good">{t("indication.signal.cushion")}</Tag> : cushion < 0.25 ? <Tag tone="bad">{t("indication.signal.thin")}</Tag> : null}
+        {offer.rollover_bps > 0 && deal.can_roll ? <Tag tone="good">{t("indication.signal.alongside")}</Tag> : null}
+      </div>
       <p className="muted indication-note">{t("indication.note", { seats: sale.seats })}</p>
-      <button {...gate(saved && t("gate.unchanged"))} type="button" className="btn primary" disabled={saved} onClick={() => game.act({ type: "submit_indication", company: company.i, ev: value })}>
+      <button
+        {...gate((saved && t("gate.unchanged")) || (!financing && t("dealroom.previewNone")))}
+        type="button"
+        className="btn primary"
+        disabled={saved || !financing}
+        onClick={() => game.act({ type: "submit_indication", company: company.i, offer })}
+      >
         <Icon name="flag" size={15} />
         {t(deal.indication === null ? "indication.submit" : "indication.revise")}
       </button>

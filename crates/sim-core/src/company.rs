@@ -258,6 +258,9 @@ pub struct Company {
     pub growth_bps: i64,
     /// Spread over the policy rate on this company's debt.
     pub debt_spread_bps: i64,
+    /// The all-in rate when the debt was swapped to fixed at a buyout. None floats.
+    #[serde(default)]
+    pub fixed_rate_bps: Option<i64>,
     pub dso_adjust_days: i64,
     pub dio_adjust_days: i64,
     /// 1 through 20.
@@ -514,6 +517,7 @@ impl Company {
             growth_bps: industry.monthly_growth_bps
                 + rng.noise(industry.monthly_growth_std_bps / 3),
             debt_spread_bps,
+            fixed_rate_bps: None,
             dso_adjust_days: 0,
             dio_adjust_days: 0,
             management: (10 + rng.noise(3)).clamp(1, 20),
@@ -592,7 +596,8 @@ impl Company {
         }
     }
     pub fn interest_rate_bps(&self, economy: &Economy) -> i64 {
-        economy.policy_rate_bps + self.debt_spread_bps
+        self.fixed_rate_bps
+            .unwrap_or(economy.policy_rate_bps + self.debt_spread_bps)
     }
     /// Trailing EBITDA over a year of interest at today's rate, in thousandths.
     pub fn interest_cover_millis(&self, economy: &Economy) -> i64 {
@@ -865,6 +870,8 @@ impl Company {
         self.books.cash = cash;
         self.books.goodwill = (enterprise_value - operating).max(0);
         self.books.debt = new_debt;
+        // New debt, new terms: whatever swap there was ends with the old loan.
+        self.fixed_rate_bps = None;
         let equity = self.books.total_assets() - self.books.total_liabilities();
         self.books.share_capital = equity;
         self.books.retained_earnings = 0;

@@ -149,6 +149,15 @@ pub struct Holding {
     pub surprised: bool,
     pub distressed_entry: bool,
     pub cured: bool,
+    /// A minority stake: the owner runs the company; the fund holds shares and waits.
+    #[serde(default)]
+    pub minority: bool,
+    /// What preferred shares take back first at an exit. Zero for common shares.
+    #[serde(default)]
+    pub preferred: i64,
+    /// Who owned the company before the minority stake, and owns it again when the stake is sold.
+    #[serde(default)]
+    pub prior_owner: Option<crate::company::Owner>,
 }
 
 impl Holding {
@@ -196,6 +205,9 @@ impl Holding {
             surprised: false,
             distressed_entry: false,
             cured: false,
+            minority: false,
+            preferred: 0,
+            prior_owner: None,
         }
     }
 }
@@ -207,6 +219,15 @@ impl World {
             .filter(|target| target.is_player_owned())
             .and_then(|target| target.holding.as_ref())
             .ok_or(CommandError::NotHeld)
+    }
+
+    /// A holding the fund controls. A minority stake gives no levers.
+    fn controlled(&self, company: usize) -> Result<&Holding, CommandError> {
+        let holding = self.held(company)?;
+        if holding.minority {
+            return Err(CommandError::MinorityNoControl);
+        }
+        Ok(holding)
     }
 
     fn holding_mut(&mut self, company: usize) -> &mut Holding {
@@ -250,7 +271,7 @@ impl World {
         company: usize,
         budget: Budget,
     ) -> Result<(), CommandError> {
-        self.held(company)?;
+        self.controlled(company)?;
         let valid = (0..=500).contains(&budget.growth_bps)
             && (0..=300).contains(&budget.efficiency_bps)
             && (0..=100).contains(&budget.sweep_pct)
@@ -270,7 +291,7 @@ impl World {
         company: usize,
         kind: InitiativeKind,
     ) -> Result<(), CommandError> {
-        let holding = self.held(company)?;
+        let holding = self.controlled(company)?;
         if holding.done.contains(&kind) || holding.initiatives.iter().any(|item| item.kind == kind)
         {
             return Err(CommandError::AlreadyDone);
@@ -580,6 +601,10 @@ impl World {
         let Some(holding) = &target.holding else {
             return;
         };
+        // The owner's loans are the owner's: a minority investor is not party to them.
+        if holding.minority {
+            return;
+        }
         let leverage = target.leverage_millis();
         let cover = target.interest_cover_millis(&self.economy);
         let failed = leverage > holding.max_leverage_millis
@@ -655,7 +680,7 @@ impl World {
     }
 
     pub(crate) fn equity_cure(&mut self, company: usize, amount: i64) -> Result<(), CommandError> {
-        self.held(company)?;
+        self.controlled(company)?;
         if amount <= 0 {
             return Err(CommandError::InvalidAmount);
         }
@@ -734,7 +759,7 @@ impl World {
         company: usize,
         amount: i64,
     ) -> Result<(), CommandError> {
-        let holding = self.held(company)?;
+        let holding = self.controlled(company)?;
         if amount <= 0 {
             return Err(CommandError::InvalidAmount);
         }
@@ -763,7 +788,7 @@ impl World {
 
     /// Buys a smaller company in the same sector and folds it into a platform.
     pub(crate) fn add_on(&mut self, platform: usize, target: usize) -> Result<(), CommandError> {
-        let holding = self.held(platform)?;
+        let holding = self.controlled(platform)?;
         let max_leverage = holding.max_leverage_millis;
         if holding.breaches > 0 {
             return Err(CommandError::CovenantBlocks);
@@ -857,6 +882,10 @@ impl World {
         if holding.exit.is_some() {
             return Err(CommandError::AlreadyDone);
         }
+        // A minority investor can sell its own shares, or list alongside; it cannot sell the company.
+        if holding.minority && route == ExitRoute::Strategic {
+            return Err(CommandError::MinorityNoControl);
+        }
         if self.months_elapsed - holding.acquired_month < MIN_HOLD_MONTHS {
             return Err(CommandError::TooEarly);
         }
@@ -913,6 +942,9 @@ impl World {
                 11_200 + self.rng.noise(700) + (self.economy.valuation_index() - 100) * 40
             }
         };
+        let minority_sale = route == ExitRoute::Secondary && self.holding_mut(company).minority;
+        // Buyers pay less for a stake that does not come with control.
+        let factor = if minority_sale { factor - 1_200 } else { factor };
         let ev = mul_bps(self.model_ev(company), factor.clamp(6_000, 14_000));
         let proceeds = self.exit_proceeds(company, ev);
         self.holding_mut(company)
@@ -967,13 +999,14 @@ impl World {
     /// What the fund receives if the company sells at `ev`.
     pub fn exit_proceeds(&self, company: usize, ev: i64) -> i64 {
         let target = &self.companies[company];
-        let (ownership, convertible) = target
+        let (ownership, convertible, preferred) = target
             .holding
             .as_ref()
-            .map(|holding| (holding.ownership_bps, holding.convertible))
-            .unwrap_or((0, 0));
-        let equity = ev - mul_bps(ev, EXIT_FEE_BPS) - target.net_debt() + convertible;
-        mul_bps(equity.max(0), ownership)
+            .map(|holding| (holding.ownership_bps, holding.convertible, holding.preferred))
+            .unwrap_or((0, 0, 0));
+        let equity = (ev - mul_bps(ev, EXIT_FEE_BPS) - target.net_debt() + convertible).max(0);
+        // Preferred shares take their money back before the common shares share the rest.
+        mul_bps(equity, ownership).max(preferred.min(equity))
     }
 
     pub(crate) fn decide_exit(&mut self, company: usize, choice: Choice) {
@@ -1008,6 +1041,11 @@ impl World {
         let name = target.legal_name.clone();
         let ebitda = target.ttm_ebitda().max(0);
         match exit.route {
+            ExitRoute::Secondary if holding.minority => {
+                // Another investor takes the stake; the owner keeps the company and its loans.
+                target.owner = holding.prior_owner.unwrap_or(crate::company::Owner::Corporate);
+                secondary_equity = None;
+            }
             ExitRoute::Secondary => {
                 let debt = (ebitda * senior / 1_000).min(ev * 6 / 10);
                 target.acquire(&industry, ev, debt);
@@ -1029,7 +1067,9 @@ impl World {
         target.debt_spread_bps = industry.interest_spread_bps;
         target.budget = Budget::default();
         target.cooldown = 36;
-        target.relationship = 0;
+        if !holding.minority {
+            target.relationship = 0;
+        }
         if let Some(equity) = secondary_equity {
             self.record_house_entry(company, house, equity);
         }

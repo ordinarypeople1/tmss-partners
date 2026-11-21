@@ -12,7 +12,9 @@ import {
   type Concern,
   type DdStream,
   type InitiativeKind,
+  type Lender,
   type MezzKind,
+  type RateKind,
   type IssueKind,
   type Offer,
   type Stance,
@@ -97,9 +99,14 @@ const COLOR = {
 const floorTo = (value: number, step: number) =>
   Math.floor(value / step) * step;
 
-function sameOffer(a: Offer, b: Offer | null): boolean {
+export function sameOffer(a: Offer, b: Offer | null): boolean {
   return (
     b !== null &&
+    (a.kind ?? "buyout") === (b.kind ?? "buyout") &&
+    (a.stake_bps ?? 0) === (b.stake_bps ?? 0) &&
+    (a.preferred ?? false) === (b.preferred ?? false) &&
+    (a.lender ?? "bank") === (b.lender ?? "bank") &&
+    (a.rate ?? "floating") === (b.rate ?? "floating") &&
     a.ev === b.ev &&
     a.senior_millis === b.senior_millis &&
     a.mezz_millis === b.mezz_millis &&
@@ -108,6 +115,38 @@ function sameOffer(a: Offer, b: Offer | null): boolean {
     (a.primary ?? 0) === (b.primary ?? 0) &&
     a.plan.length === b.plan.length &&
     a.plan.every((kind) => b.plan.includes(kind))
+  );
+}
+
+/** One choice among a few, drawn as a segmented control (a radio group). */
+export function Segmented<T extends string>({
+  label,
+  options,
+  value,
+  name,
+  onChange,
+}: {
+  label: string;
+  options: T[];
+  value: T;
+  name: (option: T) => string;
+  onChange: (option: T) => void;
+}) {
+  return (
+    <div className="segmented dr-kind" role="radiogroup" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={value === option}
+          aria-selected={value === option}
+          onClick={() => onChange(option)}
+        >
+          {name(option)}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -138,7 +177,7 @@ export function dealNeedsAction(company: CompanyView): boolean {
   );
 }
 
-function Cost({ points }: { points: number }) {
+export function Cost({ points }: { points: number }) {
   return (
     <span className="cost" aria-hidden>
       {Array.from({ length: points }, (_, index) => (
@@ -229,21 +268,29 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const deal = company.deal;
   // The fund prices off its own valuation; the model stays inside the sim.
   const modelEv = deal?.valuation?.mid ?? company.ev?.[0] ?? 0;
-  const maxSenior = view.economy.max_senior_millis;
   const maxMezz = view.economy.max_mezz_millis;
 
   const [draft, setDraft] = useState<Offer>(
     () =>
       deal?.offer ?? {
         ev: modelEv,
-        senior_millis: floorTo(Math.min(maxSenior, 3500), TURN_STEP),
+        senior_millis: floorTo(Math.min(view.economy.max_senior_millis, 3500), TURN_STEP),
         mezz_millis: 0,
         rollover_bps: 0,
         plan: [],
         mezz_kind: "notes",
         primary: 0,
+        kind: "buyout",
+        stake_bps: 0,
+        preferred: false,
+        lender: "bank",
+        rate: "floating",
       },
   );
+  const minority = (draft.kind ?? "buyout") === "minority";
+  // Private credit lends more senior debt than the banks.
+  const maxSenior =
+    view.economy.max_senior_millis + ((draft.lender ?? "bank") === "private_credit" ? view.economy.private_credit_extra_millis : 0);
   const [confirmDrop, setConfirmDrop] = useState(false);
   const [raise, setRaise] = useState(0);
 
@@ -257,15 +304,31 @@ export function DealRoom({ company }: { company: CompanyView }) {
 
   // Lenders can pull back while a draft sits open; never show more than they offer today.
   const offer: Offer = useMemo(
-    () => ({
-      ...draft,
-      senior_millis: Math.min(draft.senior_millis, maxSenior),
-      mezz_millis: Math.min(draft.mezz_millis, maxMezz),
-      rollover_bps: deal?.can_roll ? draft.rollover_bps : 0,
-      mezz_kind: draft.mezz_kind ?? "notes",
-      primary: Math.max(0, Math.min(draft.primary ?? 0, Math.floor(draft.ev * MAX_PRIMARY_SHARE))),
-    }),
-    [draft, maxSenior, maxMezz, deal?.can_roll],
+    () =>
+      minority
+        ? {
+            ...draft,
+            senior_millis: 0,
+            mezz_millis: 0,
+            rollover_bps: 0,
+            plan: [],
+            mezz_kind: "notes",
+            primary: Math.max(0, Math.min(draft.primary ?? 0, Math.floor(draft.ev * MAX_PRIMARY_SHARE))),
+          }
+        : {
+            ...draft,
+            kind: "buyout",
+            stake_bps: 0,
+            preferred: false,
+            lender: draft.lender ?? "bank",
+            rate: draft.rate ?? "floating",
+            senior_millis: Math.min(draft.senior_millis, maxSenior),
+            mezz_millis: Math.min(draft.mezz_millis, maxMezz),
+            rollover_bps: deal?.can_roll ? draft.rollover_bps : 0,
+            mezz_kind: draft.mezz_kind ?? "notes",
+            primary: Math.max(0, Math.min(draft.primary ?? 0, Math.floor(draft.ev * MAX_PRIMARY_SHARE))),
+          },
+    [draft, minority, maxSenior, maxMezz, deal?.can_roll],
   );
   // `company` changes whenever the sim does, so the preview follows the market.
   const preview = useMemo(
@@ -500,7 +563,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
         </section>
       ) : null}
       <ValuationCard company={company} />
-      {deal.valuation ? <Indication company={company} /> : null}
+      {deal.valuation && !minority ? <Indication company={company} offer={offer} financing={financing ?? null} /> : null}
       <ol className="dr-steps">
         {steps.slice(0, nowStep < 0 ? steps.length : nowStep + 1).map((step, index) => (
           <li
@@ -655,7 +718,78 @@ export function DealRoom({ company }: { company: CompanyView }) {
             </small>
           </div>
           {/* ---------- how it is paid for ---------- */}
+          {minority ? (
+            <>
+              <h4 className="dr-group">{t("structure.minority")}</h4>
+              <div className="slider">
+                <label htmlFor="dr-stake" className="tip" tabIndex={0} data-tip={t("structure.stake.tip")}>
+                  {t("structure.stake")}
+                </label>
+                <output>{f.pct(offer.stake_bps ?? 0, 0)}</output>
+                <StepRange
+                  id="dr-stake"
+                  label={t("structure.stake")}
+                  min={company.minority.min_stake_bps}
+                  max={company.minority.max_stake_bps}
+                  step={100}
+                  value={offer.stake_bps ?? company.minority.min_stake_bps}
+                  onChange={(stake_bps) => change({ stake_bps })}
+                />
+                <small>{t("structure.stake.terms")}</small>
+              </div>
+              <div className="slider">
+                <span className="tip" tabIndex={0} data-tip={t("structure.class.tip")}>
+                  {t("structure.class")}
+                </span>
+                <Segmented
+                  label={t("structure.class")}
+                  options={["common", "preferred"]}
+                  value={offer.preferred ? "preferred" : "common"}
+                  name={(option) => t(`structure.class.${option}`)}
+                  onChange={(option) => change({ preferred: option === "preferred" })}
+                />
+                <small>{t(offer.preferred ? "structure.class.preferred.terms" : "structure.class.common.terms")}</small>
+              </div>
+            </>
+          ) : (
+          <>
           <h4 className="dr-group">{t("structure.funding")}</h4>
+          <div className="slider">
+            <span className="tip" tabIndex={0} data-tip={t("structure.lender.tip")}>
+              {t("structure.lender")}
+            </span>
+            <Segmented
+              label={t("structure.lender")}
+              options={["bank", "private_credit"] as Lender[]}
+              value={offer.lender ?? "bank"}
+              name={(option) => t(`structure.lender.${option}`)}
+              onChange={(lender) => change({ lender })}
+            />
+            <small>
+              {t(`structure.lender.${offer.lender ?? "bank"}.terms`, {
+                premium: f.pct(view.economy.private_credit_premium_bps, 2),
+                extra: f.multiple(view.economy.private_credit_extra_millis),
+              })}
+            </small>
+          </div>
+          <div className="slider">
+            <span className="tip" tabIndex={0} data-tip={t("structure.rate.tip")}>
+              {t("structure.rate")}
+            </span>
+            <Segmented
+              label={t("structure.rate")}
+              options={["floating", "fixed"] as RateKind[]}
+              value={offer.rate ?? "floating"}
+              name={(option) => t(`structure.rate.${option}`)}
+              onChange={(rate) => change({ rate })}
+            />
+            <small>
+              {t(`structure.rate.${offer.rate ?? "floating"}.terms`, {
+                rate: f.pct(financing?.rate_bps ?? 0, 2),
+                premium: f.pct(view.economy.fixed_premium_bps, 2),
+              })}
+            </small>
+          </div>
           <div className="slider">
             <label htmlFor="dr-senior" className="tip" tabIndex={0} data-tip={t("structure.senior.tip")}>
               {t("structure.senior")}
@@ -673,7 +807,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             <small>
               {t("structure.debtTerms", {
                 turns: f.multiple(offer.senior_millis),
-                rate: f.pct(view.economy.senior_rate_bps, 1),
+                rate: f.pct(view.economy.senior_rate_bps + ((offer.lender ?? "bank") === "private_credit" ? view.economy.private_credit_premium_bps : 0), 1),
                 max: f.multiple(maxSenior),
               })}
             </small>
@@ -734,6 +868,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
             </div>
           ) : null}
 
+          </>
+          )}
           {/* ---------- what the fund buys ---------- */}
           <h4 className="dr-group">{t("structure.shares")}</h4>
           <div className="slider">
@@ -771,6 +907,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
           ) : null}
         </fieldset>
 
+        {minority ? (
+          <p className="muted dr-minority-note">{t("dealroom.minority.noPlan")}</p>
+        ) : (
         <div className="dr-plan">
           <div className="dr-plan-head">
             <span>{t("dealroom.plan")}</span>
@@ -798,6 +937,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             })}
           </ul>
         </div>
+        )}
       </section>
 
       {/* ---------- what the draft means ---------- */}
@@ -812,6 +952,14 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 </Tag>
               ) : null}
             </h3>
+            {minority ? (
+              <div className="dr-stats">
+                <Stat label={t("dealroom.minority.check")} value={f.money(financing.equity)} hint={t("dealroom.minority.checkHint", { fees: f.money(financing.fees) })} />
+                <Stat label={t("dealroom.minority.owns")} value={f.pct(financing.ownership_bps, 1)} />
+                <Stat label={t("dealroom.minority.ownerKeeps")} value={f.pct(financing.seller_bps, 1)} />
+                <Stat label={t("structure.class")} value={t(offer.preferred ? "structure.class.preferred" : "structure.class.common")} />
+              </div>
+            ) : (
             <div className="dr-structure">
               <div className="stack dr-bars">
                 <StackBar
@@ -898,6 +1046,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 ]}
               />
             </div>
+            )}
             <div className="dr-stats">
               <Stat
                 label={t("dealroom.entryMultiple")}

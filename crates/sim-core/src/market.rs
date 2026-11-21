@@ -134,6 +134,8 @@ pub enum SaleReason {
     Distress,
     /// A listed company's board looks at offers.
     StrategicReview,
+    /// The owner keeps the company and talks about selling a minority stake.
+    GrowthCapital,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -205,6 +207,7 @@ impl SaleReason {
             SaleReason::Distress => 7_000,
             // Public shareholders want a premium over what the business is worth as it stands.
             SaleReason::StrategicReview => 11_500,
+            SaleReason::GrowthCapital => 10_000,
         }
     }
 }
@@ -330,6 +333,13 @@ impl World {
             self.open_final_round(index);
         }
         if months_left > 0 {
+            return;
+        }
+        if reason == SaleReason::GrowthCapital {
+            // Minority talks that ran out end there: the owner was never selling the company.
+            self.end_process(index, 6, 12);
+            self.drop_deal_record(index);
+            self.post(MessageKind::OwnerDeclined, Some(index));
             return;
         }
         match stage {

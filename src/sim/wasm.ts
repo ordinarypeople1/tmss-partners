@@ -1,4 +1,4 @@
-import type { Command, CommandResult, CompanyView, Offer, OfferPreview, Options, View } from "./types";
+import type { Command, CommandResult, CompanyView, Offer, OfferPreview, MinorityPreview, Options, View } from "./types";
 
 interface WasmSession {
   save(): string;
@@ -6,6 +6,7 @@ interface WasmSession {
   view(): string;
   company(index: number): string;
   preview_offer(index: number, offer: string): string;
+  preview_minority(index: number, offer: string): string;
   free(): void;
 }
 
@@ -63,5 +64,9 @@ export class GameSession {
 
   previewOffer(index: number, offer: Offer): OfferPreview | null {
     return JSON.parse(this.inner.preview_offer(index, JSON.stringify(offer))) as OfferPreview | null;
+  }
+
+  previewMinority(index: number, offer: Offer): MinorityPreview | null {
+    return JSON.parse(this.inner.preview_minority(index, JSON.stringify(offer))) as MinorityPreview | null;
   }
 }

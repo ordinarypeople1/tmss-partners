@@ -16,7 +16,7 @@ pub const MAX_ROLLOVER_BPS: i64 = 3_000;
 pub const DD_STREAM_COUNT: usize = 4;
 const PROJECTION_MONTHS: i64 = 60;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Offer {
     pub ev: i64,
     /// Turns of trailing EBITDA, in thousandths.
@@ -34,7 +34,64 @@ pub struct Offer {
     /// cash goes into the company, not to the seller.
     #[serde(default)]
     pub primary: i64,
+    /// A buyout takes control; a minority stake buys a share of the owner's company and leaves it theirs.
+    #[serde(default)]
+    pub kind: DealKind,
+    /// Minority only: the share of the existing shares the fund buys from the owner.
+    #[serde(default)]
+    pub stake_bps: i64,
+    /// Minority only: preferred shares. At an exit the fund takes back what it put in before
+    /// the owner shares in anything. Owners like it less.
+    #[serde(default)]
+    pub preferred: bool,
+    /// Who lends the senior debt.
+    #[serde(default)]
+    pub lender: Lender,
+    /// Floating with the policy rate, or swapped to a fixed rate at closing.
+    #[serde(default)]
+    pub rate: RateKind,
 }
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DealKind {
+    #[default]
+    Buyout,
+    Minority,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Lender {
+    /// A bank syndicate: the cheapest money, the tightest covenants.
+    #[default]
+    Bank,
+    /// A private credit fund lends the whole senior piece itself: dearer, more of it,
+    /// looser covenants, and the seller knows the money is there.
+    PrivateCredit,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RateKind {
+    #[default]
+    Floating,
+    /// A swap at closing fixes the policy-rate part for the life of the loan, for a premium.
+    Fixed,
+}
+
+/// Private credit over the bank spread, on the senior piece.
+pub const PRIVATE_CREDIT_PREMIUM_BPS: i64 = 150;
+/// Private credit lends this much more senior debt, in turns of EBITDA (thousandths).
+pub const PRIVATE_CREDIT_EXTRA_MILLIS: i64 = 500;
+/// The swap's cost over today's policy rate.
+pub const FIXED_PREMIUM_BPS: i64 = 35;
+/// Covenant headroom over the leverage at closing.
+const BANK_HEADROOM_MILLIS: i64 = 1_500;
+const PRIVATE_CREDIT_HEADROOM_MILLIS: i64 = 2_500;
+/// A minority stake is at least a tenth and stays under half.
+pub const MIN_STAKE_BPS: i64 = 1_000;
+pub const MAX_STAKE_BPS: i64 = 4_900;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -79,6 +136,9 @@ pub struct Financing {
     pub seller_bps: i64,
     #[serde(default)]
     pub converted_bps: i64,
+    /// The all-in rate on the debt: policy rate (or the fixed rate) plus the spread.
+    #[serde(default)]
+    pub rate_bps: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -121,6 +181,8 @@ pub enum Concern {
     LayoffsInUnionShop,
     FundConcentration,
     OpenIssue,
+    /// A minority stake in common shares: no control and nothing ahead of the owner.
+    NoProtection,
 }
 
 /// Seats on the committee, in the order of the personas document.
@@ -173,6 +235,9 @@ pub struct Deal {
     /// The indication of interest given in round one, as an enterprise value.
     #[serde(default)]
     pub indication: Option<i64>,
+    /// The terms that came with the indication.
+    #[serde(default)]
+    pub indication_terms: Option<Offer>,
     /// The fund's own view of value. Nothing on screen shows a model value without it.
     #[serde(default)]
     pub valuation: Option<crate::valuation::Valuation>,
@@ -252,6 +317,7 @@ impl World {
             coinvest: false,
             coinvest_asked: false,
             indication: None,
+            indication_terms: None,
         });
         self.companies[company].watched = true;
         Ok(())
@@ -340,7 +406,29 @@ impl World {
         if offer.primary < 0 || offer.primary > mul_bps(offer.ev, MAX_PRIMARY_BPS) {
             return Err(CommandError::InvalidOffer);
         }
-        if offer.senior_millis > self.economy.max_senior_millis()
+        if offer.kind == DealKind::Minority {
+            // No new debt and no plan: the owner keeps the company and runs it.
+            if offer.senior_millis != 0
+                || offer.mezz_millis != 0
+                || offer.rollover_bps != 0
+                || !offer.plan.is_empty()
+                || !(MIN_STAKE_BPS..=MAX_STAKE_BPS).contains(&offer.stake_bps)
+            {
+                return Err(CommandError::InvalidOffer);
+            }
+            if !matches!(self.companies[company].owner, Owner::Founder { .. }) {
+                return Err(CommandError::FounderOwnedOnly);
+            }
+            let financing = self.financing(company, offer);
+            if financing.equity <= 0 || financing.ownership_bps >= 5_000 {
+                return Err(CommandError::InvalidOffer);
+            }
+            return Ok(());
+        }
+        if offer.stake_bps != 0 || offer.preferred {
+            return Err(CommandError::InvalidOffer);
+        }
+        if offer.senior_millis > self.max_senior_millis(offer.lender)
             || offer.mezz_millis > self.economy.max_mezz_millis()
         {
             return Err(CommandError::LendersRefuse);
@@ -364,7 +452,71 @@ impl World {
     }
 
     /// Sources and uses for an offer at today's trailing EBITDA and credit market.
+    /// The most senior debt a lender of this kind gives today.
+    pub fn max_senior_millis(&self, lender: Lender) -> i64 {
+        self.economy.max_senior_millis()
+            + match lender {
+                Lender::Bank => 0,
+                Lender::PrivateCredit => PRIVATE_CREDIT_EXTRA_MILLIS,
+            }
+    }
+
+    /// The policy-rate part of the interest: today's rate, or today's rate swapped to fixed.
+    fn base_rate_bps(&self, rate: RateKind) -> i64 {
+        self.economy.policy_rate_bps
+            + match rate {
+                RateKind::Floating => 0,
+                RateKind::Fixed => FIXED_PREMIUM_BPS,
+            }
+    }
+
+    /// A minority stake: the owner's debt stays, the fund buys part of the shares
+    /// and may put new money in.
+    fn minority_financing(&self, company: usize, offer: &Offer) -> Financing {
+        let target = &self.companies[company];
+        let ebitda = target.ttm_ebitda().max(0);
+        let net_debt = target.net_debt();
+        let equity_value = (offer.ev - net_debt).max(0);
+        let bought = mul_bps(equity_value, offer.stake_bps);
+        let primary = offer.primary.max(0);
+        let fees = mul_bps(bought + primary, FEE_BPS);
+        let equity = bought + primary + fees;
+        let after = (equity_value + primary).max(1);
+        let ownership_bps = ratio_bps(bought + primary, after);
+        let spread_bps = target.debt_spread_bps;
+        let rate_bps = target.interest_rate_bps(&self.economy);
+        let annual_interest = mul_bps(target.books.debt, rate_bps);
+        Financing {
+            ebitda,
+            senior: 0,
+            mezz: 0,
+            debt: 0,
+            fees,
+            rollover: equity_value - bought,
+            equity,
+            ownership_bps,
+            spread_bps,
+            annual_interest,
+            leverage_millis: if ebitda > 0 { ratio_millis(net_debt.max(0), ebitda) } else { 0 },
+            cover_millis: if annual_interest > 0 {
+                ratio_millis(ebitda, annual_interest)
+            } else {
+                99_000
+            },
+            price_to_model_bps: ratio_bps(offer.ev, self.model_ev(company)),
+            multiple_millis: ratio_millis(offer.ev, ebitda),
+            primary,
+            convertible: 0,
+            seller_bps: 10_000 - ownership_bps,
+            converted_bps: 0,
+            rate_bps,
+        }
+    }
+
     pub fn financing(&self, company: usize, offer: &Offer) -> Financing {
+        if offer.kind == DealKind::Minority {
+            return self.minority_financing(company, offer);
+        }
         let target = &self.companies[company];
         let ebitda = target.ttm_ebitda().max(0);
         let senior = mul_millis(ebitda, offer.senior_millis);
@@ -387,12 +539,20 @@ impl World {
             MezzKind::Notes => NOTES_PREMIUM_BPS,
             MezzKind::Convertible => CONVERTIBLE_PREMIUM_BPS,
         };
+        let lender_premium = match offer.lender {
+            Lender::Bank => 0,
+            Lender::PrivateCredit => PRIVATE_CREDIT_PREMIUM_BPS,
+        };
         let spread_bps = if debt > 0 {
-            div_round(senior * senior_spread + mezz * (senior_spread + premium), debt)
+            div_round(
+                senior * (senior_spread + lender_premium) + mezz * (senior_spread + premium),
+                debt,
+            )
         } else {
             senior_spread
         };
-        let annual_interest = mul_bps(debt, self.economy.policy_rate_bps + spread_bps);
+        let rate_bps = self.base_rate_bps(offer.rate) + spread_bps;
+        let annual_interest = mul_bps(debt, rate_bps);
         Financing {
             ebitda,
             senior,
@@ -416,6 +576,7 @@ impl World {
             convertible,
             seller_bps,
             converted_bps: converted_bps.max(0),
+            rate_bps,
         }
     }
 
@@ -442,10 +603,15 @@ impl World {
                 _ => {}
             }
         }
-        let rate_bps = self.economy.policy_rate_bps + financing.spread_bps;
+        let rate_bps = financing.rate_bps;
         let mut revenue = target.revenue;
         // New shares arrive as cash, which pays down debt from the first month.
-        let mut debt = (financing.debt - financing.primary).max(0);
+        let mut debt = if offer.kind == DealKind::Minority {
+            // The owner's own debt stays in place.
+            (target.net_debt() - financing.primary).max(0)
+        } else {
+            (financing.debt - financing.primary).max(0)
+        };
         let mut trailing: Vec<i64> = Vec::new();
         for _ in 0..PROJECTION_MONTHS {
             revenue = mul_bps(revenue, 10_000 + growth_bps);
@@ -464,7 +630,12 @@ impl World {
         let model_multiple = target.multiple_millis(industry, &self.economy);
         let exit_ev = mul_millis(exit_ebitda, model_multiple);
         // Bonds that convert are not repaid; their holders share the equity instead.
-        let proceeds = mul_bps((exit_ev - debt + financing.convertible).max(0), financing.ownership_bps);
+        let exit_equity = (exit_ev - debt + financing.convertible).max(0);
+        let mut proceeds = mul_bps(exit_equity, financing.ownership_bps);
+        if offer.preferred {
+            // Preferred shares take their money back first.
+            proceeds = proceeds.max((financing.equity - financing.fees).min(exit_equity));
+        }
         let equity = financing.equity.max(1);
         let entry_ebitda = financing.ebitda.max(1);
         let paid_multiple = financing.multiple_millis;
@@ -561,9 +732,14 @@ impl World {
         if found(IssueKind::EnvironmentalLiability) && financing.price_to_model_bps > 10_000 {
             raise(3, Stance::Against, Concern::OpenIssue);
         }
-        // Operating partner: a plan, and no hidden restructuring.
-        if offer.plan.is_empty() {
+        // Operating partner: a plan, and no hidden restructuring. A minority stake has
+        // no plan to make; what it needs is protection, since the fund cannot steer.
+        let minority = offer.kind == DealKind::Minority;
+        if offer.plan.is_empty() && !minority {
             raise(OPERATING, Stance::Against, Concern::NoPlan);
+        }
+        if minority && !offer.preferred {
+            raise(CHAIR, Stance::Hold, Concern::NoProtection);
         }
         if !deal.has(DdStream::Operational) {
             raise(OPERATING, Stance::Against, Concern::NoOperationalDd);
@@ -664,6 +840,30 @@ impl World {
         }
     }
 
+    /// What the terms themselves say about closing: how much of the price is the buyer's
+    /// own money, whether the debt is committed, whether the founder keeps a stake.
+    pub fn terms_certainty_bps(&self, company: usize, offer: &Offer) -> i64 {
+        if offer.kind == DealKind::Minority {
+            return 0;
+        }
+        let financing = self.financing(company, offer);
+        let cushion = ratio_bps(financing.equity.max(0), offer.ev.max(1));
+        let equity = if cushion >= 4_000 {
+            150
+        } else if cushion < 2_500 {
+            -150
+        } else {
+            0
+        };
+        let lender = match offer.lender {
+            Lender::Bank => 0,
+            Lender::PrivateCredit => 150,
+        };
+        let founder = matches!(self.companies[company].owner, Owner::Founder { .. });
+        let alongside = if founder && offer.rollover_bps > 0 { 100 } else { 0 };
+        equity + lender + alongside
+    }
+
     /// What the seller adds to the player's price for being a sure closer.
     pub(crate) fn certainty_bps(&self, company: usize) -> i64 {
         let Some(index) = self.deal_index(company) else {
@@ -684,7 +884,11 @@ impl World {
             crate::company::Stance::Sentimental => -200,
             _ => 0,
         };
-        streams * 50 + target.relationship * 2 + sentiment
+        let terms = self.deals[index]
+            .offer
+            .as_ref()
+            .map_or(0, |offer| self.terms_certainty_bps(company, offer));
+        streams * 50 + target.relationship * 2 + sentiment + terms
     }
 
     pub(crate) fn submit_bid(&mut self, company: usize) -> Result<(), CommandError> {
@@ -734,8 +938,12 @@ impl World {
                 Ok(())
             }
             Some(Stage::Exclusive) => {
-                // One buyer, no auction: the seller takes a fair price today.
-                let floor = mul_bps(self.reserve_ev(company), 10_300);
+                // One buyer, no auction: the seller takes a fair price today. An owner
+                // who agreed a minority price holds the fund to it.
+                let floor = match (offer.kind, self.deals[index].indication) {
+                    (DealKind::Minority, Some(agreed)) => mul_bps(agreed, 9_800),
+                    _ => mul_bps(self.reserve_ev(company), 10_300),
+                };
                 if offer.ev < floor {
                     return Err(CommandError::BidTooLow);
                 }
@@ -806,6 +1014,7 @@ impl World {
         self.companies[company].pending = Some(crate::sourcing::Pending {
             kind: crate::sourcing::ProposalKind::Exclusive,
             months_left: 1,
+            offer: None,
         });
         self.post(MessageKind::OwnerConsidering { months: 1 }, Some(company));
         Ok(())
@@ -888,7 +1097,7 @@ impl World {
         let deal = self.deals[index].clone();
         let mut offer = deal.offer.clone().expect("a bid carries an offer");
         offer.ev = ev;
-        offer.senior_millis = offer.senior_millis.min(self.economy.max_senior_millis());
+        offer.senior_millis = offer.senior_millis.min(self.max_senior_millis(offer.lender));
         offer.mezz_millis = offer.mezz_millis.min(self.economy.max_mezz_millis());
         let mut financing = self.financing(company, &offer);
         if deal.coinvest {
@@ -933,19 +1142,39 @@ impl World {
                 target.management = (target.management - 2).max(1);
             }
         }
+        let minority = offer.kind == DealKind::Minority;
+        let prior_owner = self.companies[company].owner;
+        let fixed_rate = (offer.rate == RateKind::Fixed && !minority)
+            .then(|| self.base_rate_bps(RateKind::Fixed) + financing.spread_bps);
         let target = &mut self.companies[company];
-        target.acquire(&industry, ev, financing.debt);
-        // New shares: the cash stays in the company.
-        target.inject_equity(financing.primary);
-        target.debt_spread_bps = financing.spread_bps;
+        if minority {
+            // The owner's balance sheet stays; only the new money arrives.
+            target.inject_equity(financing.primary);
+        } else {
+            target.acquire(&industry, ev, financing.debt);
+            // New shares: the cash stays in the company.
+            target.inject_equity(financing.primary);
+            target.debt_spread_bps = financing.spread_bps;
+            target.fixed_rate_bps = fixed_rate;
+        }
         target.owner = Owner::Player;
         target.process = None;
         target.cooldown = 0;
-        target.budget = crate::company::Budget {
-            growth_bps: 0,
-            efficiency_bps: 0,
-            sweep_pct: 50,
-            dividend_pct: 0,
+        target.budget = if minority {
+            // The owner keeps running it the way they did: some growth, some dividends.
+            crate::company::Budget {
+                growth_bps: 100,
+                efficiency_bps: 50,
+                sweep_pct: 30,
+                dividend_pct: 25,
+            }
+        } else {
+            crate::company::Budget {
+                growth_bps: 0,
+                efficiency_bps: 0,
+                sweep_pct: 50,
+                dividend_pct: 0,
+            }
         };
         target.holding = Some(Holding::new(
             self.date,
@@ -953,10 +1182,14 @@ impl World {
             ev,
             financing.ebitda,
             multiple,
-            financing.debt - target.books.cash,
+            if minority { target.net_debt() } else { financing.debt - target.books.cash },
             financing.equity + deal.costs,
             financing.ownership_bps,
-            financing.leverage_millis + 1_500,
+            financing.leverage_millis
+                + match offer.lender {
+                    Lender::Bank => BANK_HEADROOM_MILLIS,
+                    Lender::PrivateCredit => PRIVATE_CREDIT_HEADROOM_MILLIS,
+                },
             offer.plan.clone(),
         ));
         {
@@ -969,6 +1202,13 @@ impl World {
                 .as_mut()
                 .expect("just created");
             holding.convertible = financing.convertible;
+            if minority {
+                holding.minority = true;
+                holding.prior_owner = Some(prior_owner);
+                if offer.preferred {
+                    holding.preferred = financing.equity - financing.fees;
+                }
+            }
             holding.votes = deal
                 .ic
                 .as_ref()

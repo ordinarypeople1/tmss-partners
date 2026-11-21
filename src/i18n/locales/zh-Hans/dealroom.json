@@ -121,5 +121,11 @@
   "dealroom.raise.submit": "提高报价",
   "dealroom.raise.exhausted": "IC 批准上限已用尽，不能再加。",
   "dealroom.listedNote": "上市公司：董事会要求在模型价值之上给出约 15% 的溢价。",
-  "dealroom.stream.round2": "第二轮开放"
+  "dealroom.stream.round2": "第二轮开放",
+  "dealroom.minority.noPlan": "少数股权不提交经营计划。所有者继续经营，基金收取分红并等待退出。",
+  "dealroom.minority.check": "基金出资",
+  "dealroom.minority.checkHint": "含费用{fees}",
+  "dealroom.minority.owns": "交割后股比",
+  "dealroom.minority.ownerKeeps": "所有者保留",
+  "dealroom.say.0.no_protection": "没有控制权又是普通股，没有任何东西能挡住损失。"
 }

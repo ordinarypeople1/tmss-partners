@@ -42,5 +42,6 @@
   "story.intent.open": "On good terms, the owner would sell.",
   "story.intent.eager": "The owner wants out soon.",
   "story.more": "More",
-  "story.less": "Less"
+  "story.less": "Less",
+  "story.sale.growth_capital": "The owner is not selling the company, but wants growth money and a partner who brings it."
 }

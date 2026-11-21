@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GameSession } from "../sim/wasm";
-import type { Command, CompanyRow, CompanyView, GameDate, Message, Offer, OfferPreview, Options, Rank, View } from "../sim/types";
+import type { Command, CompanyRow, CompanyView, GameDate, Message, MinorityPreview, Offer, OfferPreview, Options, Rank, View } from "../sim/types";
 import { joinBase } from "./publicPath";
 import { readSave, writeSave } from "./saveStore";
 import { playSound, soundFor } from "./sound";
@@ -47,6 +47,8 @@ export interface Game {
   /** Reads a company without selecting it. */
   peek(company: number): CompanyView | null;
   previewOffer(company: number, offer: Offer): OfferPreview | null;
+  /** A minority proposal before the books are open. */
+  previewMinority(company: number, offer: Offer): MinorityPreview | null;
   /** Closes the month. The game is turn-based: nothing moves until the player says so. */
   nextMonth(): void;
   /** Closes months until something is addressed to the player, a year at most. For quiet stretches. */
@@ -372,6 +374,7 @@ export function GameProvider({
       act,
       peek: (index) => session.current?.company(index) ?? null,
       previewOffer: (index, offer) => session.current?.previewOffer(index, offer) ?? null,
+      previewMinority: (index, offer) => session.current?.previewMinority(index, offer) ?? null,
       nextMonth,
       skipAhead,
       turn,

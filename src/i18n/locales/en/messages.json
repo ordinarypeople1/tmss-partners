@@ -201,5 +201,6 @@
   "msg.not_shortlisted.title": "{company}: not shortlisted",
   "msg.not_shortlisted.body": "Your indication fell short, or none was given. The deal file is closed.",
   "msg.bank_pitch.title": "{adviser} introduces {company}",
-  "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20."
+  "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20.",
+  "msg.owner_opened.minority": "Four months to settle the minority terms. Reason: {reason}. The agreed price is the floor; without a close by then, the talks end."
 }

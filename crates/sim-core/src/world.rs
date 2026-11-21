@@ -329,7 +329,12 @@ pub enum Command {
     /// A non-binding indication of interest in the first round.
     SubmitIndication {
         company: usize,
-        ev: i64,
+        offer: Offer,
+    },
+    /// Offers an owner who is not selling a minority stake, on these terms.
+    ProposeMinority {
+        company: usize,
+        offer: Offer,
     },
     /// A coverage call on a sell-side bank.
     CoverBank {
@@ -451,6 +456,10 @@ pub enum CommandError {
     NoMeeting,
     /// A report the committee asked for is not in yet.
     ConditionOpen,
+    /// A minority investor cannot steer the company.
+    MinorityNoControl,
+    /// Minority stakes are bought from founders and families who keep their company.
+    FounderOwnedOnly,
 }
 
 #[derive(Debug)]
@@ -642,7 +651,8 @@ impl World {
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
             Command::SubmitIc { company } => self.submit_ic(company),
             Command::SubmitBid { company } => self.submit_bid(company),
-            Command::SubmitIndication { company, ev } => self.submit_indication(company, ev),
+            Command::SubmitIndication { company, offer } => self.submit_indication(company, offer),
+            Command::ProposeMinority { company, offer } => self.propose_minority(company, offer),
             Command::CoverBank { adviser } => self.cover_bank(adviser),
             Command::RaiseBid { company, ev } => self.raise_bid(company, ev),
             Command::ResearchSector { sector } => self.research_sector(sector),
@@ -1152,11 +1162,16 @@ pub mod tests {
             }
             let _ = world.apply(Command::SubmitIndication {
                 company,
-                ev: world.model_ev(company) * 104 / 100,
+                offer: Offer {
+                    ev: world.model_ev(company) * 104 / 100,
+                    senior_millis: world.economy.max_senior_millis().min(3_800),
+                    ..Offer::default()
+                },
             });
             let deal = &world.deals[world.deal_index(company).unwrap()];
             let ready = DD_STREAMS.iter().all(|stream| deal.has(*stream));
-            if ready && deal.offer.is_none() {
+            // The indication's terms are the draft; the careful player adds a plan before the committee.
+            if ready && deal.offer.as_ref().is_none_or(|offer| offer.plan.is_empty()) {
                 let offer = Offer {
                     ev: world.model_ev(company) * 102 / 100,
                     senior_millis: world.economy.max_senior_millis().min(3_800),
@@ -1165,6 +1180,7 @@ pub mod tests {
                     plan: vec![InitiativeKind::Procurement, InitiativeKind::LeanProgram],
                     mezz_kind: crate::deal::MezzKind::Notes,
                     primary: 0,
+                    ..Offer::default()
                 };
                 let _ = world.apply(Command::SetOffer { company, offer });
                 let _ = world.apply(Command::SubmitIc { company });
@@ -1466,6 +1482,102 @@ pub mod tests {
     }
 
     #[test]
+    fn lender_and_rate_terms_change_the_debt() {
+        let mut world = world(7);
+        run(&mut world, 12);
+        let company = joinable(&mut world);
+        let bank = Offer { ev: world.model_ev(company), senior_millis: 3_000, ..Offer::default() };
+        let private = Offer { lender: crate::deal::Lender::PrivateCredit, ..bank.clone() };
+        let fixed = Offer { rate: crate::deal::RateKind::Fixed, ..bank.clone() };
+        let (a, b, c) = (world.financing(company, &bank), world.financing(company, &private), world.financing(company, &fixed));
+        assert!(b.rate_bps > a.rate_bps, "private credit costs more");
+        assert_eq!(c.rate_bps, a.rate_bps + crate::deal::FIXED_PREMIUM_BPS);
+        assert!(world.terms_certainty_bps(company, &private) > world.terms_certainty_bps(company, &bank));
+        world.apply(Command::SignNda { company }).unwrap();
+        let beyond = Offer { senior_millis: world.economy.max_senior_millis() + 300, ..bank.clone() };
+        assert_eq!(world.validate_offer(company, &beyond), Err(CommandError::LendersRefuse));
+        assert!(world
+            .validate_offer(company, &Offer { lender: crate::deal::Lender::PrivateCredit, ..beyond })
+            .is_ok());
+    }
+
+    #[test]
+    fn a_minority_stake_is_proposed_agreed_and_held_without_control() {
+        let mut world = world(11);
+        run(&mut world, 3);
+        let candidates: Vec<usize> = (0..world.companies.len())
+            .filter(|index| {
+                let target = &world.companies[*index];
+                matches!(target.owner, crate::company::Owner::Founder { .. })
+                    && target.is_active()
+                    && !target.is_abroad()
+                    && target.process.is_none()
+                    && (4_000..30_000).contains(&target.ttm_ebitda())
+            })
+            .collect();
+        let mut opened = None;
+        for company in candidates {
+            world.attention_left = 10;
+            world.companies[company].relationship = 90;
+            world.companies[company].approach_cooldown = 0;
+            let offer = Offer {
+                ev: world.model_ev(company) * 105 / 100,
+                kind: crate::deal::DealKind::Minority,
+                stake_bps: 2_000,
+                primary: world.model_ev(company) / 20,
+                preferred: true,
+                ..Offer::default()
+            };
+            assert!(world.preview_minority(company, &offer)["odds_pct"].as_i64().unwrap() > 40);
+            world.apply(Command::ProposeMinority { company, offer }).unwrap();
+            world.companies[company].pending.as_mut().unwrap().months_left = 1;
+            world.answer_proposals();
+            let agreed = world.companies[company].process.as_ref().is_some_and(|process| {
+                process.reason == crate::market::SaleReason::GrowthCapital && process.stage == Stage::Exclusive
+            });
+            if agreed {
+                opened = Some(company);
+                break;
+            }
+        }
+        let company = opened.expect("some founder takes a fair minority offer");
+        let deal = &world.deals[world.deal_index(company).unwrap()];
+        assert_eq!(deal.offer.as_ref().unwrap().kind, crate::deal::DealKind::Minority);
+        world.attention_left = 10;
+        valued(&mut world, company);
+        for stream in DD_STREAMS {
+            let _ = world.apply(Command::RunDiligence { company, stream });
+        }
+        world.finish_diligence();
+        world.attention_left = 10;
+        world.apply(Command::SubmitIc { company }).unwrap();
+        world.convene_committees_now();
+        attend(&mut world, company);
+        let debt_before = world.companies[company].books.debt;
+        world.apply(Command::SubmitBid { company }).unwrap();
+        let holding = world.companies[company].holding.clone().expect("the stake closed");
+        assert!(holding.minority);
+        assert!(holding.ownership_bps > 2_000 && holding.ownership_bps < 5_000);
+        assert!(holding.preferred > 0);
+        assert_eq!(world.companies[company].books.debt, debt_before, "the owner's loans stay");
+        assert_eq!(
+            world.apply(Command::StartInitiative { company, kind: InitiativeKind::Procurement }),
+            Err(CommandError::MinorityNoControl)
+        );
+        assert_eq!(
+            world.apply(Command::SetBudget { company, budget: world.companies[company].budget }),
+            Err(CommandError::MinorityNoControl)
+        );
+        assert_eq!(
+            world.apply(Command::StartExit { company, route: crate::portfolio::ExitRoute::Strategic }),
+            Err(CommandError::MinorityNoControl)
+        );
+        // Preferred shares get their money back even if the company sells for little.
+        let cheap = world.companies[company].net_debt() + holding.preferred * 2;
+        assert!(world.exit_proceeds(company, cheap) >= holding.preferred.min(cheap));
+    }
+
+    #[test]
     fn a_bid_needs_the_committee() {
         let mut world = world(7);
         run(&mut world, 12);
@@ -1483,6 +1595,7 @@ pub mod tests {
             plan: Vec::new(),
             mezz_kind: crate::deal::MezzKind::Notes,
             primary: 0,
+            ..Offer::default()
         };
         assert_eq!(
             world.apply(Command::SetOffer { company: index, offer: offer.clone() }),
@@ -1648,6 +1761,7 @@ pub mod tests {
             plan: Vec::new(),
             mezz_kind: crate::deal::MezzKind::Notes,
             primary: 0,
+            ..Offer::default()
         };
         let notes = world.financing(company, &base);
         let convertible = world.financing(company, &Offer { mezz_kind: crate::deal::MezzKind::Convertible, ..base.clone() });
@@ -1895,7 +2009,10 @@ pub mod tests {
         assert_eq!(world.next_step(company), (Step::Indicate, None));
         let ev = world.model_ev(company) * 110 / 100;
         world
-            .apply(Command::SubmitIndication { company, ev })
+            .apply(Command::SubmitIndication {
+                company,
+                offer: Offer { ev, senior_millis: 3_000, ..Offer::default() },
+            })
             .unwrap();
         assert_eq!(
             world.next_step(company),

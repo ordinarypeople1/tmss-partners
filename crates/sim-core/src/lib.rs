@@ -148,6 +148,13 @@ mod wasm_api {
                 Err(_) => "null".to_string(),
             }
         }
+
+        pub fn preview_minority(&self, index: usize, offer: &str) -> String {
+            match serde_json::from_str(offer) {
+                Ok(offer) => self.world.preview_minority(index, &offer).to_string(),
+                Err(_) => "null".to_string(),
+            }
+        }
     }
 
     #[wasm_bindgen]

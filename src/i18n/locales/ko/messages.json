@@ -201,5 +201,6 @@
   "msg.not_shortlisted.title": "{company}: 숏리스트 탈락",
   "msg.not_shortlisted.body": "예비입찰가가 부족했거나 내지 않았습니다. 딜 파일을 닫습니다.",
   "msg.bank_pitch.title": "{adviser}: {company}를 소개합니다",
-  "msg.bank_pitch.body": "오너가 매각에 열려 있다고 합니다. 소개를 받아 관계 20에서 시작합니다."
+  "msg.bank_pitch.body": "오너가 매각에 열려 있다고 합니다. 소개를 받아 관계 20에서 시작합니다.",
+  "msg.owner_opened.minority": "4개월간 소수지분 조건을 협상합니다. 사유는 {reason}. 합의한 가격 아래로는 내려갈 수 없고, 기한 안에 마무리하지 못하면 이야기는 끝납니다."
 }

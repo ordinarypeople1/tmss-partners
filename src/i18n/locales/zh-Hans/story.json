@@ -42,5 +42,6 @@
   "story.intent.open": "条件好的话，所有者愿意卖。",
   "story.intent.eager": "所有者想尽快脱手。",
   "story.more": "展开",
-  "story.less": "收起"
+  "story.less": "收起",
+  "story.sale.growth_capital": "所有者不打算出售公司，但在寻找带来增长资金的投资伙伴。"
 }

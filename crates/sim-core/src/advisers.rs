@@ -336,13 +336,16 @@ impl World {
     }
 
     /// A non-binding indication of interest in round one. No committee, no commitment.
+    /// The indication carries the whole term sheet: price, debt, lender, rate, rollover.
+    /// The bank reads the terms with the price; the terms become the draft offer.
     pub(crate) fn submit_indication(
         &mut self,
         company: usize,
-        ev: i64,
+        offer: crate::deal::Offer,
     ) -> Result<(), CommandError> {
         let index = self.deal_index(company).ok_or(CommandError::NoDeal)?;
-        if ev <= 0 {
+        let ev = offer.ev;
+        if ev <= 0 || offer.kind != crate::deal::DealKind::Buyout {
             return Err(CommandError::InvalidOffer);
         }
         if self.deals[index].valuation.is_none() {
@@ -358,7 +361,15 @@ impl World {
         if !round_one {
             return Err(CommandError::WindowClosed);
         }
+        self.validate_offer(company, &offer)?;
         self.deals[index].indication = Some(ev);
+        self.deals[index].indication_terms = Some(offer.clone());
+        if self.deals[index].offer.as_ref() != Some(&offer) {
+            self.deals[index].offer = Some(offer);
+            self.deals[index].ic = None;
+            self.deals[index].ic_meeting = None;
+            self.deals[index].ic_conditions.clear();
+        }
         Ok(())
     }
 
@@ -391,7 +402,14 @@ impl World {
                 } else {
                     0
                 };
-                let score = mul_bps(ev, 10_000 + favour + self.companies[index].relationship * 2);
+                let terms = self.deals[deal]
+                    .indication_terms
+                    .as_ref()
+                    .map_or(0, |offer| self.terms_certainty_bps(index, offer));
+                let score = mul_bps(
+                    ev,
+                    10_000 + favour + self.companies[index].relationship * 2 + terms,
+                );
                 let ahead = rivals.iter().filter(|rival| rival.ev > score).count();
                 ahead < seats && ev >= self.reserve_ev(index) * 95 / 100
             }

@@ -112,5 +112,9 @@
   "error.condition_open": "IC가 요구한 실사가 아직 끝나지 않았습니다.",
   "talk.title.think": "오너의 답",
   "talk.think.1": "좋은 제안이네요. 가족들과 상의해 보고 한두 달 안에 연락드리겠습니다.",
-  "talk.think.2": "숫자는 알겠습니다. 회계사와 은행 이야기도 들어 보고 답을 드리죠."
+  "talk.think.2": "숫자는 알겠습니다. 회계사와 은행 이야기도 들어 보고 답을 드리죠.",
+  "ic.q.no_protection": "경영권이 없는데 보통주입니다. 오너가 잘못하면 우리는 무엇으로 돈을 지킵니까?",
+  "ic.a.no_protection.evidence": "오너와 오래 알았고 실사에서 문제를 찾지 못했습니다.",
+  "ic.a.no_protection.concede": "다음 소수지분부터는 우선주로 들어가겠습니다.",
+  "ic.a.no_protection.push_back": "우선주를 요구하면 오너가 받지 않습니다. 이 조건이라야 들어갑니다."
 }

@@ -112,5 +112,9 @@
   "error.condition_open": "A report the IC asked for is not in yet.",
   "talk.title.think": "The owner's answer",
   "talk.think.1": "A good proposal. Let me talk it over with the family; you will hear from me in a month or two.",
-  "talk.think.2": "I see the numbers. I will hear the accountant and the bank first, then give you an answer."
+  "talk.think.2": "I see the numbers. I will hear the accountant and the bank first, then give you an answer.",
+  "ic.q.no_protection": "No control, and common shares. If the owner gets it wrong, what protects our money?",
+  "ic.a.no_protection.evidence": "I have known the owner for years and diligence found nothing.",
+  "ic.a.no_protection.concede": "From the next minority deal on, we go in with preferred shares.",
+  "ic.a.no_protection.push_back": "Ask for preferred and the owner walks. These are the terms that get us in."
 }

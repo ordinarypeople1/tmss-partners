@@ -111,5 +111,11 @@
   "holding.lever.family_workforce": "장기 근속 인력 · 파업·평판 위험 ↑",
   "holding.lever.fragmented_market": "파편화된 시장 · 시너지 ↑",
   "holding.lever.aging_equipment": "노후 설비 · 유지 설비투자 ↑",
-  "holding.lever.single_plant": "단일 공장 · 가동 중단 위험"
+  "holding.lever.single_plant": "단일 공장 · 가동 중단 위험",
+  "holding.minority.title": "소수지분",
+  "holding.minority.body": "오너가 회사를 운영합니다. 예산, 이니셔티브, 볼트온, 리캡은 오너의 결정입니다. 펀드는 배당을 받고 지분을 팔 때를 고릅니다.",
+  "holding.minority.preferred": "우선주: 엑시트 때 {amount}를 먼저 돌려받습니다.",
+  "holding.minority.common": "보통주: 엑시트 대금을 오너와 같은 비율로 나눕니다.",
+  "holding.exit.minority.secondary": "지분만 다른 투자자에게 · 경영권이 없어 할인",
+  "holding.exit.minority.ipo": "EBITDA $25M 이상 · 오너와 함께 상장 · 공모 때 60%, 6개월 뒤 나머지"
 }

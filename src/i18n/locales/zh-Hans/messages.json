@@ -201,5 +201,6 @@
   "msg.not_shortlisted.title": "{company}：未入围",
   "msg.not_shortlisted.body": "意向报价不足或未提交。交易档案已关闭。",
   "msg.bank_pitch.title": "{adviser}：介绍 {company}",
-  "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。"
+  "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。",
+  "msg.owner_opened.minority": "用4个月敲定少数股权条款。原因：{reason}。不能低于已商定的价格，届时未完成则谈判结束。"
 }
