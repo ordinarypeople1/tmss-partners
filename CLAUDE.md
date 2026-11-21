@@ -35,7 +35,7 @@
 
 - 릴리스 빌드는 네트워크를 부르지 않는다. 글꼴, 지도 타일, 이미지는 모두 번들 안에 있다.
 - 웹뷰 CSP(`src-tauri/tauri.conf.json`)를 넓히지 않는다. 인라인 스크립트와 외부 출처를 쓰지 않는다. 넓혀야 하면 이유를 ADR에 적는다.
-- `npx tauri build --no-bundle`이 계속 통과해야 한다. Windows 실행 파일은 `.github/workflows/desktop.yml`이 만든다.
+- 데스크톱 빌드가 깨지지 않게 둔다. 확인은 CI(`.github/workflows/desktop.yml`)가 하고, 매 작업마다 로컬에서 돌리지 않는다.
 
 ### 콘텐츠
 
@@ -45,6 +45,8 @@
 
 ## 확인
 
+테스트와 확인은 웹 빌드로 한다. 데스크톱 앱은 CI가 빌드한다.
+
 - `npm test`: wasm, 지도 경계, `cargo test`, TypeScript, Vitest, 하드코딩 문자열 검사.
-- 화면 변경은 `tools/dev/drive.cjs`로 실제 상태를 띄워 1280×800 스크린샷으로 본다.
-- `src-tauri`를 건드리면 `npx tauri build --no-bundle`. Linux에서는 WebKitGTK 개발 패키지가 필요하다.
+- 화면 변경은 `npm run dev`를 띄우고 `tools/dev/drive.cjs`로 실제 상태를 만들어 브라우저에서 본다. 1280×800 스크린샷을 기본으로 한다.
+- 데스크톱 전용 기능(종료, 파일 저장, Steamworks)은 웹에서 빠진 채로 돌아야 한다. 웹에서는 그 기능이 없는 경로를 확인하고, 데스크톱 쪽은 CI 빌드 통과로 본다.
