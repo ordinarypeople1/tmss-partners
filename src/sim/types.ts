@@ -515,6 +515,8 @@ export interface CompanyView extends CompanyRow {
    * `cooldown` to 12 months. The thresholds are the relationship levels that unlock things.
    */
   approach: { odds_pct: number | null; cooldown: number; known_at: number; early_notice_at: number; proposal_at: number };
+  /** The senior executive who takes the fund's first meetings. */
+  executive: { name: string; feminine: boolean; role: "cfo" | "coo" | "strategy" };
   /** The player's proposal while the owner thinks it over. */
   pending: { kind: "acquisition" | "exclusive"; months_left: number } | null;
   sector_multiple_millis: number;

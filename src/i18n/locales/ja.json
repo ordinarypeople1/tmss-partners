@@ -518,7 +518,7 @@
   "intent.open": "前向き",
   "intent.eager": "積極的",
   "intent.unknown": "会えば分かります",
-  "step.meet": "オーナー面談",
+  "step.meet": "面談を申し込む",
   "step.approach": "直接提案",
   "step.propose_exclusive": "独占交渉を提案",
   "step.sign_nda": "NDA締結",
@@ -529,7 +529,7 @@
   "step.raise": "入札額引き上げ",
   "step.wait": "翌月へ",
   "step.operate": "経営する",
-  "step.meet.why": "関係が深まると意向を聞け、直接提案できます。",
+  "step.meet.why": "面談を重ねると関係が深まります。最初は役員が応対し、信頼ができると社長が自ら出てきます。",
   "step.approach.why": "受諾なら4か月の単独交渉、拒否なら1年ロック。",
   "step.propose_exclusive.why": "競合なしで4か月の単独交渉。",
   "step.sign_nda.why": "NDAを結ぶとIMと実数を受け取れます。",
@@ -648,5 +648,13 @@
   "banks.call": "カバレッジ面談",
   "banks.mark.list": "限定オークションへの招待",
   "banks.mark.favour": "ショートリストで加点",
-  "banks.mark.headsUp": "ティーザー前の事前連絡"
+  "banks.mark.headsUp": "ティーザー前の事前連絡",
+  "talk.exec.role.cfo": "財務担当専務",
+  "talk.exec.role.coo": "経営統括副社長",
+  "talk.exec.role.strategy": "経営企画常務",
+  "talk.exec.first.1": "社長は本日予定がありまして、まず私がお目にかかります。会社のご紹介は私から。",
+  "talk.exec.first.2": "投資会社の方だそうですね。社長には私からお伝えします。今日は会社の話だけにしましょう。",
+  "talk.exec.again.1": "またお越しいただきました。前回のお話は社長に伝えました。まだ慎重です。",
+  "talk.exec.again.2": "何度も来ていただいて、社内でも話題になっています。もう少し時間をください。",
+  "talk.exec.intro": "次回は社長を直接お連れします。"
 }

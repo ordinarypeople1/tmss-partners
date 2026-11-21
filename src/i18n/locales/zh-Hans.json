@@ -518,7 +518,7 @@
   "intent.open": "持开放态度",
   "intent.eager": "积极",
   "intent.unknown": "见面后才知道",
-  "step.meet": "会见所有者",
+  "step.meet": "申请会面",
   "step.approach": "直接提议",
   "step.propose_exclusive": "提出独家谈判",
   "step.sign_nda": "签署 NDA",
@@ -529,7 +529,7 @@
   "step.raise": "提高报价",
   "step.wait": "下个月",
   "step.operate": "经营",
-  "step.meet.why": "关系加深后可了解意向并直接提议。",
+  "step.meet.why": "多次会面能积累关系。起初由高管接待，有了信任后老板会亲自出面。",
   "step.approach.why": "同意：单独谈判4个月。拒绝：锁定一年。",
   "step.propose_exclusive.why": "无竞争者，单独谈判4个月。",
   "step.sign_nda.why": "签署 NDA 后可获得信息备忘录和真实数字。",
@@ -648,5 +648,13 @@
   "banks.call": "覆盖拜访",
   "banks.mark.list": "受邀参加定向竞标",
   "banks.mark.favour": "入围加分",
-  "banks.mark.headsUp": "发简介前先来电"
+  "banks.mark.headsUp": "发简介前先来电",
+  "talk.exec.role.cfo": "财务副总裁",
+  "talk.exec.role.coo": "运营总裁",
+  "talk.exec.role.strategy": "战略总监",
+  "talk.exec.first.1": "老板今天有安排，由我先来见您。公司情况我来介绍。",
+  "talk.exec.first.2": "听说您是投资机构的。我会转告老板。今天先聊聊公司业务。",
+  "talk.exec.again.1": "您又来了。上次的话我已经转告老板，他还比较谨慎。",
+  "talk.exec.again.2": "您一直来，公司内部也在议论了。再给一点时间。",
+  "talk.exec.intro": "下次我请老板亲自来见您。"
 }

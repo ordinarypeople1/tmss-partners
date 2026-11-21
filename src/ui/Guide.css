@@ -79,10 +79,12 @@
 }
 
 @media (max-width: 760px) {
+  /* At the foot of the map, clear of the layer and country rows. */
   .guide {
-    top: 104px;
+    top: auto;
     right: 8px;
-    width: min(240px, calc(100% - 16px));
+    bottom: 8px;
+    width: min(260px, calc(100% - 16px));
   }
   /* On a phone only the current step shows; the full list is a tap away on a wider screen. */
   .guide li[data-state="done"],

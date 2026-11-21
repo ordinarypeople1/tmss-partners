@@ -1,4 +1,5 @@
 import { useT, type Translate } from "../i18n/useT";
+import { Overlay } from "./Overlay";
 import type { CoverLine, CoverTalk, View } from "../sim/types";
 import { Meter, Tag } from "./charts";
 import { useGame } from "./game";
@@ -42,6 +43,7 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
     ["headsUp", headsUp],
   ].filter(([, mark]) => talk.before < Number(mark) && talk.after >= Number(mark));
   return (
+    <Overlay>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t("cover.title")} onClick={onClose}>
       <div className="talk" onClick={(event) => event.stopPropagation()}>
         <header>
@@ -77,5 +79,6 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
         </button>
       </div>
     </div>
+    </Overlay>
   );
 }

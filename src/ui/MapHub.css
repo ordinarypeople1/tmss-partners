@@ -369,8 +369,9 @@
   .map-layers button span {
     display: none;
   }
+  /* Below the layer row (40px buttons, 4px padding, a border), with a gap. */
   .map-zoom {
-    top: 58px;
+    top: 66px;
     right: 8px;
     left: 8px;
     flex-flow: row;
@@ -403,7 +404,7 @@
   .drawer-bar .search input {
     width: 110px;
   }
-  /* The table becomes a list: name and model value on top, sector, region and sale underneath. */
+  /* The table becomes a list: name and revenue on top, the next step and sale underneath. */
   .drawer-table .table,
   .drawer-table tbody {
     display: block;
@@ -425,7 +426,7 @@
   }
   .drawer-table .c-region,
   .drawer-table .c-owner,
-  .drawer-table .c-rev,
+  .drawer-table .c-ev,
   .drawer-table .c-ebitda,
   .drawer-table .c-rel {
     display: none;
@@ -437,7 +438,8 @@
     grid-column: 1;
     min-width: 0;
   }
-  .drawer-table .c-ev {
+  /* Revenue is known for every company; a value only after a valuation. */
+  .drawer-table .c-rev {
     grid-column: 2;
     grid-row: 1;
     font-weight: 700;

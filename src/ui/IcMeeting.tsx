@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Overlay } from "./Overlay";
 import { useT, type Translate } from "../i18n/useT";
 import type { CompanyView, IcAnswer, IcFacts, IcMeeting as Meeting, IcQuestion, IcTopic } from "../sim/types";
 import { Tag } from "./charts";
@@ -67,6 +68,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
   const outcome = deal.committee?.outcome ?? null;
 
   return (
+    <Overlay>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t("ic.title")} onClick={finished ? onClose : undefined}>
       <div className="talk ic" onClick={(event) => event.stopPropagation()}>
         <header>
@@ -135,6 +137,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
         ) : null}
       </div>
     </div>
+    </Overlay>
   );
 }
 
