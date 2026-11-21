@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useT } from "../i18n/useT";
+import { Boot } from "./Boot";
 import { CompanyPanel } from "./CompanyPanel";
 import { GameProvider, useGame } from "./game";
 import { MapHub } from "./MapHub";
@@ -41,7 +42,7 @@ export function App() {
     document.title = t("app.title");
   }, [t]);
   return (
-    <GameProvider loading={<p className="boot">{t("app.loading")}</p>} failed={<p className="boot">{t("app.loadError")}</p>}
+    <GameProvider loading={<Boot label={t("app.loading")} />} failed={<p className="boot-error">{t("app.loadError")}</p>}
       title={(controls) => <Title {...controls} />}
     >
       <Shell panel={<CompanyPanel />}>

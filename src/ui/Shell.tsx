@@ -446,7 +446,7 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
       <TabBar onNewGame={() => setChoosing(true)} />
       <Toasts />
       <Moments />
-      {choosing ? <NewGame onClose={() => setChoosing(false)} onStart={game.newGame} initial={game.view.options} replaces /> : null}
+      {choosing ? <NewGame onClose={() => setChoosing(false)} onStart={() => game.newGame()} /> : null}
       {game.view.career.fired ? (
         <div className="overlay" role="alertdialog" aria-modal="true">
           <div className="card">

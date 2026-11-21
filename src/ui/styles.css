@@ -162,7 +162,7 @@ th,
 .icon {
   flex: none;
 }
-.boot {
+.boot-error {
   display: grid;
   place-items: center;
   height: 100%;

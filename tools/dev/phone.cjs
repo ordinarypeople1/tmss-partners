@@ -19,7 +19,6 @@ const drive = require("./drive.cjs");
   await page.reload();
   // Through the title screen: no save, so only "new game" is there.
   await page.click('[data-title="new"]', { timeout: 20000 });
-  await page.click(".newgame .btn.primary");
   await page.waitForSelector(".tabbar", { timeout: 20000 });
   const shot = async (name) => {
     await page.waitForTimeout(500);

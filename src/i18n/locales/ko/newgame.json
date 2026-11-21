@@ -1,8 +1,5 @@
 {
   "newgame.title": "새 게임",
-  "newgame.lead": "난이도와 시작 시점을 고릅니다. 시작한 뒤에는 바꿀 수 없습니다.",
-  "newgame.difficulty": "난이도",
-  "newgame.era": "시대",
   "newgame.warning": "지금 게임은 지워집니다.",
   "newgame.start": "시작",
   "newgame.cancel": "취소"

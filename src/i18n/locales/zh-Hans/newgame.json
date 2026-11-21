@@ -1,8 +1,5 @@
 {
   "newgame.title": "新游戏",
-  "newgame.lead": "选择难度和起始时点。开始后不能更改。",
-  "newgame.difficulty": "难度",
-  "newgame.era": "时代",
   "newgame.warning": "当前游戏将被清除。",
   "newgame.start": "开始",
   "newgame.cancel": "取消"

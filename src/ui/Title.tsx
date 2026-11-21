@@ -59,7 +59,7 @@ export function Title({ saved, resume, newGame }: TitleControls) {
             type="button"
             className={saved ? "btn" : "btn primary"}
             data-title="new"
-            onClick={() => setChoosing(true)}
+            onClick={() => (saved ? setChoosing(true) : newGame())}
           >
             <Icon name="restart" size={16} />
             {t("title.newGame")}
@@ -74,7 +74,7 @@ export function Title({ saved, resume, newGame }: TitleControls) {
         </footer>
       </main>
       {choosing ? (
-        <NewGame onClose={() => setChoosing(false)} onStart={newGame} initial={saved?.options} replaces={saved !== null} />
+        <NewGame onClose={() => setChoosing(false)} onStart={() => newGame()} />
       ) : null}
     </div>
   );

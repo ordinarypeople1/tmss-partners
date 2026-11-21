@@ -1,0 +1,108 @@
+/* The loading screen. Motion only when the player allows it. */
+
+.boot {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  height: 100%;
+  background: var(--paper);
+  color: var(--muted);
+}
+.boot p {
+  margin: 0;
+}
+.boot-map {
+  width: 72px;
+  height: 72px;
+  overflow: visible;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.boot-crease {
+  stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.boot-pin {
+  fill: var(--accent);
+  stroke: none;
+}
+.boot-bar {
+  position: relative;
+  width: 140px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--line);
+}
+.boot-bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .boot-fold,
+  .boot-crease {
+    stroke-dasharray: 1;
+    animation: boot-draw 2.4s ease-in-out infinite;
+  }
+  .boot-crease {
+    animation-delay: 0.25s;
+  }
+  .boot-pin {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: boot-pin 2.4s ease-out infinite;
+  }
+  .boot-pin:nth-of-type(2) {
+    animation-delay: 0.15s;
+  }
+  .boot-pin:nth-of-type(3) {
+    animation-delay: 0.3s;
+  }
+  .boot-bar span {
+    animation: boot-bar 1.3s ease-in-out infinite;
+  }
+}
+
+@keyframes boot-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  45%,
+  80% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+@keyframes boot-pin {
+  0%,
+  40% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.6);
+  }
+  55%,
+  80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes boot-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
