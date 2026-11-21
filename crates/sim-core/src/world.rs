@@ -180,6 +180,18 @@ pub enum MessageKind {
     ValuationReady {
         kind: crate::valuation::ValuationKind,
     },
+    /// The committee is in the room for this deal.
+    CommitteeConvened,
+    /// The owner is thinking a proposal over.
+    OwnerConsidering {
+        months: u32,
+    },
+    /// The seller's bank on the player's bid, before the final round.
+    BankFeedback {
+        band: crate::market::FeedbackBand,
+        /// The seller weighs certainty of closing, not only price.
+        certainty: bool,
+    },
     DealClosed {
         ev: i64,
         equity: i64,
@@ -327,6 +339,10 @@ pub enum Command {
         company: usize,
         kind: crate::valuation::ValuationKind,
     },
+    AnswerIc {
+        company: usize,
+        answer: crate::ic::Answer,
+    },
     RaiseBid {
         company: usize,
         ev: i64,
@@ -431,6 +447,10 @@ pub enum CommandError {
     OwnerNotReady,
     /// A price needs the fund's own valuation first.
     NeedsValuation,
+    /// No committee meeting is booked for this deal.
+    NoMeeting,
+    /// A report the committee asked for is not in yet.
+    ConditionOpen,
 }
 
 #[derive(Debug)]
@@ -614,6 +634,7 @@ impl World {
             Command::SignNda { company } => self.sign_nda(company),
             Command::RunDiligence { company, stream } => self.run_diligence(company, stream),
             Command::OrderValuation { company, kind } => self.order_valuation(company, kind),
+            Command::AnswerIc { company, answer } => self.answer_ic(company, answer),
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
             Command::SubmitIc { company } => self.submit_ic(company),
             Command::SubmitBid { company } => self.submit_bid(company),
@@ -882,6 +903,7 @@ impl World {
 
         self.finish_diligence();
         self.finish_valuations();
+        self.answer_proposals();
         self.portfolio_step(closes_quarter);
         self.refinance_maturities();
         self.market_step();
@@ -899,6 +921,7 @@ impl World {
 
         self.date = closing.next();
         self.months_elapsed += 1;
+        self.convene_committees();
         self.career_step();
         self.fund_clock();
         if closing.month == 12 {
@@ -1140,6 +1163,7 @@ pub mod tests {
                 let _ = world.apply(Command::SetOffer { company, offer });
                 let _ = world.apply(Command::SubmitIc { company });
             }
+            attend(world, company);
             let bidding = world.companies[company]
                 .process
                 .as_ref()
@@ -1376,6 +1400,32 @@ pub mod tests {
     }
 
     /// A sale at home the player can still join: on the list, round one open.
+    /// Answers every open question: evidence where it holds, else a concession.
+    fn attend(world: &mut World, company: usize) {
+        for _ in 0..crate::ic::QUESTIONS {
+            let open = world
+                .deal_index(company)
+                .and_then(|index| world.deals[index].ic_meeting.as_ref())
+                .is_some_and(|meeting| meeting.open);
+            if !open {
+                return;
+            }
+            let _ = world.apply(Command::AnswerIc { company, answer: crate::ic::Answer::Concede });
+        }
+    }
+
+    impl World {
+        /// Seats the booked committees at once, as if a month had passed.
+        fn convene_committees_now(&mut self) {
+            for deal in &mut self.deals {
+                if let Some(meeting) = deal.ic_meeting.as_mut() {
+                    meeting.date = self.date;
+                }
+            }
+            self.convene_committees();
+        }
+    }
+
     /// Orders an adviser's valuation and lets it come in at once.
     fn valued(world: &mut World, company: usize) {
         world
@@ -1442,9 +1492,32 @@ pub mod tests {
             Err(CommandError::NeedsCommittee)
         );
         world.apply(Command::SubmitIc { company: index }).unwrap();
+        // The committee sits next month, not now.
+        let deal = &world.deals[world.deal_index(index).unwrap()];
+        assert!(deal.ic.is_none());
+        assert_eq!(deal.ic_meeting.as_ref().unwrap().questions.len(), crate::ic::QUESTIONS);
+        assert_eq!(
+            world.apply(Command::AnswerIc { company: index, answer: crate::ic::Answer::Concede }),
+            Err(CommandError::TooEarly)
+        );
+        world.convene_committees_now();
+        attend(&mut world, index);
         // No diligence and no plan: the committee does not approve.
         let deal = &world.deals[world.deal_index(index).unwrap()];
         assert_ne!(deal.ic.as_ref().unwrap().outcome, IcOutcome::Approved);
+        let record = deal.ic_record.as_ref().unwrap();
+        assert!(record.questions.iter().all(|question| question.answer.is_some()));
+        // The questions are this deal's: the missing diligence comes up.
+        assert!(record.questions.iter().any(|question| matches!(
+            question.topic,
+            crate::ic::Topic::Concern(
+                crate::deal::Concern::NoFinancialDd
+                    | crate::deal::Concern::NoOperationalDd
+                    | crate::deal::Concern::NoCommercialDd
+                    | crate::deal::Concern::NoLegalDd
+                    | crate::deal::Concern::NoPlan
+            )
+        )));
     }
 
     #[test]
@@ -1599,6 +1672,8 @@ pub mod tests {
                 .find(|deal| deal.bid_submitted)
                 .map(|deal| (deal.company, deal.approved_ev));
             if let Some((company, approved)) = bid {
+                // Concessions in the meeting may have narrowed the room above the approval.
+                let approved = world.bid_ceiling(company) * 100 / 103;
                 assert_eq!(
                     world.apply(Command::RaiseBid {
                         company,
@@ -1681,6 +1756,13 @@ pub mod tests {
             assert!(!world.company_view(company)["intent"].is_null());
             assert_eq!(world.next_step(company), (Step::Approach, None));
             world.apply(Command::ApproachOwner { company }).unwrap();
+            // The owner takes time: nothing happens until the answer comes.
+            assert!(world.deal_index(company).is_none());
+            assert_eq!(world.next_step(company), (Step::Wait, Some(Block::OwnerConsidering)));
+            assert_eq!(world.apply(Command::ApproachOwner { company }), Err(CommandError::AlreadyDone));
+            world.companies[company].pending.as_mut().unwrap().months_left = 1;
+            world.answer_proposals();
+            assert!(world.companies[company].pending.is_none());
             if world.deal_index(company).is_some() {
                 opened += 1;
                 let process = world.companies[company].process.as_ref().unwrap();

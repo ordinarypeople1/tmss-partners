@@ -1,5 +1,6 @@
 import { Indication, ProcessCard } from "./Process";
 import { ValuationCard } from "./Valuation";
+import { IcMeetingDialog } from "./IcMeeting";
 import { gate } from "./Gate";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
@@ -280,6 +281,18 @@ export function DealRoom({ company }: { company: CompanyView }) {
     return before === undefined || after === undefined ? null : after - before;
   }, [company, myBid, raiseEv]);
 
+  const meeting = deal?.ic_meeting ?? null;
+  const meetingKey = meeting ? `${meeting.date.year}-${meeting.date.month}-${meeting.open}` : "";
+  const [meetingShown, setMeetingShown] = useState(false);
+  const [seenMeeting, setSeenMeeting] = useState("");
+  // The committee walks in: open the room once, when it sits.
+  useEffect(() => {
+    if (meeting?.open && seenMeeting !== meetingKey) {
+      setSeenMeeting(meetingKey);
+      setMeetingShown(true);
+    }
+  }, [meeting?.open, meetingKey, seenMeeting]);
+
   if (!deal) {
     return null;
   }
@@ -423,6 +436,15 @@ export function DealRoom({ company }: { company: CompanyView }) {
       tone: "warn",
       run: () => game.act({ type: "set_offer", company: company.i, offer }),
     };
+  } else if (meeting?.open) {
+    dock = {
+      label: t("ic.enter"),
+      disabled: false,
+      note: null,
+      run: () => setMeetingShown(true),
+    };
+  } else if (meeting) {
+    dock = null;
   } else if (!committee) {
     dock = {
       label: t("dealroom.committee.submit"),
@@ -1042,6 +1064,20 @@ export function DealRoom({ company }: { company: CompanyView }) {
             </ul>
             <p className="dr-note">{t("dealroom.trustRule")}</p>
           </>
+        ) : meeting ? (
+          <div className="dr-meeting">
+            <p className="muted">
+              {meeting.open
+                ? t("ic.sitting")
+                : t("ic.booked", { date: f.date(meeting.date) })}
+            </p>
+            {meeting.open ? (
+              <button type="button" className="btn primary" onClick={() => setMeetingShown(true)}>
+                <Icon name="gavel" size={15} />
+                {t("ic.enter")}
+              </button>
+            ) : null}
+          </div>
         ) : (
           <p className="muted">
             {t(
@@ -1051,6 +1087,12 @@ export function DealRoom({ company }: { company: CompanyView }) {
             )}
           </p>
         )}
+        {committee && deal.ic_record ? (
+          <button type="button" className="btn small ghost" onClick={() => setMeetingShown(true)}>
+            <Icon name="eye" size={13} />
+            {t("ic.minutes")}
+          </button>
+        ) : null}
         {locked ? null : (
           <>
             <div className="dr-actions">
@@ -1064,10 +1106,10 @@ export function DealRoom({ company }: { company: CompanyView }) {
               >
                 {t("dealroom.offer.save")}
               </button>
-              <button {...gate(!saved ? t("gate.needsSave") : committee ? t("gate.inCommittee") : null)}
+              <button {...gate(!saved ? t("gate.needsSave") : committee || meeting ? t("gate.inCommittee") : null)}
                 type="button"
-                className={saved && !committee ? "btn primary" : "btn"}
-                disabled={!saved || Boolean(committee)}
+                className={saved && !committee && !meeting ? "btn primary" : "btn"}
+                disabled={!saved || Boolean(committee) || Boolean(meeting)}
                 onClick={() =>
                   game.act({ type: "submit_ic", company: company.i })
                 }
@@ -1318,6 +1360,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
         <div className="dr-actions">{dropControl}</div>
       )}
     </div>
+    {meetingShown ? <IcMeetingDialog company={company} onClose={() => setMeetingShown(false)} /> : null}
     {dock ? (
       <div className="cp-dock dr-dock">
         {raising && myBid !== null ? (

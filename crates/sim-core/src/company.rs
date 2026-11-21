@@ -307,6 +307,9 @@ pub struct Company {
     /// A rival house that has proposed to the owner.
     #[serde(default)]
     pub suitor: Option<crate::rivals::Suitor>,
+    /// The player's proposal, while the owner thinks it over.
+    #[serde(default)]
+    pub pending: Option<crate::sourcing::Pending>,
 }
 
 fn monthly_ebitda(
@@ -545,6 +548,7 @@ impl Company {
             sponsor_cost: 0,
             approach_cooldown: 0,
             suitor: None,
+            pending: None,
         }
     }
 

@@ -389,6 +389,7 @@ impl World {
             }),
         );
         detail.insert("country".into(), json!(company.country));
+        detail.insert("pending".into(), json!(company.pending));
         detail.insert(
             "sector_multiple_millis".into(),
             json!(industry.base_multiple_millis),
@@ -495,6 +496,10 @@ impl World {
                     "streams_running": deal.streams_running,
                     "valuation": deal.valuation,
                     "valuation_order": deal.valuation_order,
+                    "ic_meeting": deal.ic_meeting,
+                    "ic_record": deal.ic_record,
+                    "ic_conditions": deal.ic_conditions,
+                    "ic_facts": self.ic_facts(index),
                     "costs": deal.costs,
                     "diligence_cost": self.diligence_cost(index),
                     "offer": deal.offer,
@@ -742,5 +747,42 @@ impl World {
             Some(valuation) => json!([valuation.low, valuation.high]),
             None => Value::Null,
         }
+    }
+}
+
+impl World {
+    /// The figures the partners quote in their questions, for the offer on the table.
+    fn ic_facts(&self, company: usize) -> Value {
+        let Some(index) = self.deal_index(company) else {
+            return Value::Null;
+        };
+        let deal = &self.deals[index];
+        let Some(offer) = deal.offer.as_ref() else {
+            return Value::Null;
+        };
+        let financing = self.financing(company, offer);
+        let returns = self.project_returns(company, offer);
+        let target = &self.companies[company];
+        let missing: Vec<DdStream> = crate::company::DD_STREAMS
+            .iter()
+            .copied()
+            .filter(|stream| !deal.has(*stream))
+            .collect();
+        let issues: Vec<_> = target.issues.iter().filter(|issue| issue.found).map(|issue| issue.kind).collect();
+        json!({
+            "ev": offer.ev,
+            "leverage_millis": financing.leverage_millis,
+            "cover_millis": financing.cover_millis,
+            "multiple_millis": financing.multiple_millis,
+            "price_bps": deal.valuation.as_ref().map(|valuation| crate::math::ratio_bps(offer.ev, valuation.mid.max(1))),
+            "irr_bps": returns.irr_bps,
+            "equity": financing.equity,
+            "limit": self.fund.concentration_limit(),
+            "missing": missing,
+            "issues": issues,
+            "plan": offer.plan.len(),
+            "union_bps": target.union_strength_bps,
+            "phase": self.economy.phase,
+        })
     }
 }

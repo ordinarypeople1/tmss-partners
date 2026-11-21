@@ -175,7 +175,7 @@ export function Journey({ company }: { company: CompanyView }) {
 }
 
 interface Talk {
-  kind: "meet" | "yes" | "no";
+  kind: "meet" | "yes" | "no" | "think";
   before: number;
 }
 
@@ -202,15 +202,19 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
         break;
       case "approach": {
         const before = company.relationship;
+        // The owner thinks it over; the answer comes in a month or two.
         if (game.act({ type: "approach_owner", company: company.i })) {
-          // The sim answered inside the command: a deal file means yes.
-          setTalk({ kind: game.peek(company.i)?.in_deal ? "yes" : "no", before });
+          setTalk({ kind: "think", before });
         }
         break;
       }
-      case "propose_exclusive":
-        game.act({ type: "propose_exclusive", company: company.i });
+      case "propose_exclusive": {
+        const before = company.relationship;
+        if (game.act({ type: "propose_exclusive", company: company.i })) {
+          setTalk({ kind: "think", before });
+        }
         break;
+      }
       case "sign_nda":
         game.act({ type: "sign_nda", company: company.i });
         break;
@@ -280,7 +284,9 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
   const variant = ((company.i + talk.before) % 2) + 1;
   const street = game.view.career.street;
   const line =
-    talk.kind === "yes"
+    talk.kind === "think"
+      ? `talk.think.${variant}`
+      : talk.kind === "yes"
       ? "talk.yes"
       : talk.kind === "no"
         ? "talk.no"

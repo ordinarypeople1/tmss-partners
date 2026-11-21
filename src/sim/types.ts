@@ -187,7 +187,9 @@ export type Block =
   | "not_invited"
   | "first_round_closed"
   | "awaiting_shortlist"
-  | "valuation_due";
+  | "valuation_due"
+  | "committee_scheduled"
+  | "owner_considering";
 export type Difficulty = "relaxed" | "standard" | "hard";
 export type Era = "high_rates" | "cheap_money" | "late_cycle";
 export interface Options {
@@ -422,6 +424,14 @@ export interface DealView {
   streams_running: DdStream[];
   valuation: Valuation | null;
   valuation_order: ValuationKind | null;
+  /** The committee booked for next month, or sitting now. */
+  ic_meeting: IcMeeting | null;
+  /** The last meeting, with its questions and answers. */
+  ic_record: IcMeeting | null;
+  /** Reports the committee wants in before a bid. */
+  ic_conditions: DdStream[];
+  /** Figures the partners quote, for the offer on the table. */
+  ic_facts: IcFacts | null;
   costs: number;
   diligence_cost: number;
   offer: Offer | null;
@@ -503,6 +513,8 @@ export interface CompanyView extends CompanyRow {
    * `cooldown` to 12 months. The thresholds are the relationship levels that unlock things.
    */
   approach: { odds_pct: number | null; cooldown: number; known_at: number; early_notice_at: number; proposal_at: number };
+  /** The player's proposal while the owner thinks it over. */
+  pending: { kind: "acquisition" | "exclusive"; months_left: number } | null;
   sector_multiple_millis: number;
   union_strength_bps: number;
   /** 1 through 20. Null until operational diligence. */
@@ -557,6 +569,9 @@ export type MessageBody =
   | { type: "diligence_report"; stream: DdStream; found: IssueKind[] }
   | { type: "committee_decision"; outcome: IcOutcome }
   | { type: "valuation_ready"; kind: ValuationKind }
+  | { type: "committee_convened" }
+  | { type: "owner_considering"; months: number }
+  | { type: "bank_feedback"; band: "leading" | "close" | "behind"; certainty: boolean }
   | { type: "deal_closed"; ev: number; equity: number; debt: number }
   | { type: "deal_broken" }
   | { type: "initiative_done"; kind: InitiativeKind }
@@ -738,6 +753,7 @@ export type Command =
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
   | { type: "order_valuation"; company: number; kind: ValuationKind }
+  | { type: "answer_ic"; company: number; answer: IcAnswer }
   | { type: "set_offer"; company: number; offer: Offer }
   | { type: "submit_ic"; company: number }
   | { type: "submit_bid"; company: number }
@@ -805,4 +821,40 @@ export interface Valuation {
   sector_multiple_millis: number;
   net_debt: number;
   fee: number;
+}
+
+/** A committee question's subject: one of the partner's concerns, or a routine one. */
+export type IcTopic = { concern: Concern } | "exit" | "value_creation" | "cycle";
+export type IcAnswer = "evidence" | "concede" | "push_back";
+
+export interface IcQuestion {
+  partner: number;
+  topic: IcTopic;
+  answer: IcAnswer | null;
+  landed: boolean | null;
+}
+
+/** The committee as a meeting, from `ic.rs`. */
+export interface IcMeeting {
+  date: GameDate;
+  open: boolean;
+  questions: IcQuestion[];
+  cut_bps: number;
+  conditions: DdStream[];
+}
+
+export interface IcFacts {
+  ev: number;
+  leverage_millis: number;
+  cover_millis: number;
+  multiple_millis: number;
+  price_bps: number | null;
+  irr_bps: number;
+  equity: number;
+  limit: number;
+  missing: DdStream[];
+  issues: IssueKind[];
+  plan: number;
+  union_bps: number;
+  phase: Phase;
 }

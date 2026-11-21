@@ -88,6 +88,27 @@ pub enum Block {
     AwaitingShortlist,
     /// The valuation comes in when the month closes.
     ValuationDue,
+    /// The committee sits next month.
+    CommitteeScheduled,
+    /// The owner is thinking the proposal over.
+    OwnerConsidering,
+}
+
+/// What the player proposed to an owner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProposalKind {
+    /// Buy the company, outside any sale.
+    Acquisition,
+    /// Talk alone before the bank starts an auction.
+    Exclusive,
+}
+
+/// A proposal the owner is still thinking over.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Pending {
+    pub kind: ProposalKind,
+    pub months_left: u32,
 }
 
 impl World {
@@ -187,17 +208,64 @@ impl World {
             Some(Block::TooManyDeals) => return Err(CommandError::TooManyDeals),
             _ => {}
         }
-        let Some((_, reason)) = self.sale_motive(company) else {
+        if self.companies[company].pending.is_some() {
+            return Err(CommandError::AlreadyDone);
+        }
+        if self.sale_motive(company).is_none() {
             return Err(CommandError::NotForSale);
-        };
+        }
         self.spend_attention(1)?;
+        // The owner takes a month or two: family, the bank, the accountant.
+        let months = self.rng.range(1, 2) as u32;
+        self.companies[company].pending = Some(Pending { kind: ProposalKind::Acquisition, months_left: months });
+        self.post(MessageKind::OwnerConsidering { months }, Some(company));
+        Ok(())
+    }
+
+    /// Month end: owners who have thought it over answer.
+    pub(crate) fn answer_proposals(&mut self) {
+        for company in 0..self.companies.len() {
+            let Some(pending) = self.companies[company].pending.as_mut() else {
+                continue;
+            };
+            pending.months_left = pending.months_left.saturating_sub(1);
+            if pending.months_left > 0 {
+                continue;
+            }
+            let kind = pending.kind;
+            self.companies[company].pending = None;
+            if !self.companies[company].is_active() || self.companies[company].is_player_owned() {
+                continue;
+            }
+            match kind {
+                ProposalKind::Acquisition => self.answer_acquisition(company),
+                ProposalKind::Exclusive => self.answer_exclusive(company),
+            }
+        }
+    }
+
+    fn answer_acquisition(&mut self, company: usize) {
+        // Someone else got there first, or the reason to sell went away.
+        if self.companies[company].process.is_some() {
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
+        }
+        let Some((_, reason)) = self.sale_motive(company) else {
+            self.companies[company].approach_cooldown = 6;
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
+        };
         let odds = self.approach_odds(company);
         if !self.rng.chance_bps((odds * 100) as u32) {
             let target = &mut self.companies[company];
             target.approach_cooldown = 12;
             target.relationship = (target.relationship - 3).max(0);
             self.post(MessageKind::OwnerDeclined, Some(company));
-            return Ok(());
+            return;
+        }
+        if self.deals.len() >= self.career.rank.max_live_deals() {
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
         }
         self.companies[company].suitor = None;
         self.companies[company].process = Some(Process {
@@ -212,9 +280,33 @@ impl World {
             codename: String::new(),
             shortlisted: None,
         });
-        self.sign_nda(company)?;
-        self.post(MessageKind::OwnerOpened { reason }, Some(company));
-        Ok(())
+        if self.sign_nda(company).is_ok() {
+            self.post(MessageKind::OwnerOpened { reason }, Some(company));
+        }
+    }
+
+    fn answer_exclusive(&mut self, company: usize) {
+        let still_preparing = self.companies[company]
+            .process
+            .as_ref()
+            .is_some_and(|process| process.stage == Stage::Preparing);
+        // The bank moved first: the owner keeps the auction.
+        if !still_preparing {
+            self.post(MessageKind::OwnerDeclined, Some(company));
+            return;
+        }
+        let process = self.companies[company].process.as_mut().expect("checked above");
+        process.stage = Stage::Exclusive;
+        // The owner deals directly: no bank, no list, no rounds.
+        process.adviser = None;
+        process.months_left = 4;
+        if self.deal_index(company).is_none() && self.sign_nda(company).is_err() {
+            return;
+        }
+        let reason = self.companies[company].process.as_ref().map(|process| process.reason);
+        if let Some(reason) = reason {
+            self.post(MessageKind::OwnerOpened { reason }, Some(company));
+        }
     }
 
     /// The next move at a company, and what stands in the way of it.
@@ -277,7 +369,22 @@ impl World {
                     (Step::Wait, Some(Block::AwaitingShortlist))
                 };
             }
+            if let Some(meeting) = &deal.ic_meeting {
+                return if meeting.open {
+                    (Step::Committee, None)
+                } else {
+                    (Step::Wait, Some(Block::CommitteeScheduled))
+                };
+            }
+            let conditions_open = deal.ic_conditions.iter().any(|stream| !deal.has(*stream));
             return match &deal.ic {
+                Some(ic) if ic.outcome == IcOutcome::Approved && conditions_open => {
+                    if deal.streams_running.is_empty() {
+                        (Step::Diligence, tired(1))
+                    } else {
+                        (Step::Wait, Some(Block::ReportsDue))
+                    }
+                }
                 Some(ic) if ic.outcome == IcOutcome::Approved => {
                     if matches!(stage, Some(Stage::Bidding | Stage::Exclusive)) {
                         (Step::Bid, None)
@@ -294,6 +401,9 @@ impl World {
                 None if !deal.streams_running.is_empty() => (Step::Wait, Some(Block::ReportsDue)),
                 None => (Step::Offer, None),
             };
+        }
+        if target.pending.is_some() {
+            return (Step::Wait, Some(Block::OwnerConsidering));
         }
         let abroad_locked = target.is_abroad() && self.career.rank < Rank::Principal;
         if self.process_visible(company) {

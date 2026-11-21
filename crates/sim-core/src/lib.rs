@@ -11,6 +11,7 @@ pub mod content;
 pub mod deal;
 pub mod economy;
 pub mod fund;
+pub mod ic;
 pub mod ledger;
 pub mod market;
 pub mod math;
