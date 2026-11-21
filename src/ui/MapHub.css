@@ -500,3 +500,28 @@
   border-radius: 2px;
   background: var(--warn);
 }
+
+/* The one button that shows or hides everything floating on the map. */
+.map-layers[data-open] .map-tools-toggle {
+  border-bottom: 1px solid var(--line);
+  border-radius: 6px 6px 0 0;
+}
+.map-layers[data-open] .map-tools-toggle {
+  color: var(--muted);
+}
+@media (max-width: 760px) {
+  /* Folded, the button says what it holds. */
+  .map-layers:not([data-open]) .map-tools-toggle {
+    gap: 6px;
+    padding: 0 12px;
+  }
+  .map-layers:not([data-open]) .map-tools-toggle span {
+    display: inline;
+    font-weight: 700;
+  }
+  .map-layers[data-open] .map-tools-toggle {
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 6px 0 0 6px;
+  }
+}

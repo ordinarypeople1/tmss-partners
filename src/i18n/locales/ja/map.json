@@ -40,5 +40,7 @@
   "map.col.monthsLeft": "{months, plural, other {#か月}}",
   "map.empty": "条件に合う会社がありません。",
   "map.ping": "今月の動き",
-  "map.legend.fogShort": "NDA前"
+  "map.legend.fogShort": "NDA前",
+  "map.tools.show": "地図ツール",
+  "map.tools.hide": "ツールを隠す"
 }

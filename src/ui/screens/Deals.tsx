@@ -310,7 +310,7 @@ export function Deals() {
 
       <section className="card">
         <h2>
-          <Icon name="handshake" size={15} />
+          <Icon name="meet" size={15} />
           {t("deals.courting.title")}
           <small className="muted">{courting.length}</small>
         </h2>

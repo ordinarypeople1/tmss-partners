@@ -14,7 +14,7 @@ import "./Journey.css";
 const NODES = ["contact", "trust", "talks", "nda", "ioi", "diligence", "committee", "bid", "close"] as const;
 
 const STEP_ICON: Record<Step, string> = {
-  meet: "handshake",
+  meet: "meet",
   approach: "flag",
   propose_exclusive: "flag",
   sign_nda: "search",
@@ -247,7 +247,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
         <div className="journey-buttons">
           {canAlsoMeet ? (
             <button {...gate(view.attention.left < (abroad ? 2 : 1) && t("gate.attention", { need: abroad ? 2 : 1, left: view.attention.left }))} type="button" className="btn" disabled={view.attention.left < (abroad ? 2 : 1)} onClick={meet}>
-              <Icon name="handshake" size={15} />
+              <Icon name="meet" size={15} />
               {t("step.meet")}
               <span className="journey-cost">
                 <Icon name="bolt" size={11} />
