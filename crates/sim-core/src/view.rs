@@ -300,7 +300,9 @@ impl World {
                 "tier": adviser.tier,
                 "focus": adviser.focus,
                 "coverage": self.coverage(id as u8),
+                "banker": self.banker_json(id as u8),
             })).collect::<Vec<_>>(),
+            "cover_talk": self.cover_talk,
             "coverage_marks": [crate::advisers::LIST_AT, crate::advisers::FAVOUR_AT, crate::advisers::HEADS_UP_AT],
             "companies": active.iter().map(|index| self.row(*index)).collect::<Vec<_>>(),
             "deals": self.deals.iter().map(|deal| deal.company).collect::<Vec<_>>(),
@@ -784,5 +786,12 @@ impl World {
             "union_bps": target.union_strength_bps,
             "phase": self.economy.phase,
         })
+    }
+}
+
+impl World {
+    fn banker_json(&self, adviser: u8) -> Value {
+        let (name, feminine) = self.banker(adviser);
+        json!({ "name": name, "feminine": feminine })
     }
 }

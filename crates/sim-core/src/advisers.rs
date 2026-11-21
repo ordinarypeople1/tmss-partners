@@ -99,6 +99,31 @@ impl Format {
 }
 
 /// Coverage at which a bank puts the player on a targeted list.
+/// What a banker says over coffee, from the least to the most useful.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum CoverLine {
+    Market { phase: crate::economy::Phase },
+    Credit { spread_bps: i64 },
+    /// An owner in this sector is talking to banks; a sale in about `months`.
+    Sector { sector: String, months: u32 },
+    /// A rival house is busy in this sector.
+    Rival { house: u8, sector: String },
+    /// A named sale the bank is preparing, before any teaser.
+    Pipeline { company: String, months: u32 },
+    /// What the street says about the fund.
+    Reputation { good: bool },
+}
+
+/// The last coverage meeting, for the screen to show.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CoverTalk {
+    pub adviser: u8,
+    pub before: i64,
+    pub after: i64,
+    pub lines: Vec<CoverLine>,
+}
+
 pub const LIST_AT: i64 = 30;
 /// Coverage at which a bank gives the benefit of the doubt at the shortlist.
 pub const FAVOUR_AT: i64 = 50;
@@ -226,9 +251,88 @@ impl World {
             return Err(CommandError::InvalidChoice);
         }
         self.spend_attention(1)?;
+        let before = self.coverage(adviser);
         let gain = 12 + self.career.reputation / 12 + self.rng.range(0, 5);
         self.add_coverage(adviser, gain);
+        let after = self.coverage(adviser);
+        let mut lines = vec![self.cover_line(adviser, after)];
+        let street = self.street_swing();
+        if street.abs() >= 8 {
+            lines.push(CoverLine::Reputation { good: street > 0 });
+        }
+        self.cover_talk = Some(CoverTalk { adviser, before, after, lines });
         Ok(())
+    }
+
+    /// The banker who covers the fund at this adviser: the same person all game.
+    pub fn banker(&self, adviser: u8) -> (String, bool) {
+        let mut rng = crate::rng::Rng::new(self.seed ^ (u64::from(adviser) + 7).wrapping_mul(0xA24B_AED4_963E_E407));
+        crate::people::name(&mut rng, "US")
+    }
+
+    /// What the banker lets slip. The better the bank knows the fund, the
+    /// closer the talk gets to a name: the market, then a sector, then a rival,
+    /// then a sale that has not reached the market.
+    fn cover_line(&mut self, adviser: u8, coverage: i64) -> CoverLine {
+        let book = &ADVISER_BOOK[adviser as usize % ADVISERS];
+        let unseen = |world: &World, index: usize| {
+            world.companies[index].is_active()
+                && !world.companies[index].is_player_owned()
+                && world.companies[index]
+                    .process
+                    .as_ref()
+                    .is_some_and(|process| process.stage == Stage::Preparing)
+                && !world.process_visible(index)
+        };
+        if coverage >= HEADS_UP_AT {
+            let mine = (0..self.companies.len()).find(|index| {
+                unseen(self, *index)
+                    && self.companies[*index]
+                        .process
+                        .as_ref()
+                        .is_some_and(|process| process.adviser == Some(adviser))
+            });
+            if let Some(index) = mine {
+                let months = self.companies[index].process.as_ref().map_or(1, |process| process.months_left.max(1));
+                return CoverLine::Pipeline {
+                    company: crate::view::short_name(&self.companies[index].legal_name).to_string(),
+                    months,
+                };
+            }
+        }
+        if coverage >= FAVOUR_AT {
+            let rival = self
+                .companies
+                .iter()
+                .find_map(|company| company.suitor.as_ref().map(|suitor| (suitor.house, company.sector)))
+                .or_else(|| {
+                    self.companies.iter().find_map(|company| match company.owner {
+                        Owner::Sponsor { house, months_held } if months_held <= 12 => Some((house, company.sector)),
+                        _ => None,
+                    })
+                });
+            if let Some((house, sector)) = rival {
+                return CoverLine::Rival { house, sector: self.industries[sector].sector_id.clone() };
+            }
+        }
+        if coverage >= LIST_AT {
+            let focus = book.focus;
+            let pick = (0..self.companies.len())
+                .filter(|index| unseen(self, *index))
+                .find(|index| focus.is_none_or(|focus| self.industries[self.companies[*index].sector].sector_id == focus));
+            if let Some(index) = pick {
+                let months = self.companies[index].process.as_ref().map_or(1, |process| process.months_left.max(1));
+                return CoverLine::Sector {
+                    sector: self.industries[self.companies[index].sector].sector_id.clone(),
+                    months,
+                };
+            }
+        }
+        if self.rng.chance_bps(5_000) {
+            CoverLine::Market { phase: self.economy.phase }
+        } else {
+            CoverLine::Credit { spread_bps: self.economy.credit_spread_bps }
+        }
     }
 
     /// A non-binding indication of interest in round one. No committee, no commitment.

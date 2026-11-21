@@ -1,0 +1,18 @@
+{
+  "cover.title": "覆盖会面",
+  "cover.role": "{bank} 董事总经理",
+  "cover.line.market.expansion": "最近项目储备很满。卖方都觉得现在是卖的时候，价格要有心理准备。",
+  "cover.line.market.slowdown": "气氛在降温。卖方还没下调预期，已经有几单谈崩了。",
+  "cover.line.market.recession": "说实话没人想卖，只有急着用钱的才出来。困境交易会有机会。",
+  "cover.line.market.recovery": "底部应该已经过去了。之前压着的项目会在明年上半年集中出来。",
+  "cover.line.credit.tight.1": "贷款方变挑剔了。利差扩大到{spread}%，高杠杆很难做。",
+  "cover.line.credit.tight.2": "银行在收紧新的并购贷款。{spread}%的话，股权要多放一些。",
+  "cover.line.credit.easy.1": "并购融资很充裕。利差在{spread}%左右，贷款方在找项目。",
+  "cover.line.credit.easy.2": "贷款条件很好，{spread}%。这种时候竞争对手会报高价。",
+  "cover.line.sector.1": "{sector}有位所有者在找顾问。名字还不能说，但{months}个月内会出来。",
+  "cover.line.sector.2": "最近{sector}的所有者之间传承话题很多。有一家大概{months}个月后会上市场。",
+  "cover.line.rival": "{house}一直在看{sector}。那边出来的项目它几乎都会参与。",
+  "cover.line.pipeline": "这话只在我们之间说：{company}的卖方顾问是我们。{months}个月内发出推介材料，您先看看。",
+  "cover.line.reputation.good": "最近业内对贵机构评价很好，卖方都知道你们。",
+  "cover.line.reputation.bad": "最近贵机构的口碑不太好，卖方担心交割的确定性。"
+}

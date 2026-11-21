@@ -501,6 +501,9 @@ pub struct World {
     pub insight: Vec<u32>,
     /// 0 to 100 per committee seat.
     pub partner_trust: Vec<i64>,
+    /// The last coverage meeting.
+    #[serde(default)]
+    pub cover_talk: Option<crate::advisers::CoverTalk>,
     pub lps: Vec<Lp>,
     pub objectives: Vec<Objective>,
     pub year: YearStats,
@@ -572,6 +575,7 @@ impl World {
             houses: vec![HouseRecord::default(); RIVAL_HOUSES],
             insight: vec![0; sectors],
             partner_trust: vec![50; crate::deal::PARTNERS],
+            cover_talk: None,
             lps: opening_lps(),
             objectives: Vec::new(),
             year: YearStats::default(),
@@ -1613,6 +1617,21 @@ pub mod tests {
     }
 
     #[test]
+    fn a_coverage_meeting_says_more_as_the_bank_gets_to_know_the_fund() {
+        let mut world = world(5);
+        world.apply(Command::CoverBank { adviser: 2 }).unwrap();
+        let talk = world.cover_talk.clone().unwrap();
+        assert_eq!(talk.adviser, 2);
+        assert!(talk.after > talk.before);
+        assert!(matches!(
+            talk.lines[0],
+            crate::advisers::CoverLine::Market { .. } | crate::advisers::CoverLine::Credit { .. }
+        ));
+        assert_eq!(world.banker(2), world.banker(2));
+        assert_ne!(world.banker(2).0, world.banker(3).0);
+    }
+
+    #[test]
     fn deals_abroad_wait_for_a_principal() {
         let mut world = world(2);
         run(&mut world, 14);
@@ -1671,7 +1690,7 @@ pub mod tests {
                 .iter()
                 .find(|deal| deal.bid_submitted)
                 .map(|deal| (deal.company, deal.approved_ev));
-            if let Some((company, approved)) = bid {
+            if let Some((company, _)) = bid {
                 // Concessions in the meeting may have narrowed the room above the approval.
                 let approved = world.bid_ceiling(company) * 100 / 103;
                 assert_eq!(

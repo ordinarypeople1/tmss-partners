@@ -260,6 +260,8 @@ export interface Adviser {
   focus: string | null;
   /** 0 to 100: how well the bank knows the fund. */
   coverage: number;
+  /** The banker who covers the fund there. */
+  banker: { name: string; feminine: boolean };
 }
 
 export interface CompanyRow {
@@ -735,6 +737,8 @@ export interface View {
   rivals: string[];
   /** The sell-side banks. */
   advisers: Adviser[];
+  /** The last coverage meeting, for the banker's lines. */
+  cover_talk: CoverTalk | null;
   /** Coverage that puts the fund on targeted lists, earns favour at the shortlist, and earns a call before the teaser. */
   coverage_marks: [number, number, number];
   companies: CompanyRow[];
@@ -857,4 +861,19 @@ export interface IcFacts {
   plan: number;
   union_bps: number;
   phase: Phase;
+}
+
+export type CoverLine =
+  | { kind: "market"; phase: Phase }
+  | { kind: "credit"; spread_bps: number }
+  | { kind: "sector"; sector: string; months: number }
+  | { kind: "rival"; house: number; sector: string }
+  | { kind: "pipeline"; company: string; months: number }
+  | { kind: "reputation"; good: boolean };
+
+export interface CoverTalk {
+  adviser: number;
+  before: number;
+  after: number;
+  lines: CoverLine[];
 }

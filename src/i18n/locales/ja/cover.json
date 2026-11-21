@@ -1,0 +1,18 @@
+{
+  "cover.title": "カバレッジミーティング",
+  "cover.role": "{bank} 担当MD",
+  "cover.line.market.expansion": "最近は案件パイプラインが満杯です。売り手は今が売り時だと考えています。価格は覚悟してください。",
+  "cover.line.market.slowdown": "空気が冷えてきました。売り手が期待価格を下げきれず、何件か破談になっています。",
+  "cover.line.market.recession": "正直、売りたい人がいません。出てくるのは急ぐところだけ。ディストレスには機会があるでしょう。",
+  "cover.line.market.recovery": "底は過ぎたと思います。先送りされていた案件が来年前半に集中しますよ。",
+  "cover.line.credit.tight.1": "貸し手が厳しくなりました。スプレッドが{spread}%まで広がり、高いレバレッジは難しいです。",
+  "cover.line.credit.tight.2": "銀行が新規の買収ファイナンスを絞っています。{spread}%ならエクイティを厚くする必要があります。",
+  "cover.line.credit.easy.1": "買収ファイナンスは潤沢です。スプレッド{spread}%前後で、貸し手が案件を探しています。",
+  "cover.line.credit.easy.2": "融資条件は良好です。{spread}%。こういう時に競合ハウスは強気の価格を出します。",
+  "cover.line.sector.1": "{sector}のオーナーが一人、アドバイザーを探しています。名前はまだ言えませんが、{months}か月以内に出ます。",
+  "cover.line.sector.2": "最近{sector}のオーナーの間で事業承継の話が多いです。一社は{months}か月ほどで市場に出そうです。",
+  "cover.line.rival": "{house}が{sector}をずっと見ています。そこで出る案件にはほぼ全部入ってきますよ。",
+  "cover.line.pipeline": "ここだけの話です。{company}の売却アドバイザーを当社が受けました。{months}か月以内にティーザーを出します。先にご覧ください。",
+  "cover.line.reputation.good": "最近、業界でそちらのハウスの評判がいいです。売り手も名前を知っています。",
+  "cover.line.reputation.bad": "最近、そちらのハウスの評判はあまり良くありません。売り手がクロージングの確実性を気にしています。"
+}
