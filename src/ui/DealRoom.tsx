@@ -1,6 +1,7 @@
 import { Indication, ProcessCard } from "./Process";
 import { ValuationCard } from "./Valuation";
 import { IcMeetingDialog } from "./IcMeeting";
+import { ReportDialog, ReportSummary } from "./DiligenceReport";
 import { gate } from "./Gate";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
@@ -11,6 +12,7 @@ import {
   type Concern,
   type DdStream,
   type InitiativeKind,
+  type MezzKind,
   type IssueKind,
   type Offer,
   type Stance,
@@ -77,6 +79,8 @@ const SEAT_LINES: Concern[][] = [
 /** Partner trust marks: a doubt passes at 70, and becomes a no at 30. */
 const TRUST_LOW = 30;
 const TRUST_HIGH = 70;
+/** New shares at most 30% of the price, as in the sim. */
+const MAX_PRIMARY_SHARE = 0.3;
 const MAX_PLAN = 3;
 const MAX_ROLLOVER_BPS = 3000;
 const TURN_STEP = 100;
@@ -100,6 +104,8 @@ function sameOffer(a: Offer, b: Offer | null): boolean {
     a.senior_millis === b.senior_millis &&
     a.mezz_millis === b.mezz_millis &&
     a.rollover_bps === b.rollover_bps &&
+    (a.mezz_kind ?? "notes") === (b.mezz_kind ?? "notes") &&
+    (a.primary ?? 0) === (b.primary ?? 0) &&
     a.plan.length === b.plan.length &&
     a.plan.every((kind) => b.plan.includes(kind))
   );
@@ -234,6 +240,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
         mezz_millis: 0,
         rollover_bps: 0,
         plan: [],
+        mezz_kind: "notes",
+        primary: 0,
       },
   );
   const [confirmDrop, setConfirmDrop] = useState(false);
@@ -254,6 +262,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
       senior_millis: Math.min(draft.senior_millis, maxSenior),
       mezz_millis: Math.min(draft.mezz_millis, maxMezz),
       rollover_bps: deal?.can_roll ? draft.rollover_bps : 0,
+      mezz_kind: draft.mezz_kind ?? "notes",
+      primary: Math.max(0, Math.min(draft.primary ?? 0, Math.floor(draft.ev * MAX_PRIMARY_SHARE))),
     }),
     [draft, maxSenior, maxMezz, deal?.can_roll],
   );
@@ -284,6 +294,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const meeting = deal?.ic_meeting ?? null;
   const meetingKey = meeting ? `${meeting.date.year}-${meeting.date.month}-${meeting.open}` : "";
   const [meetingShown, setMeetingShown] = useState(false);
+  const [reading, setReading] = useState<DdStream | null>(null);
   const [seenMeeting, setSeenMeeting] = useState("");
   // The committee walks in: open the room once, when it sits.
   useEffect(() => {
@@ -524,6 +535,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             const found = company.issues.filter(
               (issue) => issue.found && ISSUE_STREAM[issue.kind] === stream,
             );
+            const report = deal.reports?.find((item) => item.stream === stream);
             return (
               <li
                 key={stream}
@@ -547,20 +559,21 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 </div>
                 {done ? (
                   <div className="dr-found">
-                    {found.length ? (
-                      found.map((issue) => (
-                        <Tag
-                          key={issue.kind}
-                          tone="bad"
-                          icon={<Icon name="alert" size={12} />}
-                        >
-                          {t(`issue.${issue.kind}`)}
-                        </Tag>
-                      ))
-                    ) : (
-                      <span className="muted">
-                        {t("dealroom.stream.clean")}
-                      </span>
+                    {found.map((issue) => (
+                      <Tag key={issue.kind} tone="bad" icon={<Icon name="alert" size={12} />}>
+                        {t(`issue.${issue.kind}`)}
+                      </Tag>
+                    ))}
+                    {report ? (
+                      <>
+                        <ReportSummary report={report} />
+                        <button type="button" className="btn small ghost" onClick={() => setReading(stream)}>
+                          <Icon name="table" size={13} />
+                          {t("dd.read")}
+                        </button>
+                      </>
+                    ) : found.length ? null : (
+                      <span className="muted">{t("dealroom.stream.clean")}</span>
                     )}
                   </div>
                 ) : running ? (
@@ -641,15 +654,16 @@ export function DealRoom({ company }: { company: CompanyView }) {
               </button>
             </small>
           </div>
+          {/* ---------- how it is paid for ---------- */}
+          <h4 className="dr-group">{t("structure.funding")}</h4>
           <div className="slider">
-            <label htmlFor="dr-senior">{t("dealroom.offer.senior")}</label>
-            <output>
-              {f.multiple(offer.senior_millis)}
-              {financing ? <small> · {f.money(financing.senior)}</small> : null}
-            </output>
+            <label htmlFor="dr-senior" className="tip" tabIndex={0} data-tip={t("structure.senior.tip")}>
+              {t("structure.senior")}
+            </label>
+            <output>{financing ? f.money(financing.senior) : t("term.none")}</output>
             <StepRange
               id="dr-senior"
-              label={t("dealroom.offer.senior")}
+              label={t("structure.senior")}
               min={0}
               max={maxSenior}
               step={TURN_STEP}
@@ -657,21 +671,35 @@ export function DealRoom({ company }: { company: CompanyView }) {
               onChange={(senior_millis) => change({ senior_millis })}
             />
             <small>
-              {t("dealroom.offer.lenderMax", {
+              {t("structure.debtTerms", {
+                turns: f.multiple(offer.senior_millis),
+                rate: f.pct(view.economy.senior_rate_bps, 1),
                 max: f.multiple(maxSenior),
-                rate: f.pct(view.economy.senior_rate_bps, 2),
               })}
             </small>
           </div>
           <div className="slider">
-            <label htmlFor="dr-mezz">{t("dealroom.offer.mezz")}</label>
-            <output>
-              {f.multiple(offer.mezz_millis)}
-              {financing ? <small> · {f.money(financing.mezz)}</small> : null}
-            </output>
+            <label htmlFor="dr-mezz" className="tip" tabIndex={0} data-tip={t(`structure.mezz.${offer.mezz_kind}.tip`)}>
+              {t("structure.mezz")}
+            </label>
+            <output>{financing ? f.money(financing.mezz) : t("term.none")}</output>
+            <div className="segmented dr-kind" role="radiogroup" aria-label={t("structure.mezz")}>
+              {(["notes", "convertible"] as MezzKind[]).map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  role="radio"
+                  aria-checked={offer.mezz_kind === kind}
+                  aria-selected={offer.mezz_kind === kind}
+                  onClick={() => change({ mezz_kind: kind })}
+                >
+                  {t(`structure.mezz.${kind}`)}
+                </button>
+              ))}
+            </div>
             <StepRange
               id="dr-mezz"
-              label={t("dealroom.offer.mezz")}
+              label={t("structure.mezz")}
               min={0}
               max={maxMezz}
               step={TURN_STEP}
@@ -679,32 +707,67 @@ export function DealRoom({ company }: { company: CompanyView }) {
               onChange={(mezz_millis) => change({ mezz_millis })}
             />
             <small>
-              {t("dealroom.offer.lenderMax", {
-                max: f.multiple(maxMezz),
-                rate: f.pct(view.economy.mezz_rate_bps, 2),
-              })}
+              {offer.mezz_kind === "convertible"
+                ? t("structure.mezz.convertible.terms", {
+                    rate: f.pct(view.economy.senior_rate_bps + 100, 1),
+                    pct: f.pct(financing?.converted_bps ?? 0, 1),
+                  })
+                : t("structure.mezz.notes.terms", { rate: f.pct(view.economy.mezz_rate_bps, 1) })}
             </small>
           </div>
           {deal.can_roll ? (
             <div className="slider">
-              <label htmlFor="dr-roll">{t("dealroom.offer.rollover")}</label>
-              <output>
-                {f.pct(offer.rollover_bps, 0)}
-                {financing ? (
-                  <small> · {f.money(financing.rollover)}</small>
-                ) : null}
-              </output>
+              <label htmlFor="dr-roll" className="tip" tabIndex={0} data-tip={t("structure.rollover.tip")}>
+                {t("structure.rollover")}
+              </label>
+              <output>{financing ? f.money(financing.rollover) : t("term.none")}</output>
               <StepRange
                 id="dr-roll"
-                label={t("dealroom.offer.rollover")}
+                label={t("structure.rollover")}
                 min={0}
                 max={MAX_ROLLOVER_BPS}
                 step={100}
                 value={offer.rollover_bps}
                 onChange={(rollover_bps) => change({ rollover_bps })}
               />
-              <small>{t("dealroom.offer.rolloverHint")}</small>
+              <small>{t("structure.rollover.terms", { pct: f.pct(financing?.seller_bps ?? 0, 1) })}</small>
             </div>
+          ) : null}
+
+          {/* ---------- what the fund buys ---------- */}
+          <h4 className="dr-group">{t("structure.shares")}</h4>
+          <div className="slider">
+            <span className="tip" tabIndex={0} data-tip={t("structure.secondary.tip")}>
+              {t("structure.secondary")}
+            </span>
+            <output>{financing ? f.money(Math.max(financing.equity - financing.primary, 0)) : t("term.none")}</output>
+            <small>{t("structure.secondary.terms")}</small>
+          </div>
+          <div className="slider">
+            <label htmlFor="dr-primary" className="tip" tabIndex={0} data-tip={t("structure.primary.tip")}>
+              {t("structure.primary")}
+            </label>
+            <output>{f.money(offer.primary)}</output>
+            <StepRange
+              id="dr-primary"
+              label={t("structure.primary")}
+              min={0}
+              max={Math.max(Math.floor(offer.ev * MAX_PRIMARY_SHARE), 0)}
+              step={Math.max(Math.round(offer.ev / 100), 1)}
+              value={offer.primary}
+              onChange={(primary) => change({ primary })}
+            />
+            <small>{t("structure.primary.terms")}</small>
+          </div>
+          {financing ? (
+            <StackBar
+              title={t("structure.cap")}
+              parts={[
+                { label: t("structure.cap.fund"), value: financing.ownership_bps, note: f.pct(financing.ownership_bps, 1), color: COLOR.equity },
+                { label: t("structure.cap.seller"), value: financing.seller_bps, note: f.pct(financing.seller_bps, 1), color: COLOR.rollover },
+                { label: t("structure.cap.bonds"), value: financing.converted_bps, note: f.pct(financing.converted_bps, 1), color: COLOR.mezz },
+              ].filter((part) => part.value > 0)}
+            />
           ) : null}
         </fieldset>
 
@@ -753,7 +816,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
               <div className="stack dr-bars">
                 <StackBar
                   title={t("dealroom.uses")}
-                  total={f.money(offer.ev + financing.fees)}
+                  total={f.money(offer.ev + financing.fees + financing.primary)}
                   parts={[
                     {
                       label: t("dealroom.price"),
@@ -767,6 +830,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
                       note: f.money(financing.fees),
                       color: COLOR.fees,
                     },
+                    ...(financing.primary > 0
+                      ? [{ label: t("structure.primary"), value: financing.primary, note: f.money(financing.primary), color: COLOR.equity }]
+                      : []),
                   ]}
                 />
                 <StackBar
@@ -782,7 +848,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
                       color: COLOR.senior,
                     },
                     {
-                      label: t("dealroom.mezz"),
+                      label: t(`structure.mezz.${offer.mezz_kind}`),
                       value: financing.mezz,
                       note: f.money(financing.mezz),
                       color: COLOR.mezz,
@@ -808,25 +874,25 @@ export function DealRoom({ company }: { company: CompanyView }) {
                   {
                     label: t("dealroom.senior"),
                     value: financing.senior,
-                    note: f.multiple(offer.senior_millis),
+                    note: f.money(financing.senior),
                     color: COLOR.senior,
                   },
                   {
-                    label: t("dealroom.mezz"),
+                    label: t(`structure.mezz.${offer.mezz_kind}`),
                     value: financing.mezz,
-                    note: f.multiple(offer.mezz_millis),
+                    note: f.money(financing.mezz),
                     color: COLOR.mezz,
                   },
                   {
                     label: t("dealroom.rollover"),
                     value: financing.rollover,
-                    note: f.pct(offer.rollover_bps, 0),
+                    note: f.money(financing.rollover),
                     color: COLOR.rollover,
                   },
                   {
                     label: t("dealroom.fundEquity"),
                     value: financing.equity,
-                    note: f.pct(financing.ownership_bps, 0),
+                    note: f.money(financing.equity),
                     color: COLOR.equity,
                   },
                 ]}
@@ -1360,6 +1426,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
         <div className="dr-actions">{dropControl}</div>
       )}
     </div>
+    {reading && deal.reports?.find((item) => item.stream === reading) ? (
+      <ReportDialog report={deal.reports.find((item) => item.stream === reading)!} company={company.short} onClose={() => setReading(null)} />
+    ) : null}
     {meetingShown ? <IcMeetingDialog company={company} onClose={() => setMeetingShown(false)} /> : null}
     {dock ? (
       <div className="cp-dock dr-dock">

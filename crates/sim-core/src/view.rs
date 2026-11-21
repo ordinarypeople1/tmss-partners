@@ -503,6 +503,7 @@ impl World {
                     "ic_meeting": deal.ic_meeting,
                     "ic_record": deal.ic_record,
                     "ic_conditions": deal.ic_conditions,
+                    "reports": deal.reports,
                     "ic_facts": self.ic_facts(index),
                     "costs": deal.costs,
                     "diligence_cost": self.diligence_cost(index),

@@ -371,7 +371,13 @@ export interface Offer {
   mezz_millis: number;
   rollover_bps: number;
   plan: InitiativeKind[];
+  /** Subordinated notes, or bonds that convert into shares at exit. */
+  mezz_kind: MezzKind;
+  /** New shares the fund subscribes; the cash goes into the company. */
+  primary: number;
 }
+
+export type MezzKind = "notes" | "convertible";
 
 export interface Financing {
   ebitda: number;
@@ -388,6 +394,11 @@ export interface Financing {
   cover_millis: number;
   price_to_model_bps: number;
   multiple_millis: number;
+  primary: number;
+  convertible: number;
+  /** Fully diluted shares after closing: the seller's rolled stake, the bonds as converted. */
+  seller_bps: number;
+  converted_bps: number;
 }
 
 export interface Returns {
@@ -434,6 +445,8 @@ export interface DealView {
   ic_conditions: DdStream[];
   /** Figures the partners quote, for the offer on the table. */
   ic_facts: IcFacts | null;
+  /** The diligence reports in, one per stream. */
+  reports: DdReport[];
   costs: number;
   diligence_cost: number;
   offer: Offer | null;
@@ -878,4 +891,27 @@ export interface CoverTalk {
   before: number;
   after: number;
   lines: CoverLine[];
+}
+
+export type DdTone = "good" | "neutral" | "bad";
+export interface DdFinding {
+  kind: string;
+  tone: DdTone;
+  /** Thousand USD, where the finding has an amount. */
+  amount: number;
+  /** Basis points, where the finding has a rate or share. */
+  bps: number;
+}
+export interface DdOutlook {
+  management_growth_bps: number;
+  diligence_growth_bps: number;
+  management_margin_bps: number;
+  diligence_margin_bps: number;
+}
+/** A diligence report, from `diligence.rs`. */
+export interface DdReport {
+  stream: DdStream;
+  date: GameDate;
+  findings: DdFinding[];
+  outlook: DdOutlook | null;
 }
