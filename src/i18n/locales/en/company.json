@@ -49,7 +49,7 @@
   "company.noSale": "Not for sale. Build the relationship to hear of a sale first.",
   "company.fin.locked": "Financials locked",
   "company.fin.lockedHint": "Once a sale process is visible, sign an NDA on the Overview tab.",
-  "company.fin.debtAndValue": "Debt and model value",
+  "company.fin.debtAndValue": "Debt",
   "company.fin.modelMultiple": "Model multiple",
   "company.fin.sectorMultiple": "Sector {multiple}",
   "company.story": "{product} business in {abroad, select, yes {{site}, {region}, {country}} other {{site}, {region}}}, operating since {year, number, ::integer group-off} with {count, plural, one {# employee} other {# employees}}.",

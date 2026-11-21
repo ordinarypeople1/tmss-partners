@@ -167,6 +167,7 @@ export type Step =
   | "offer"
   | "committee"
   | "indicate"
+  | "value"
   | "bid"
   | "raise"
   | "wait"
@@ -185,7 +186,8 @@ export type Block =
   | "investment_period_over"
   | "not_invited"
   | "first_round_closed"
-  | "awaiting_shortlist";
+  | "awaiting_shortlist"
+  | "valuation_due";
 export type Difficulty = "relaxed" | "standard" | "hard";
 export type Era = "high_rates" | "cheap_money" | "late_cycle";
 export interface Options {
@@ -287,7 +289,8 @@ export interface CompanyRow {
   revenue: Figure;
   ebitda: Figure;
   /** Model value. Not a price. */
-  ev: Figure;
+  /** The mark on a holding, the range of an ordered valuation, or null. */
+  ev: Figure | null;
   alert: boolean;
   exiting: boolean;
   access: Access;
@@ -345,10 +348,11 @@ export interface Financials {
   leverage_millis: number;
   cover_millis: number;
   interest_rate_bps: number;
-  multiple_millis: number;
-  quality_bps: number;
-  model_ev: number;
-  model_equity: number;
+  /** The model's numbers: only on the fund's own holdings. */
+  multiple_millis: number | null;
+  quality_bps: number | null;
+  model_ev: number | null;
+  model_equity: number | null;
   min_cash: number;
   /** Monthly, oldest first, up to 36. */
   revenue_history: number[];
@@ -416,6 +420,8 @@ export interface DealView {
   opened: GameDate;
   streams_done: DdStream[];
   streams_running: DdStream[];
+  valuation: Valuation | null;
+  valuation_order: ValuationKind | null;
   costs: number;
   diligence_cost: number;
   offer: Offer | null;
@@ -550,6 +556,7 @@ export type MessageBody =
   | { type: "objectives_review"; met: number; total: number; bonus: number }
   | { type: "diligence_report"; stream: DdStream; found: IssueKind[] }
   | { type: "committee_decision"; outcome: IcOutcome }
+  | { type: "valuation_ready"; kind: ValuationKind }
   | { type: "deal_closed"; ev: number; equity: number; debt: number }
   | { type: "deal_broken" }
   | { type: "initiative_done"; kind: InitiativeKind }
@@ -669,6 +676,8 @@ export interface View {
     total_proceeds: number;
   };
   attention: { left: number; max: number };
+  /** What an outside valuation costs this house. */
+  valuation_fee: number;
   limits: { deals: number; initiatives: number };
   economy: {
     policy_rate_bps: number;
@@ -728,6 +737,7 @@ export type Command =
   | { type: "cover_bank"; adviser: number }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
+  | { type: "order_valuation"; company: number; kind: ValuationKind }
   | { type: "set_offer"; company: number; offer: Offer }
   | { type: "submit_ic"; company: number }
   | { type: "submit_bid"; company: number }
@@ -777,4 +787,22 @@ export interface Statements {
   ltm: StatementPeriod | null;
   /** The last eight closed quarters, oldest first. */
   quarters: StatementPeriod[];
+}
+
+export type ValuationKind = "internal" | "adviser";
+
+/** The fund's own view of value, from `valuation.rs`. */
+export interface Valuation {
+  kind: ValuationKind;
+  date: GameDate;
+  low: number;
+  mid: number;
+  high: number;
+  error_bps: number;
+  ebitda: number;
+  multiple_millis: number;
+  /** The adviser's sector comparables; 0 for a desk valuation. */
+  sector_multiple_millis: number;
+  net_debt: number;
+  fee: number;
 }

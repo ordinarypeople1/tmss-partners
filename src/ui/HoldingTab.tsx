@@ -627,7 +627,7 @@ function AddOnCard({ company, holding }: SectionProps) {
                       {f.figure(row.ebitda)}
                     </td>
                     <td className="num" data-label={t("term.ev")}>
-                      {f.figure(row.ev)}
+                      {row.ev ? f.figure(row.ev) : t("term.none")}
                     </td>
                   </tr>
                 ))}

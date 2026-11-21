@@ -74,7 +74,7 @@ export function League() {
     for (const row of view.companies) {
       if (row.owner.kind === "sponsor" && list[row.owner.house]) {
         list[row.owner.house].count += 1;
-        list[row.owner.house].ev += mid(row.ev);
+        list[row.owner.house].ev += mid(row.revenue);
       }
     }
     return list;
@@ -303,7 +303,7 @@ export function League() {
                 </div>
                 <div className="grid cols-2">
                   <Stat label={t("league.holds")} value={t("league.holdsCount", { count: book.count })} />
-                  <Stat label={t("term.ev")} value={t("league.about", { amount: f.money(Math.round(book.ev)) })} />
+                  <Stat label={t("league.holdingsRevenue")} value={t("league.about", { amount: f.money(Math.round(book.ev)) })} />
                 </div>
                 <div className="stack house-deals">
                   <span className="muted">{t("league.recent")}</span>

@@ -94,7 +94,7 @@ export function Indication({ company }: { company: CompanyView }) {
   const f = useFormat();
   const deal = company.deal;
   const sale = company.sale;
-  const model = company.financials?.model_ev ?? company.ev[0];
+  const model = deal?.valuation?.mid ?? 0;
   const [value, setValue] = useState(deal?.indication ?? model);
   useEffect(() => {
     if (deal?.indication) {

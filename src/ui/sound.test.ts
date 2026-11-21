@@ -37,6 +37,7 @@ const EXPECTED: Record<Message["type"], SoundName | null> = {
   achievement_unlocked: "good",
   objectives_review: null,
   diligence_report: null,
+  valuation_ready: null,
   committee_decision: null,
   deal_closed: "fanfare",
   deal_broken: "bad",

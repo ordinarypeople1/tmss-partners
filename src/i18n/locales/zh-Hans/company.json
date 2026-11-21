@@ -49,7 +49,7 @@
   "company.noSale": "未在出售。建立关系后可提前获知出售消息。",
   "company.fin.locked": "财务报表未解锁",
   "company.fin.lockedHint": "出售流程出现后，在概览页签署 NDA。",
-  "company.fin.debtAndValue": "债务与模型价值",
+  "company.fin.debtAndValue": "负债",
   "company.fin.modelMultiple": "模型倍数",
   "company.fin.sectorMultiple": "行业 {multiple}",
   "company.story": "自{year, number, ::integer group-off}年起在{abroad, select, yes {{country}{region}} other {{region}}}{site}经营{product}业务，员工{count, number, ::integer}人。",

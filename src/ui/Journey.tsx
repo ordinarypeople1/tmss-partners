@@ -21,6 +21,7 @@ const STEP_ICON: Record<Step, string> = {
   offer: "layers",
   committee: "gavel",
   indicate: "flag",
+  value: "market",
   bid: "gavel",
   raise: "up",
   wait: "clock",

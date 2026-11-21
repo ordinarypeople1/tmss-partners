@@ -138,6 +138,12 @@ pub struct Deal {
     /// The indication of interest given in round one, as an enterprise value.
     #[serde(default)]
     pub indication: Option<i64>,
+    /// The fund's own view of value. Nothing on screen shows a model value without it.
+    #[serde(default)]
+    pub valuation: Option<crate::valuation::Valuation>,
+    /// Ordered this month; it comes in when the month closes.
+    #[serde(default)]
+    pub valuation_order: Option<crate::valuation::ValuationKind>,
 }
 
 impl Deal {
@@ -181,6 +187,8 @@ impl World {
             opened: self.date,
             streams_done: Vec::new(),
             streams_running: Vec::new(),
+            valuation: None,
+            valuation_order: None,
             costs: 0,
             offer: None,
             ic: None,
@@ -254,6 +262,9 @@ impl World {
         let deal = self.deal_index(company).ok_or(CommandError::NoDeal)?;
         if self.deals[deal].bid_submitted {
             return Err(CommandError::AlreadyDone);
+        }
+        if self.deals[deal].valuation.is_none() {
+            return Err(CommandError::NeedsValuation);
         }
         self.validate_offer(company, &offer)?;
         if self.deals[deal].offer.as_ref() != Some(&offer) {

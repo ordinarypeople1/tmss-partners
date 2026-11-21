@@ -49,7 +49,7 @@
   "company.noSale": "売り案件ではありません。関係を築くと売却の話を先に聞けます。",
   "company.fin.locked": "財務諸表は非開示",
   "company.fin.lockedHint": "売却プロセスが見えたら、概要タブでNDAを締結してください。",
-  "company.fin.debtAndValue": "負債とモデル価値",
+  "company.fin.debtAndValue": "負債",
   "company.fin.modelMultiple": "モデルマルチプル",
   "company.fin.sectorMultiple": "セクター {multiple}",
   "company.story": "{year, number, ::integer group-off}年から{abroad, select, yes {{country} {region}} other {{region}}}の{site}で{product}事業を営む、従業員{count, number, ::integer}名の会社です。",

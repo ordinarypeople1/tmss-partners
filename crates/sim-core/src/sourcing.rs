@@ -55,6 +55,8 @@ pub enum Step {
     Committee,
     /// A non-binding indication of interest in round one.
     Indicate,
+    /// Value the company: in house or through an adviser.
+    Value,
     Bid,
     Raise,
     /// Nothing to do but close the month.
@@ -84,6 +86,8 @@ pub enum Block {
     FirstRoundClosed,
     /// The indication is in; the bank is choosing its shortlist.
     AwaitingShortlist,
+    /// The valuation comes in when the month closes.
+    ValuationDue,
 }
 
 impl World {
@@ -247,6 +251,14 @@ impl World {
                 process.adviser.is_some()
                     && matches!(process.stage, Stage::Preparing | Stage::Marketing)
             });
+            // A price needs a valuation: first thing after the NDA.
+            if deal.ic.is_none() && deal.valuation.is_none() {
+                return if deal.valuation_order.is_some() {
+                    (Step::Wait, Some(Block::ValuationDue))
+                } else {
+                    (Step::Value, None)
+                };
+            }
             if round_one && deal.ic.is_none() {
                 // Read the memorandum, name a number, wait for the cut.
                 let desktop = deal

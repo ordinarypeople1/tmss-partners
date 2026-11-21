@@ -318,9 +318,15 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
             ) : null}
           </Stat>
           <Stat
-            label={t("term.ev")}
-            value={f.figure(company.ev)}
-            hint={fin ? f.multiple(fin.multiple_millis) : undefined}
+            label={t(company.held ? "term.ev" : "valuation.label")}
+            value={company.ev ? f.figure(company.ev) : t("valuation.none")}
+            hint={
+              company.deal?.valuation
+                ? f.multiple(company.deal.valuation.multiple_millis)
+                : fin?.multiple_millis != null
+                  ? f.multiple(fin.multiple_millis)
+                  : undefined
+            }
           />
         </div>
         {fogged ? (
@@ -647,17 +653,21 @@ function FinancialsTab({
             value={f.multiple(fin.cover_millis)}
             tone={coverTone(fin.cover_millis)}
           />
-          <Stat
-            label={t("company.fin.modelMultiple")}
-            value={f.multiple(fin.multiple_millis)}
-            hint={t("company.fin.sectorMultiple", {
-              multiple: f.multiple(company.sector_multiple_millis),
-            })}
-          />
-          <Stat label={t("term.ev")} value={f.money(fin.model_ev)} />
-          <Stat label={t("term.equity")} value={f.money(fin.model_equity)} />
+          {fin.multiple_millis != null && fin.model_ev != null && fin.model_equity != null ? (
+            <>
+              <Stat
+                label={t("company.fin.modelMultiple")}
+                value={f.multiple(fin.multiple_millis)}
+                hint={t("company.fin.sectorMultiple", {
+                  multiple: f.multiple(company.sector_multiple_millis),
+                })}
+              />
+              <Stat label={t("term.ev")} value={f.money(fin.model_ev)} />
+              <Stat label={t("term.equity")} value={f.money(fin.model_equity)} />
+            </>
+          ) : null}
         </div>
-        <p className="cp-hint">{t("term.modelNotPrice")}</p>
+        {fin.model_ev != null ? <p className="cp-hint">{t("term.modelNotPrice")}</p> : null}
       </section>
 
     </div>

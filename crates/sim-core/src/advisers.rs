@@ -241,6 +241,9 @@ impl World {
         if ev <= 0 {
             return Err(CommandError::InvalidOffer);
         }
+        if self.deals[index].valuation.is_none() {
+            return Err(CommandError::NeedsValuation);
+        }
         let round_one = self.companies[company]
             .process
             .as_ref()

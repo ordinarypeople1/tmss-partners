@@ -1838,3 +1838,9 @@ th,
   opacity: 1;
   transform: none;
 }
+
+/* A tip on the last figure of a row opens leftwards so it stays on screen. */
+.grid > .tip:last-child::after {
+  right: 0;
+  left: auto;
+}

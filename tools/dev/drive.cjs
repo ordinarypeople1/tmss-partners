@@ -50,15 +50,21 @@ async function openDeal(page, maxMonths = 24) {
   return null;
 }
 
-/** Diligence, an offer, and the committee on an open deal. Leaves the bid to the caller. */
+/** A valuation, diligence, an offer, and the committee on an open deal. Leaves the bid to the caller. */
 async function prepare(page, company) {
+  // A valuation first: nothing can be priced without one. It comes in at month end.
+  await cmd(page, { type: "order_valuation", company, kind: "adviser" });
   for (const stream of ["financial", "commercial", "operational", "legal"]) {
     await cmd(page, { type: "run_diligence", company, stream });
   }
   // Round one: a number before the bank cuts its shortlist.
   const early = (await view(page)).companies.find((item) => item.i === company);
   if (early && early.sale && early.sale.round === 1) {
-    await cmd(page, { type: "submit_indication", company, ev: Math.round(early.ev[0] * 1.06) });
+    await months(page);
+    const valued = (await view(page)).companies.find((item) => item.i === company);
+    if (valued && valued.ev) {
+      await cmd(page, { type: "submit_indication", company, ev: Math.round(valued.ev[0] * 1.06) });
+    }
   }
   for (let wait = 0; wait < 4; wait += 1) {
     await months(page);
@@ -74,7 +80,7 @@ async function prepare(page, company) {
   await months(page);
   const state = await view(page);
   const row = state.companies.find((item) => item.i === company);
-  if (!row || !row.in_deal) {
+  if (!row || !row.in_deal || !row.ev) {
     return false;
   }
   const offer = {

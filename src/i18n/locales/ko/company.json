@@ -49,7 +49,7 @@
   "company.noSale": "매물 아님. 관계를 쌓으면 매각 소식을 먼저 듣습니다.",
   "company.fin.locked": "재무제표 잠김",
   "company.fin.lockedHint": "매각 절차가 보이면 개요 탭에서 NDA를 맺으세요.",
-  "company.fin.debtAndValue": "부채와 모델 가치",
+  "company.fin.debtAndValue": "부채",
   "company.fin.modelMultiple": "모델 배수",
   "company.fin.sectorMultiple": "섹터 {multiple}",
   "company.story": "{year, number, ::integer group-off}년부터 {abroad, select, yes {{country} {region}} other {{region}}} {site}에서 {product} 사업을 해 온 직원 {count, number, ::integer}명의 회사입니다.",

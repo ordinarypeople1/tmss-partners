@@ -175,7 +175,7 @@ function MapHubView() {
   const [onlyMine, setOnlyMine] = useState(false);
   const [drawer, setDrawer] = useState(true);
   const [hover, setHover] = useState<Hover | null>(null);
-  const [sort, setSort] = useState<{ key: SortKey; down: boolean }>({ key: "ev", down: true });
+  const [sort, setSort] = useState<{ key: SortKey; down: boolean }>({ key: "revenue", down: true });
   const selectRef = useRef(game.select);
   selectRef.current = game.select;
   const regionRef = useRef(setRegion);
@@ -438,7 +438,7 @@ function MapHubView() {
           emphasis = true;
           break;
       }
-      const size = Math.min(Math.max(Math.sqrt(mid(row.ev)) / 55, 3), 9);
+      const size = Math.min(Math.max(Math.sqrt(mid(row.revenue)) / 55, 3), 9);
       const selected = row.i === game.selected;
       // Until an NDA the figure is a range, and the dot is hollow.
       return {
@@ -618,7 +618,7 @@ function MapHubView() {
         case "ebitda":
           return mid(row.ebitda);
         case "ev":
-          return mid(row.ev);
+          return row.ev ? mid(row.ev) : -1;
         case "relationship":
           return row.relationship;
       }
@@ -863,7 +863,7 @@ function MapHubView() {
                         </td>
                         <td className="num c-rev">{f.shortFigure(row.revenue)}</td>
                         <td className="num c-ebitda">{f.shortFigure(row.ebitda)}</td>
-                        <td className="num c-ev">{f.shortFigure(row.ev)}</td>
+                        <td className="num c-ev">{row.ev ? f.shortFigure(row.ev) : t("term.none")}</td>
                         <td className="num c-rel">{row.held ? null : <AccessPips row={row} />}</td>
                       </tr>
                     );

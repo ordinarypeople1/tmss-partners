@@ -167,7 +167,7 @@ impl World {
             "sale": self.sale_view(index),
             "revenue": figure(company.ttm_revenue(), 1),
             "ebitda": figure(company.ttm_ebitda(), 2),
-            "ev": figure(self.model_ev(index), 3),
+            "ev": self.value_seen(index),
             "alert": alert,
             "access": self.access(index),
             "intent": intent,
@@ -234,6 +234,7 @@ impl World {
                 "perks": self.career.perks,
             },
             "attention": { "left": self.attention_left, "max": self.attention_max() },
+            "valuation_fee": self.valuation_fee(),
             "options": self.options,
             "insight": self.insight,
             "league": self.league(),
@@ -447,6 +448,7 @@ impl World {
                 Value::Null
             },
         );
+        let held = company.is_player_owned();
         if revealed {
             detail.insert(
                 "financials".into(),
@@ -466,10 +468,11 @@ impl World {
                     "leverage_millis": company.leverage_millis(),
                     "cover_millis": company.interest_cover_millis(&self.economy),
                     "interest_rate_bps": company.interest_rate_bps(&self.economy),
-                    "multiple_millis": company.multiple_millis(industry, &self.economy),
-                    "quality_bps": company.quality_bps(industry),
-                    "model_ev": self.model_ev(index),
-                    "model_equity": company.model_equity(industry, &self.economy),
+                    // The model's numbers are the fund's mark on its own holdings, and nobody's business before that.
+                    "multiple_millis": held.then(|| company.multiple_millis(industry, &self.economy)),
+                    "quality_bps": held.then(|| company.quality_bps(industry)),
+                    "model_ev": held.then(|| self.model_ev(index)),
+                    "model_equity": held.then(|| company.model_equity(industry, &self.economy)),
                     "min_cash": company.min_cash(industry),
                     "revenue_history": company.revenue_history,
                     "ebitda_history": company.ebitda_history,
@@ -490,6 +493,8 @@ impl World {
                     "opened": deal.opened,
                     "streams_done": deal.streams_done,
                     "streams_running": deal.streams_running,
+                    "valuation": deal.valuation,
+                    "valuation_order": deal.valuation_order,
                     "costs": deal.costs,
                     "diligence_cost": self.diligence_cost(index),
                     "offer": deal.offer,
@@ -590,8 +595,15 @@ impl World {
     }
 
     fn offer_view(&self, index: usize, offer: &Offer) -> Value {
+        // The screen compares the price with the fund's valuation, never with the model.
+        let mut financing = serde_json::to_value(self.financing(index, offer)).unwrap_or(Value::Null);
+        let valued = self
+            .deal_index(index)
+            .and_then(|deal| self.deals[deal].valuation.as_ref())
+            .map(|valuation| crate::math::ratio_bps(offer.ev, valuation.mid.max(1)));
+        financing["price_to_model_bps"] = json!(valued.unwrap_or(10_000));
         json!({
-            "financing": self.financing(index, offer),
+            "financing": financing,
             "returns": self.project_returns(index, offer),
             "reserve_hint": Value::Null,
         })
@@ -713,4 +725,22 @@ fn statements(company: &Company) -> Value {
         "ltm": company.last_twelve_months().as_ref().map(period_json),
         "quarters": quarters,
     })
+}
+
+impl World {
+    /// The value the player may see: the mark on a holding, the range of a
+    /// valuation they ordered, or nothing.
+    pub fn value_seen(&self, company: usize) -> Value {
+        if self.companies[company].is_player_owned() {
+            let ev = self.model_ev(company);
+            return json!([ev, ev]);
+        }
+        match self
+            .deal_index(company)
+            .and_then(|index| self.deals[index].valuation.as_ref())
+        {
+            Some(valuation) => json!([valuation.low, valuation.high]),
+            None => Value::Null,
+        }
+    }
 }

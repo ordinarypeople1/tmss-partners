@@ -1,0 +1,65 @@
+.valuation {
+  display: grid;
+  gap: 10px;
+}
+.valuation h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.valuation-range {
+  display: grid;
+  gap: 2px;
+}
+.valuation-range strong {
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+}
+.valuation-note {
+  font-size: 0.8rem;
+}
+.valuation-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.valuation-option {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 92px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.valuation-option:hover:not(:disabled) {
+  background: var(--accent-soft, var(--panel));
+}
+.valuation-option strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.valuation-option span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.valuation-option .valuation-price {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--line-soft, var(--panel));
+  color: var(--ink);
+  font-weight: 800;
+}
+.valuation-actions {
+  display: flex;
+  justify-content: flex-end;
+}

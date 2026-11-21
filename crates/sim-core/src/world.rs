@@ -177,6 +177,9 @@ pub enum MessageKind {
     CommitteeDecision {
         outcome: IcOutcome,
     },
+    ValuationReady {
+        kind: crate::valuation::ValuationKind,
+    },
     DealClosed {
         ev: i64,
         equity: i64,
@@ -320,6 +323,10 @@ pub enum Command {
     CoverBank {
         adviser: u8,
     },
+    OrderValuation {
+        company: usize,
+        kind: crate::valuation::ValuationKind,
+    },
     RaiseBid {
         company: usize,
         ev: i64,
@@ -422,6 +429,8 @@ pub enum CommandError {
     /// The data room and site visits open in the second round.
     SecondRoundOnly,
     OwnerNotReady,
+    /// A price needs the fund's own valuation first.
+    NeedsValuation,
 }
 
 #[derive(Debug)]
@@ -604,6 +613,7 @@ impl World {
             Command::ApproachOwner { company } => self.approach_owner(company),
             Command::SignNda { company } => self.sign_nda(company),
             Command::RunDiligence { company, stream } => self.run_diligence(company, stream),
+            Command::OrderValuation { company, kind } => self.order_valuation(company, kind),
             Command::SetOffer { company, offer } => self.set_offer(company, offer),
             Command::SubmitIc { company } => self.submit_ic(company),
             Command::SubmitBid { company } => self.submit_bid(company),
@@ -871,6 +881,7 @@ impl World {
         }
 
         self.finish_diligence();
+        self.finish_valuations();
         self.portfolio_step(closes_quarter);
         self.refinance_maturities();
         self.market_step();
@@ -1105,6 +1116,10 @@ pub mod tests {
             .map(|deal| deal.company)
             .collect::<Vec<_>>()
         {
+            let _ = world.apply(Command::OrderValuation {
+                company,
+                kind: crate::valuation::ValuationKind::Internal,
+            });
             for stream in DD_STREAMS {
                 let _ = world.apply(Command::RunDiligence { company, stream });
             }
@@ -1361,6 +1376,19 @@ pub mod tests {
     }
 
     /// A sale at home the player can still join: on the list, round one open.
+    /// Orders an adviser's valuation and lets it come in at once.
+    fn valued(world: &mut World, company: usize) {
+        world
+            .apply(Command::OrderValuation { company, kind: crate::valuation::ValuationKind::Adviser })
+            .unwrap();
+        world.finish_valuations();
+        let valuation = world.deals[world.deal_index(company).unwrap()].valuation.clone().unwrap();
+        let truth = world.model_ev(company);
+        assert!(valuation.low <= valuation.mid && valuation.mid <= valuation.high);
+        assert!((valuation.mid - truth).abs() <= truth * 3 / 100 + 1);
+        assert_eq!(valuation.fee, world.valuation_fee());
+    }
+
     fn joinable(world: &mut World) -> usize {
         for _ in 0..48 {
             let found = (0..world.companies.len()).find(|index| {
@@ -1398,6 +1426,11 @@ pub mod tests {
             rollover_bps: 0,
             plan: Vec::new(),
         };
+        assert_eq!(
+            world.apply(Command::SetOffer { company: index, offer: offer.clone() }),
+            Err(CommandError::NeedsValuation)
+        );
+        valued(&mut world, index);
         world
             .apply(Command::SetOffer {
                 company: index,
@@ -1538,9 +1571,11 @@ pub mod tests {
         assert_eq!(world.attention_left, world.attention_max() - 1);
         let after = world.company_view(index);
         let width = |view: &serde_json::Value| {
-            view["ev"][1].as_i64().unwrap() - view["ev"][0].as_i64().unwrap()
+            view["ebitda"][1].as_i64().unwrap() - view["ebitda"][0].as_i64().unwrap()
         };
         assert!(width(&after) < width(&before));
+        // No value range before the fund has valued the company.
+        assert!(after["ev"].is_null());
         run(&mut world, 12);
         assert_eq!(world.insight[sector], 0);
         assert_eq!(
@@ -1651,7 +1686,7 @@ pub mod tests {
                 let process = world.companies[company].process.as_ref().unwrap();
                 assert_eq!(process.stage, crate::market::Stage::Exclusive);
                 assert!(process.rivals.is_empty());
-                assert_eq!(world.next_step(company).0, Step::Diligence);
+                assert_eq!(world.next_step(company).0, Step::Value);
             } else {
                 declined += 1;
                 assert_eq!(world.companies[company].approach_cooldown, 12);
@@ -1679,6 +1714,12 @@ pub mod tests {
         let company = joinable(&mut world);
         assert_eq!(world.next_step(company), (Step::SignNda, None));
         world.apply(Command::SignNda { company }).unwrap();
+        assert_eq!(world.next_step(company), (Step::Value, None));
+        world
+            .apply(Command::OrderValuation { company, kind: crate::valuation::ValuationKind::Internal })
+            .unwrap();
+        assert_eq!(world.next_step(company), (Step::Wait, Some(Block::ValuationDue)));
+        world.finish_valuations();
         assert_eq!(world.next_step(company), (Step::Diligence, None));
         // Round one: the memorandum supports financial and commercial work, nothing on site.
         assert_eq!(

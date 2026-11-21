@@ -20,6 +20,7 @@ pub mod rivals;
 pub mod rng;
 pub mod sourcing;
 pub mod story;
+pub mod valuation;
 pub mod view;
 pub mod world;
 

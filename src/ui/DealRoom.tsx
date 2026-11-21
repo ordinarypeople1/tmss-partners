@@ -1,4 +1,5 @@
 import { Indication, ProcessCard } from "./Process";
+import { ValuationCard } from "./Valuation";
 import { gate } from "./Gate";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n/useT";
@@ -219,8 +220,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const game = useGame();
   const { view } = game;
   const deal = company.deal;
-  const fin = company.financials;
-  const modelEv = fin?.model_ev ?? company.ev[0];
+  // The fund prices off its own valuation; the model stays inside the sim.
+  const modelEv = deal?.valuation?.mid ?? company.ev?.[0] ?? 0;
   const maxSenior = view.economy.max_senior_millis;
   const maxMezz = view.economy.max_mezz_millis;
 
@@ -307,6 +308,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
   };
 
   const steps: { key: string; done: boolean }[] = [
+    { key: "value", done: deal.valuation !== null },
     { key: "diligence", done: deal.streams_done.length > 0 },
     { key: "offer", done: deal.offer !== null },
     { key: "committee", done: approved },
@@ -406,7 +408,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
       note: t("dealroom.raise.ceiling", { amount: f.money(ceiling) }),
       run: sendRaise,
     };
-  } else if (locked) {
+  } else if (locked || !deal.valuation) {
     dock = null;
   } else if (!saved) {
     dock = {
@@ -440,6 +442,22 @@ export function DealRoom({ company }: { company: CompanyView }) {
     };
   }
 
+  const dropControl = confirmDrop ? (
+    <span className="dr-confirm">
+      <span>{t(approved ? "dealroom.drop.confirmApproved" : "dealroom.drop.confirm")}</span>
+      <button type="button" className="btn small" onClick={() => game.act({ type: "drop_deal", company: company.i })}>
+        {t("action.confirm")}
+      </button>
+      <button type="button" className="btn small ghost" onClick={() => setConfirmDrop(false)}>
+        {t("action.cancel")}
+      </button>
+    </span>
+  ) : (
+    <button type="button" className="btn ghost dr-drop" onClick={() => setConfirmDrop(true)}>
+      {t("dealroom.drop")}
+    </button>
+  );
+
   return (
     <>
     <div className="stack dr">
@@ -448,9 +466,10 @@ export function DealRoom({ company }: { company: CompanyView }) {
           <ProcessCard company={company} />
         </section>
       ) : null}
-      <Indication company={company} />
+      <ValuationCard company={company} />
+      {deal.valuation ? <Indication company={company} /> : null}
       <ol className="dr-steps">
-        {steps.map((step, index) => (
+        {steps.slice(0, nowStep < 0 ? steps.length : nowStep + 1).map((step, index) => (
           <li
             key={step.key}
             data-state={step.done ? "done" : index === nowStep ? "now" : "next"}
@@ -461,7 +480,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
         ))}
       </ol>
 
-      {/* ---------- diligence ---------- */}
+      {/* ---------- diligence: once the valuation is under way ---------- */}
+      {deal.valuation || deal.valuation_order ? (
       <section className="card">
         <h3>
           <Icon name="search" size={14} />
@@ -471,7 +491,12 @@ export function DealRoom({ company }: { company: CompanyView }) {
           </span>
         </h3>
         <ul className="dr-streams">
-          {DD_STREAMS.map((stream) => {
+          {DD_STREAMS.filter(
+            (stream) =>
+              deal.open_streams.includes(stream) ||
+              deal.streams_done.includes(stream) ||
+              deal.streams_running.includes(stream),
+          ).map((stream) => {
             const done = deal.streams_done.includes(stream);
             const running = deal.streams_running.includes(stream);
             const found = company.issues.filter(
@@ -518,10 +543,6 @@ export function DealRoom({ company }: { company: CompanyView }) {
                   </div>
                 ) : running ? (
                   <span className="muted">{t("dealroom.stream.arrives")}</span>
-                ) : !deal.open_streams.includes(stream) ? (
-                  <span className="dr-stream-lock tip" tabIndex={0} data-tip={t("dealroom.stream.round2")} aria-label={t("dealroom.stream.round2")}>
-                    <Icon name="lock" size={16} />
-                  </span>
                 ) : (
                   <button
                     type="button"
@@ -546,7 +567,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
         </ul>
       </section>
 
-      {/* ---------- offer ---------- */}
+      ) : null}
+
+      {/* ---------- offer, then the committee: once there is a valuation ---------- */}
+      {deal.valuation ? (
+      <>
       <section className="card">
         <h3>
           <Icon name="layers" size={14} />
@@ -790,9 +815,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
                 label={t("dealroom.entryMultiple")}
                 value={f.multiple(financing.multiple_millis)}
                 hint={
-                  fin
+                  deal?.valuation
                     ? t("dealroom.modelMultiple", {
-                        multiple: f.multiple(fin.multiple_millis),
+                        multiple: f.multiple(deal.valuation.multiple_millis),
                       })
                     : undefined
                 }
@@ -1062,7 +1087,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
         )}
       </section>
 
-      {/* ---------- bid ---------- */}
+      </>
+      ) : null}
+
+      {/* ---------- bid: once the committee has approved ---------- */}
+      {approved || deal.bid_submitted ? (
       <section className="card" data-final={finalRound || undefined}>
         <h3>
           <Icon name="flag" size={14} />
@@ -1277,41 +1306,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
               {t("dealroom.bid.submit")}
             </button>
           )}
-          {confirmDrop ? (
-            <span className="dr-confirm">
-              <span>
-                {t(
-                  approved
-                    ? "dealroom.drop.confirmApproved"
-                    : "dealroom.drop.confirm",
-                )}
-              </span>
-              <button
-                type="button"
-                className="btn small"
-                onClick={() =>
-                  game.act({ type: "drop_deal", company: company.i })
-                }
-              >
-                {t("action.confirm")}
-              </button>
-              <button
-                type="button"
-                className="btn small ghost"
-                onClick={() => setConfirmDrop(false)}
-              >
-                {t("action.cancel")}
-              </button>
-            </span>
-          ) : (
-            <button
-              type="button"
-              className="btn ghost dr-drop"
-              onClick={() => setConfirmDrop(true)}
-            >
-              {t("dealroom.drop")}
-            </button>
-          )}
+          {dropControl}
         </div>
         {bidBlock ? (
           <p className="dr-note" data-tone="warn">
@@ -1319,6 +1314,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
           </p>
         ) : null}
       </section>
+      ) : (
+        <div className="dr-actions">{dropControl}</div>
+      )}
     </div>
     {dock ? (
       <div className="cp-dock dr-dock">
