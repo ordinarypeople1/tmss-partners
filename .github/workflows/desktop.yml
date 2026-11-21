@@ -1,0 +1,43 @@
+name: desktop
+
+# The Steam build (ADR 0006): a Windows executable from the Tauri shell.
+# The frontend is embedded in the executable; Steam ships that one file.
+# Windows 10 and 11 have the WebView2 runtime; Steam can also install it as a redistributable.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            src-tauri -> target
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install wasm-bindgen
+        run: cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - run: npm ci
+      - name: Build
+        run: npx tauri build --no-bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deal-atlas-windows
+          path: src-tauri/target/release/deal-atlas.exe
+          if-no-files-found: error

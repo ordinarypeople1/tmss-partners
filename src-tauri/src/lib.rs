@@ -1,8 +1,6 @@
-//! Tauri 2 command entry. Pinned to Tauri 2.1 (Rust 1.77) so it matches the
-//! bootstrap toolchain (rustc 1.83). This crate is its own workspace because
-//! the dev image has no WebKit, and `cargo test` at the repo root must not
-//! try to link it. The haptics plugin on the v2 branch requires Rust 1.90 and
-//! is Android/iOS only, so it is not a dependency yet.
+//! Tauri 2 command entry. This crate is its own workspace so that `cargo test`
+//! at the repo root does not link WebKit. The haptics plugin is Android/iOS only
+//! and not a dependency yet (Steam first, ADR 0006).
 
 use std::path::Path;
 

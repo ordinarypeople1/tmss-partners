@@ -19,7 +19,7 @@
 
 돈은 `i64` 백만 원이다. 배수는 천분율 정수다. 7200은 7.200배다. 반올림은 0에서 멀어지는 반올림이다. 양수 예시는 이전 `Math.round`와 같다. 2549 × 7.2 = 18353.
 
-이 환경의 rustc는 1.83.0이다. `cargo test -p sim-core -p content-db -p app-commands`는 여기서 통과했다. `src-tauri`는 Tauri 2.1.0(그 태그의 rust-version은 1.77.2)에 고정한 별도 워크스페이스다. 최신 Tauri 2.12의 워크스페이스 rust-version은 1.90이라 이 툴체인과 맞지 않는다. 이 이미지에는 WebKit 개발 파일이 없어 `src-tauri`는 링크하지 않았다. 웹 헬로 월드는 wasm 경로로 값을 계산한다.
+개정 2026-11-21: 툴체인은 Rust stable(1.97 이상)이다. `src-tauri`는 Tauri 2 최신(2.12)을 쓰는 별도 워크스페이스이고, Linux(WebKitGTK)에서 릴리스 빌드와 실행까지 확인했다. Windows 빌드는 CI가 한다. 웹 헬로 월드는 wasm 경로로 값을 계산한다.
 
 생성기는 Python 표준 라이브러리다. 게임 빌드는 그 의존성을 품지 않는다.
 
@@ -68,6 +68,6 @@
 
 - `crates/sim-core`가 기업가치와 지분가치를 소유한다. `src/sim`은 wasm 로더다.
 - `crates/content-db`가 카드 페이지를 읽는다. `crates/app-commands`가 커맨드를 묶는다.
-- `src-tauri`는 2.1 껍질 소스다. 이 환경에서는 링크하지 않았다.
+- `src-tauri`는 Tauri 2 껍질이다. 웹뷰 CSP는 wasm(`wasm-unsafe-eval`)과 지도의 blob 워커를 허용한다.
 - 릴리스 빌드의 네트워크 호출은 없다. 지도 타일도 로컬 파일이다.
 - 화면 문자열은 [i18n 절차](../i18n/workflow.md)를 따른다. 로케일 파일은 한국어 하나다.

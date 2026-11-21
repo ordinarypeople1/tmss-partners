@@ -49,7 +49,7 @@ Poiesis Investment의 딜을 지도 위에서 고르는, 한 사람의 커리어
 | `crates/sim-core/` | 시뮬 전체. 경제, 회사, 매물, 딜, 보유, 펀드, 뷰. 네이티브와 wasm |
 | `crates/content-db/` | SQLite 카드 페이지 |
 | `crates/app-commands/` | Tauri가 부를 커맨드 |
-| `src-tauri/` | Tauri 2.1 껍질. 이 환경에서는 링크하지 않음 |
+| `src-tauri/` | Tauri 2 데스크톱 껍질. Steam 빌드 |
 | `src/sim/` | wasm 로더와 뷰 타입. 식을 다시 짜지 않음 |
 | `src/i18n/` | 한국어 카탈로그(공용 + 화면별 조각)와 검사 |
 | `src/data/` | 지리 메타데이터(7개 나라, 187개 지역)와 생성기 검사용 픽스처 |
@@ -67,7 +67,7 @@ npm test
 npm run dev
 ```
 
-`npm test`는 wasm 바인딩, 지도 경계, `cargo test`, TypeScript, Vitest를 순서대로 돌린다. rustc와 `wasm32-unknown-unknown`, `wasm-bindgen` 0.2.100이 필요하다. 브라우저에서 `http://127.0.0.1:5173/` 을 연다. 게임은 매달 브라우저에 저장되고, 다시 열면 이어진다.
+`npm test`는 wasm 바인딩, 지도 경계, `cargo test`, TypeScript, Vitest를 순서대로 돌린다. rustc와 `wasm32-unknown-unknown`, `wasm-bindgen` 0.2.100이 필요하다. 브라우저에서 `http://127.0.0.1:5173/` 을 연다. 게임은 브라우저의 IndexedDB에 저장되고, 타이틀 화면의 계속하기로 이어진다.
 
 콘텐츠를 다시 만들 때 (Python 표준 라이브러리만 사용):
 
@@ -103,7 +103,7 @@ GitHub Actions(`.github/workflows/pages.yml`)가 `main`에 푸시되면 `gh-page
 
 이 워크플로는 `main`에 있어야 실행된다. 페이지를 켜는 설정은 저장소 주인이 해야 한다. 저장소가 비공개이고 계정이 GitHub Free이면 비공개 저장소의 Pages는 쓸 수 없다.
 
-데스크톱과 모바일 패키징은 Tauri 2로 정했다. `src-tauri`는 2.1 소스이고, WebKit이 있는 머신에서 링크한다. 이유는 [ADR 0001](docs/adr/0001-tech-stack.md)에 있다. 문자열은 한국어만 외부화해 두었고, 다른 언어는 문장이 잠긴 뒤에 넣는다. [절차](docs/i18n/workflow.md).
+패키징은 Tauri 2다. 1차 출시는 Steam이다([ADR 0006](docs/adr/0006-steam-first.md)). `npx tauri build --no-bundle`이 실행 파일 하나를 만들고, 화면은 그 안에 들어간다. Linux에서는 WebKitGTK 개발 패키지가 필요하다. Windows 실행 파일은 `.github/workflows/desktop.yml`이 만든다. 이유는 [ADR 0001](docs/adr/0001-tech-stack.md)에 있다. 문자열은 한국어만 외부화해 두었고, 다른 언어는 문장이 잠긴 뒤에 넣는다. [절차](docs/i18n/workflow.md).
 
 ## 라이선스
 

@@ -12,10 +12,10 @@ name = "deal_atlas_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "=2.1.0", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
 app-commands = { path = "../crates/app-commands" }
-content-db = { path = "../content-db" }
+content-db = { path = "../crates/content-db" }
 serde = { version = "1", features = ["derive"] }
-tauri = { version = "=2.1.0", features = [] }
+tauri = { version = "2", features = [] }
