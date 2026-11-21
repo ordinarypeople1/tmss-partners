@@ -244,6 +244,34 @@ th,
   background: var(--amber);
   color: #2a1d00;
 }
+.sidebar-turn {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 8px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--side-ink) 10%, transparent);
+}
+.sidebar-turn .turn {
+  display: grid;
+  gap: 6px;
+}
+.sidebar-turn .turn .next {
+  grid-row: 1;
+  min-height: 40px;
+}
+.sidebar-turn .turn .skip {
+  justify-content: center;
+}
+.sidebar-turn .turn-ask {
+  top: 0;
+  left: calc(100% + 16px);
+}
+/* On a wide desk the turn lives in the sidebar; the top bar keeps only the date. */
+@media (min-width: 1101px) {
+  .topbar .turn {
+    display: none;
+  }
+}
 .sidebar-foot {
   display: grid;
   gap: 10px;
@@ -392,61 +420,6 @@ th,
 .turn-ask p {
   color: var(--muted);
   font-size: 0.84rem;
-}
-.turn-summary {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 12px;
-  z-index: 15;
-  width: min(360px, calc(100vw - 24px));
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--raised);
-  box-shadow: var(--shadow);
-}
-.turn-summary header,
-.turn-summary footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-.turn-summary header strong {
-  flex: 1;
-}
-.turn-summary footer .btn {
-  margin-left: auto;
-}
-.turn-summary ul {
-  display: grid;
-  gap: 2px;
-  margin: 6px 0;
-}
-.turn-summary li button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 34px;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-}
-.turn-summary li button:hover {
-  background: var(--line-soft);
-}
-.turn-summary li[data-tone="good"] .icon {
-  color: var(--good);
-}
-.turn-summary li[data-tone="bad"] .icon {
-  color: var(--bad);
-}
-.turn-summary li[data-tone="warn"] .icon {
-  color: var(--warn);
 }
 .chips {
   display: flex;
@@ -1231,6 +1204,7 @@ th,
   }
   .nav-item span,
   .brand span,
+  .sidebar-turn,
   .sidebar-foot {
     display: none;
   }
@@ -1301,6 +1275,9 @@ th,
     right: 0;
     left: auto;
   }
+  .turn-line-main small {
+    display: none;
+  }
   .chips {
     /* One scrolling row. */
     flex-flow: row;
@@ -1323,11 +1300,6 @@ th,
   }
   .fund-strip .tag {
     display: none;
-  }
-  .turn-summary {
-    right: 10px;
-    left: 10px;
-    width: auto;
   }
   .screen {
     padding: 10px;
@@ -1575,6 +1547,73 @@ th,
   color: var(--muted);
 }
 
+.turn-line {
+  display: flex;
+  flex: 1 1 100%;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+.turn-line-main {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  text-align: left;
+  cursor: pointer;
+  animation: rise 0.4s var(--ease) backwards;
+}
+.turn-line-main:hover .turn-line-items {
+  text-decoration: underline;
+}
+.turn-line-tag {
+  display: inline-flex;
+  flex: none;
+  gap: 5px;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.turn-line[data-tone="good"] .turn-line-tag {
+  background: color-mix(in srgb, var(--good) var(--soft), var(--panel));
+  color: var(--good);
+}
+.turn-line-items {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.turn-line-main small {
+  flex: none;
+  color: var(--muted);
+}
+.turn-line-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.turn-line-close:hover {
+  background: var(--line-soft);
+  color: var(--ink);
+}
+
 /* ---- Motion: things rise into place, controls answer the hand. ---- */
 @keyframes rise {
   from {
@@ -1719,7 +1758,6 @@ th,
 .newgame,
 .overlay > *,
 .turn-ask,
-.turn-summary,
 .guide,
 .map-legend,
 .map-layers,
@@ -1736,8 +1774,7 @@ th,
 .guide,
 .map-legend,
 .map-layers,
-.toast,
-.turn-summary {
+.toast {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
     0 8px 24px rgb(0 0 0 / 14%);

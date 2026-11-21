@@ -61,6 +61,17 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
           </button>
         ))}
       </nav>
+      <section className="sidebar-turn" aria-label={t("shell.turn.label")}>
+        <div className="attention" title={t("shell.attentionLeft", view.attention)}>
+          <span>{t("shell.attention")}</span>
+          <div className="pips" aria-label={t("shell.attentionLeft", view.attention)}>
+            {Array.from({ length: view.attention.max }, (_, index) => (
+              <i key={index} data-on={index < view.attention.left} />
+            ))}
+          </div>
+        </div>
+        <TurnControls pips={false} />
+      </section>
       <div className="sidebar-foot">
         <div className="me">
           <Tag tone="accent">{t(`rank.${view.career.rank}`)}</Tag>
@@ -77,14 +88,6 @@ function Sidebar({ onNewGame }: { onNewGame: () => void }) {
               <i style={{ left: `${50 + Math.min(view.career.street, 0) * 1.25}%`, width: `${Math.abs(view.career.street) * 1.25}%` }} />
             </span>
             <b>{view.career.street > 0 ? `+${view.career.street}` : view.career.street}</b>
-          </div>
-        </div>
-        <div className="attention" title={t("shell.attentionLeft", view.attention)}>
-          <span>{t("shell.attention")}</span>
-          <div className="pips" aria-label={t("shell.attentionLeft", view.attention)}>
-            {Array.from({ length: view.attention.max }, (_, index) => (
-              <i key={index} data-on={index < view.attention.left} />
-            ))}
           </div>
         </div>
         <Objectives />
@@ -115,7 +118,7 @@ function Settings({ onNewGame }: { onNewGame: () => void }) {
  * The turn. Nothing moves until the player closes the month. With decisions
  * still open the button asks first; a second button skips a quiet stretch.
  */
-function TurnControls() {
+function TurnControls({ pips = true }: { pips?: boolean }) {
   const game = useGame();
   const t = useT();
   const { view } = game;
@@ -131,11 +134,13 @@ function TurnControls() {
   };
   return (
     <div className="turn">
-      <div className="pips" title={t("shell.turn.attentionLeft", { left: view.attention.left })} aria-label={t("shell.turn.attentionLeft", { left: view.attention.left })}>
-        {Array.from({ length: view.attention.max }, (_, index) => (
-          <i key={index} data-on={index < view.attention.left} />
-        ))}
-      </div>
+      {pips ? (
+        <div className="pips" title={t("shell.turn.attentionLeft", { left: view.attention.left })} aria-label={t("shell.turn.attentionLeft", { left: view.attention.left })}>
+          {Array.from({ length: view.attention.max }, (_, index) => (
+            <i key={index} data-on={index < view.attention.left} />
+          ))}
+        </div>
+      ) : null}
       <button type="button" className="btn small skip" title={t("shell.turn.skipHint")} onClick={() => (pending > 0 ? setAsking(true) : close(true))}>
         <Icon name="skip" size={14} />
         <span>{t("shell.turn.skip")}</span>
@@ -169,8 +174,11 @@ function TurnControls() {
   );
 }
 
-/** What the closed turn brought: the player's messages first, market news as a count. */
-function TurnSummary() {
+/**
+ * What the closed turn brought, on one line where the market wire runs. It never covers
+ * the screen: the player's own news first, market news as a count, the rest in the inbox.
+ */
+function TurnLine() {
   const game = useGame();
   const t = useT();
   const f = useFormat();
@@ -180,59 +188,35 @@ function TurnSummary() {
   }
   const mine = turn.messages.filter((message) => !message.news);
   const news = turn.messages.length - mine.length;
-  const shown = mine.slice(-6).reverse();
+  const shown = mine.slice(-2).reverse().map((message) => describeMessage(t, f, view, message));
+  const tone = shown.find((text) => text.tone === "bad") ? "bad" : shown[0]?.tone;
   return (
-    <section className="turn-summary" aria-live="polite">
-      <header>
-        <Icon name="clock" size={15} />
-        <strong>
+    <div className="turn-line" role="status" aria-live="polite" data-tone={tone}>
+      <button
+        type="button"
+        className="turn-line-main"
+        onClick={() => {
+          game.dismissTurn();
+          game.go("inbox");
+        }}
+        aria-label={t("shell.turn.open")}
+      >
+        <span className="turn-line-tag">
+          <Icon name="clock" size={13} />
           {turn.months > 1
             ? t("shell.turn.reportSpan", { date: f.date(turn.from), months: turn.months })
             : t("shell.turn.report", { date: f.date(turn.from) })}
-        </strong>
-        <button type="button" className="btn ghost small" aria-label={t("shell.turn.close")} onClick={game.dismissTurn}>
-          <Icon name="close" size={14} />
-        </button>
-      </header>
-      {shown.length === 0 ? <p className="muted">{t("shell.turn.quiet")}</p> : null}
-      <ul>
-        {shown.map((message) => {
-          const text = describeMessage(t, f, view, message);
-          return (
-            <li key={message.id} data-tone={text.tone}>
-              <button
-                type="button"
-                onClick={() => {
-                  game.dismissTurn();
-                  if (message.company !== null && game.rows.has(message.company)) {
-                    game.select(message.company);
-                  } else {
-                    game.go("inbox");
-                  }
-                }}
-              >
-                <Icon name={text.icon} size={15} />
-                <span>{text.title}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      <footer>
-        {mine.length > shown.length ? <Tag>{t("shell.turn.more", { count: mine.length - shown.length })}</Tag> : null}
-        {news > 0 ? <Tag tone="muted">{t("shell.turn.news", { count: news })}</Tag> : null}
-        <button
-          type="button"
-          className="btn small"
-          onClick={() => {
-            game.dismissTurn();
-            game.go("inbox");
-          }}
-        >
-          {t("shell.turn.open")}
-        </button>
-      </footer>
-    </section>
+        </span>
+        <span className="turn-line-items clip">
+          {shown.length === 0 ? t("shell.turn.quiet") : shown.map((text) => text.title).join(" · ")}
+        </span>
+        {mine.length > shown.length ? <small>{t("shell.turn.more", { count: mine.length - shown.length })}</small> : null}
+        {news > 0 ? <small className="turn-line-news">{t("shell.turn.news", { count: news })}</small> : null}
+      </button>
+      <button type="button" className="turn-line-close" aria-label={t("shell.turn.close")} title={t("shell.turn.close")} onClick={game.dismissTurn}>
+        <Icon name="close" size={14} />
+      </button>
+    </div>
   );
 }
 
@@ -312,8 +296,7 @@ function Topbar() {
           {fund.investing ? t("shell.investing", { months: monthsLeft }) : t("shell.harvest")}
         </Tag>
       </div>
-      <Wire />
-      <TurnSummary />
+      {game.turn ? <TurnLine /> : <Wire />}
     </header>
   );
 }

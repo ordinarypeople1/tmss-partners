@@ -49,5 +49,6 @@
   "shell.tip.forSale": "現在見えている売却案件数。準備段階は関係40以上か、セクター調査中のみ見えます。",
   "shell.tip.uncalled": "未使用コミットメント。まだ投資していないファンド枠です。投資期間が終わると新規案件には使えません。",
   "shell.wire": "市場ニュース",
-  "shell.toTitle": "タイトルへ"
+  "shell.toTitle": "タイトルへ",
+  "shell.turn.label": "ターン"
 }
