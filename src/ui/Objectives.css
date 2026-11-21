@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 6px;
   color: var(--side-muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -52,12 +52,12 @@
   display: grid;
   flex: 1;
   min-width: 0;
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   line-height: 1.25;
 }
 .objective-text small {
   color: var(--side-muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-variant-numeric: tabular-nums;
 }
 .objective .ring circle:first-child {
@@ -98,16 +98,16 @@
 /* In the phone menu sheet: thumb-sized rows, larger type. */
 @media (max-width: 760px) {
   .objectives h3 {
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
   .objective {
     gap: 10px;
     min-height: 44px;
   }
   .objective-text {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .objective-text small {
-    font-size: 0.78rem;
+    font-size: 0.867rem;
   }
 }

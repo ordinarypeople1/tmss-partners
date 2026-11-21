@@ -47,7 +47,7 @@
 }
 .fundscreen .clock-today {
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .fundscreen .clock-labels {
   display: flex;
@@ -66,14 +66,14 @@
 }
 .fundscreen .clock-labels small {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .fundscreen .clock-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .fundscreen .clock-legend li {
   display: inline-flex;
@@ -136,7 +136,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--line);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .fundscreen .waterfall li[data-done="true"] .step-mark {
@@ -186,7 +186,7 @@
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .fundscreen .reup-legend li {
   display: inline-flex;
@@ -233,7 +233,7 @@
 }
 .fundscreen .lp-list small {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .fundscreen .lp-list .tag {
   justify-self: end;
@@ -422,7 +422,7 @@
   }
   .fundscreen .deal-when {
     grid-column: 3;
-    font-size: 0.82rem;
+    font-size: 0.933rem;
     text-align: right !important;
   }
   .fundscreen .realized-table .name {
@@ -444,7 +444,7 @@
   .fundscreen .deal-moic::before {
     content: attr(data-label);
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     font-weight: 400;
   }
   .fundscreen .deal-moic {

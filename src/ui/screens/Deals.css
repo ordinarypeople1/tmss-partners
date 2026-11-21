@@ -103,7 +103,7 @@
   justify-content: space-between;
   gap: 6px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .deals-column h3 b {
   min-width: 20px;
@@ -160,7 +160,7 @@
 }
 .deals-card-name small {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .deals-card-row {
   display: flex;
@@ -180,7 +180,7 @@
   border: 1.5px solid var(--line);
   border-radius: 50%;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-style: normal;
   font-weight: 700;
 }
@@ -208,7 +208,7 @@
 }
 .deals-card-offer small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .deals-card-offer [data-tone="bad"] b {
   color: var(--bad);
@@ -275,7 +275,7 @@
   border-radius: 999px;
   background: var(--panel);
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   cursor: pointer;
 }
 .deals-chip small {
@@ -294,7 +294,7 @@
   overflow-x: auto;
 }
 .deals-table .table {
-  font-size: 0.86rem;
+  font-size: 0.933rem;
 }
 .deals-table .table td {
   vertical-align: middle;
@@ -360,14 +360,14 @@
 .deals-rivals b {
   margin-left: 2px;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .deals-rel {
   min-width: 76px;
 }
 .deals-rel .meter-head {
   margin-bottom: 2px;
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 
 @container deals (max-width: 900px) {
@@ -403,7 +403,7 @@
   border-radius: 8px;
   background: var(--warn-soft);
   color: var(--ink-soft);
-  font-size: 0.84rem;
+  font-size: 0.933rem;
 }
 .deals-country {
   display: inline-flex;
@@ -413,7 +413,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--panel);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .deals-country[data-locked] {
@@ -432,7 +432,7 @@
   border-radius: 999px;
   background: var(--good-soft);
   color: var(--good);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .deals-reason {
@@ -448,12 +448,12 @@
   border-radius: 999px;
   background: var(--bad);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .deals-final[data-size="card"] {
   padding: 2px 9px;
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .deals-chip[data-kind="final"][aria-pressed="true"] {
   border-color: var(--bad);
@@ -476,7 +476,7 @@
   padding: 6px 8px;
   border-radius: 8px;
   background: var(--warn-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .deals-standing[data-tone="good"] {
   background: var(--good-soft);
@@ -498,7 +498,7 @@
 }
 .deals-standing small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 
 .deals-country,
@@ -554,7 +554,7 @@
     min-height: 44px;
   }
   .deals-top .funnel span:last-child {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     line-height: 1.2;
     text-align: center;
     overflow-wrap: anywhere;
@@ -605,7 +605,7 @@
   }
   .deals-column h3 {
     min-height: 22px;
-    font-size: 0.84rem;
+    font-size: 0.933rem;
   }
   .deals-column[data-empty] {
     padding-block: 5px;
@@ -670,10 +670,10 @@
   }
   .deals-filters select {
     max-width: 46vw;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .deals-filters > small {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     line-height: 1.35;
   }
 
@@ -683,7 +683,7 @@
   .deals-table .table {
     display: block;
     min-width: 0;
-    font-size: 0.88rem;
+    font-size: 0.933rem;
   }
   .deals-table .table thead {
     display: none;
@@ -729,7 +729,7 @@
     overflow-wrap: anywhere;
   }
   .deals-table .table .name .sub {
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
   .deals-cell-stage {
     flex: none;
@@ -763,7 +763,7 @@
   }
   .deals-cell-rivals::before {
     color: var(--muted);
-    font-size: 0.76rem;
+    font-size: 0.867rem;
     content: attr(data-label);
   }
   .deals-rivals {
@@ -794,7 +794,7 @@
     padding: 6px 7px;
     border-radius: 8px;
     background: var(--panel);
-    font-size: 0.94rem;
+    font-size: 1rem;
     word-break: keep-all;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -807,12 +807,12 @@
   .deals-rel::before {
     display: block;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     font-weight: 400;
     content: attr(data-label);
   }
   .deals-cell-figure .sub {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
   }
   /* Row 4: watch, relationship, the NDA. */
   .deals-cell-watch {
@@ -845,7 +845,7 @@
     min-width: 96px;
     min-height: 46px;
     padding: 0 14px;
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
   .deals-table .deals-cell-action .tag {
     min-height: 32px;
@@ -950,7 +950,7 @@
   gap: 6px;
   align-items: center;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .sale-card-status i {
@@ -993,10 +993,10 @@
 }
 .sale-card-stats small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .sale-card-stats b {
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 .sale-card-foot {
   display: flex;

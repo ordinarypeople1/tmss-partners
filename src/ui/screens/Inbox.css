@@ -66,7 +66,7 @@
   border-radius: 999px;
   background: var(--line-soft);
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .inbox-count[data-urgent] {
   background: var(--bad);
@@ -128,7 +128,7 @@
   font-weight: 700;
 }
 .inbox-item-title {
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 .inbox-item[data-quiet] {
   min-height: 34px;
@@ -136,7 +136,7 @@
   color: var(--muted);
 }
 .inbox-item[data-quiet] .inbox-item-title {
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 400;
 }
 .inbox-item[data-quiet][data-unread] .inbox-item-title {
@@ -169,7 +169,7 @@
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .inbox-icon {
   display: inline-grid;
@@ -266,7 +266,7 @@
   align-items: center;
   gap: 4px;
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   font-weight: 600;
 }
 
@@ -285,7 +285,7 @@
   border-color: var(--bad);
 }
 .inbox-decision h3 {
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 .inbox-default {
   display: block;
@@ -316,7 +316,7 @@
 }
 .inbox-choice span {
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .inbox-choice[data-primary] {
   border-color: var(--accent);
@@ -383,7 +383,7 @@
 }
 .inbox-badge small {
   color: var(--good);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .inbox-badge b {
@@ -391,7 +391,7 @@
 }
 .inbox-badge span {
   color: var(--ink-soft);
-  font-size: 0.88rem;
+  font-size: 0.933rem;
 }
 .inbox-met {
   display: flex;
@@ -451,7 +451,7 @@
     padding: 6px 9px;
   }
   .inbox-strip-item .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
   }
   .inbox-strip-item b {
     font-size: 1rem;
@@ -488,18 +488,18 @@
     padding: 9px 8px;
   }
   .inbox-item-title {
-    font-size: 0.95rem;
+    font-size: 1rem;
     overflow-wrap: anywhere;
   }
   .inbox-item-sub {
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
   .inbox-item[data-quiet] {
     min-height: 44px;
     padding-block: 6px;
   }
   .inbox-item[data-quiet] .inbox-item-title {
-    font-size: 0.86rem;
+    font-size: 0.933rem;
   }
 
   /* Reading view: everything but the message steps aside. */
@@ -525,7 +525,7 @@
     border-bottom: 1px solid var(--line);
     background: var(--panel);
     color: var(--accent);
-    font-size: 0.98rem;
+    font-size: 1rem;
     font-weight: 600;
     text-align: left;
     cursor: pointer;
@@ -574,7 +574,7 @@
     font-size: 1.08rem;
   }
   .inbox-choice span {
-    font-size: 0.92rem;
+    font-size: 1rem;
     line-height: 1.45;
   }
 }

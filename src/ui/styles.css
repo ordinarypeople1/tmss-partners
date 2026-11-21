@@ -91,7 +91,7 @@
   background: var(--paper);
   --font: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
   /* Korean breaks between words, not inside them. Long labels wrap; nothing is pinned to one line. */
   word-break: keep-all;
@@ -127,7 +127,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
 }
 button,
@@ -201,7 +201,7 @@ th,
 }
 .brand span {
   color: var(--side-muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .sidebar nav {
   display: grid;
@@ -237,7 +237,7 @@ th,
   padding: 1px 6px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--side-ink) 16%, transparent);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   text-align: center;
 }
 .badge[data-urgent] {
@@ -346,7 +346,7 @@ th,
   align-items: center;
   justify-content: space-between;
   color: var(--side-muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .pips {
   display: flex;
@@ -419,7 +419,7 @@ th,
 }
 .turn-ask p {
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.933rem;
 }
 .chips {
   display: flex;
@@ -550,7 +550,7 @@ th,
   gap: 6px;
   margin-bottom: 10px;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -625,7 +625,7 @@ th,
 .btn.small {
   min-height: 28px;
   padding: 0 10px;
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .btn:disabled {
   cursor: not-allowed;
@@ -650,7 +650,7 @@ th,
   border-radius: 999px;
   background: var(--line-soft);
   color: var(--ink-soft);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .tag[data-tone="good"] {
@@ -684,14 +684,14 @@ th,
 }
 .stat-label {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .stat-value {
   overflow: hidden;
   font-size: 1.25rem;
 }
 .stat-delta {
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .stat small {
@@ -770,7 +770,7 @@ th,
   border-bottom: 1px solid var(--line);
   background: var(--panel);
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
   font-weight: 600;
   text-align: left;
 }
@@ -827,7 +827,7 @@ th,
 .table .sub {
   display: block;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
   font-weight: 400;
 }
 
@@ -839,7 +839,7 @@ th,
 }
 .slider label {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .slider output {
   font-weight: 700;
@@ -874,7 +874,7 @@ th,
   gap: 4px 12px;
   margin-top: 6px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .legend,
 .stack-legend li {
@@ -899,7 +899,7 @@ th,
   justify-content: space-between;
   margin-bottom: 4px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .stack-head strong {
   color: var(--ink);
@@ -929,7 +929,7 @@ th,
   padding: 0 10px;
   border-radius: 6px;
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .bridge svg {
   display: block;
@@ -939,7 +939,7 @@ th,
   display: grid;
   gap: 2px;
   margin-top: 4px;
-  font-size: 0.76rem;
+  font-size: 0.867rem;
   text-align: center;
 }
 .bridge li {
@@ -975,7 +975,7 @@ th,
 .gauge span,
 .gauge small {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .meter-head {
   display: flex;
@@ -983,7 +983,7 @@ th,
   gap: 8px;
   margin-bottom: 3px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .meter-head b {
   color: var(--ink);
@@ -1027,7 +1027,7 @@ th,
 }
 .rating span {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .rating-track {
   display: flex;
@@ -1096,7 +1096,7 @@ th,
 }
 .ring b {
   position: relative;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .cycle-clock path {
   fill: var(--line-soft);
@@ -1137,7 +1137,7 @@ th,
   padding: 4px 6px;
   border: 1px solid var(--raised);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   text-align: left;
   cursor: pointer;
 }
@@ -1182,7 +1182,7 @@ th,
 }
 .funnel span:last-child {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1364,7 +1364,7 @@ th,
     border: 0;
     background: none;
     color: var(--side-muted);
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     cursor: pointer;
   }
   .tabbar button[aria-current="page"] {
@@ -1420,7 +1420,7 @@ th,
     border-radius: 12px;
     background: color-mix(in srgb, var(--side-ink) 7%, transparent);
     color: var(--side-ink);
-    font-size: 0.8rem;
+    font-size: 0.867rem;
     cursor: pointer;
   }
   .more-grid button[aria-current="page"] {
@@ -1489,7 +1489,7 @@ th,
   background: var(--ink);
   box-shadow: var(--shadow);
   color: var(--panel);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 500;
   line-height: 1.45;
   white-space: normal;
@@ -1518,7 +1518,7 @@ th,
   border: 0;
   background: none;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   text-align: left;
   cursor: pointer;
 }
@@ -1528,7 +1528,7 @@ th,
   gap: 5px;
   align-items: center;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -1553,7 +1553,7 @@ th,
   gap: 6px;
   align-items: center;
   min-width: 0;
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .turn-line-main {
   display: flex;
@@ -1581,7 +1581,7 @@ th,
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent-ink);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 800;
 }
 .turn-line[data-tone="good"] .turn-line-tag {
@@ -1795,7 +1795,7 @@ th,
   align-items: center;
   justify-self: stretch;
   color: var(--side-muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .street b {
   color: var(--side-strong);
@@ -1861,7 +1861,7 @@ th,
   background: var(--ink);
   box-shadow: var(--shadow);
   color: var(--panel);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 500;
   line-height: 1.45;
   text-align: left;

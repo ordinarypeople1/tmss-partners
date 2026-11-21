@@ -63,7 +63,7 @@
   border: 1px solid var(--line-soft);
   border-radius: 10px;
   background: var(--panel);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .career .ladder li[data-state="now"] .ladder-perks {
   border-color: var(--accent);
@@ -173,7 +173,7 @@
   gap: 4px 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.84rem;
+  font-size: 0.933rem;
 }
 .career .moves li {
   display: flex;
@@ -202,7 +202,7 @@
 }
 .career .partners small {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .career .avatar {
   position: relative;
@@ -279,7 +279,7 @@
 }
 .career .option-list small {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 
 .career .career-money {
@@ -313,7 +313,7 @@
 }
 .career .perk-list small {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .career .card[data-locked="true"] .team-pips,
 .career .card[data-locked="true"] .stat {
@@ -357,14 +357,14 @@
 }
 .career .achievements small {
   grid-column: 2 / -1;
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   line-height: 1.35;
 }
 .career .achievements b {
   grid-row: 1;
   grid-column: 3;
   color: var(--good);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .career .achievement-mark {
   display: grid;
@@ -408,7 +408,7 @@
 }
 .career .career-year .ticks b {
   grid-column: 2;
-  font-size: 0.86rem;
+  font-size: 0.933rem;
 }
 
 .career .ladder-toggle,
@@ -473,11 +473,11 @@
     grid-column: 4;
   }
   .career .ladder strong {
-    font-size: 0.86rem;
+    font-size: 0.933rem;
     line-height: 1.2;
   }
   .career .ladder .tag {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
   }
   .career .ladder-perks {
     display: none;
@@ -485,7 +485,7 @@
     align-content: start;
     gap: 4px;
     margin-top: 4px;
-    font-size: 0.84rem;
+    font-size: 0.933rem;
   }
   .career .ladder li[data-state="now"] > .ladder-perks,
   .career .ladder li[data-next="true"] > .ladder-perks,
@@ -576,12 +576,12 @@
   }
   .career .badge-detail b {
     color: var(--good);
-    font-size: 0.78rem;
+    font-size: 0.867rem;
   }
   .career .badge-detail small {
     grid-column: 2 / -1;
     color: var(--ink-soft);
-    font-size: 0.82rem;
+    font-size: 0.933rem;
     line-height: 1.35;
   }
   .career .achievements {
@@ -602,7 +602,7 @@
     height: 36px;
   }
   .career .achievements strong {
-    font-size: 0.78rem;
+    font-size: 0.867rem;
     line-height: 1.25;
     overflow-wrap: anywhere;
   }
@@ -624,7 +624,7 @@
     padding: 10px;
   }
   .career .partners small {
-    font-size: 0.76rem;
+    font-size: 0.867rem;
   }
   .career .partners .meter-track {
     height: 9px;

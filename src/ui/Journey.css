@@ -17,7 +17,7 @@
   justify-items: center;
   gap: 4px;
   color: var(--ink-soft);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 700;
   text-align: center;
   overflow-wrap: anywhere;
@@ -81,14 +81,14 @@
 }
 .journey-rel small,
 .journey-intent small {
-  font-size: 0.76rem;
+  font-size: 0.867rem;
   line-height: 1.35;
 }
 .journey-intent {
   display: grid;
   justify-items: start;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 
 .journey-next {
@@ -105,14 +105,14 @@
 }
 .journey-kicker {
   color: var(--accent);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .journey-next p {
   margin: 2px 0 0;
-  font-size: 0.84rem;
+  font-size: 0.933rem;
   line-height: 1.4;
 }
 .journey-next .journey-block {
@@ -147,7 +147,7 @@
   padding: 0 5px;
   border-radius: 9px;
   background: rgb(0 0 0 / 14%);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 
@@ -161,7 +161,7 @@
   border-radius: 11px;
   background: var(--accent-soft);
   color: var(--ink);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .step-chip[data-blocked="true"],
@@ -224,7 +224,7 @@
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .journey-marks li {
   display: inline-flex;
@@ -282,9 +282,10 @@
   position: sticky;
   bottom: 0;
   z-index: 4;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  /* The text and the buttons share a row while it fits; when it does not, the buttons drop below. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   align-items: center;
   padding: 10px 12px;
   border-top: 1px solid var(--line);
@@ -292,10 +293,18 @@
   backdrop-filter: blur(10px);
   box-shadow: 0 -8px 20px color-mix(in srgb, var(--ink) 8%, transparent);
 }
+.action-bar > .action-text {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.action-bar > :last-child:not(.action-text) {
+  flex: 0 1 auto;
+  margin-left: auto;
+}
 .action-text p {
   margin: 1px 0 0;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   line-height: 1.35;
 }
 .action-bar[data-blocked="true"] .action-text p {
@@ -339,7 +348,7 @@
 }
 .talk-kicker {
   color: var(--accent);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 800;
   letter-spacing: 0.06em;
 }
@@ -414,7 +423,7 @@
   border-radius: 8px;
   background: var(--warn-soft);
   color: var(--warn-ink);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 700;
   animation: rise 0.4s var(--ease) backwards;
 }
@@ -426,4 +435,7 @@
 .journey-track li.tip:nth-last-child(-n + 3)::after {
   right: 0;
   left: auto;
+}
+.action-bar > .action-suitor {
+  flex: 1 1 100%;
 }

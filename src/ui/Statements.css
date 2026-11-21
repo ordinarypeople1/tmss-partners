@@ -41,7 +41,7 @@
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -68,7 +68,7 @@
   align-self: center;
   margin-left: auto;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .five-year figcaption {
   display: flex;
@@ -79,11 +79,11 @@
 .statement-table td {
   padding: 5px 8px;
   border-bottom: 1px solid var(--line-soft, var(--line));
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .statement-table thead th {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .statement-table th[scope="row"],
@@ -109,7 +109,7 @@
 .statement-table tr[data-pct] th,
 .statement-table tr[data-pct] td {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-style: italic;
 }
 .statement-table td[data-negative] {

@@ -93,7 +93,7 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   background: color-mix(in srgb, var(--raised) 92%, transparent);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .map-legend span,
 .map-legend button {
@@ -150,7 +150,7 @@
   border-radius: 8px;
   background: var(--ink);
   color: var(--panel);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   pointer-events: none;
   transform: translate(12px, 12px);
 }
@@ -167,7 +167,7 @@
   border-radius: 50%;
   background: var(--warn);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
   box-shadow: var(--shadow);
   cursor: pointer;
@@ -204,7 +204,7 @@
   border: 1px solid var(--raised);
   border-radius: 3px 8px 8px 3px;
   background: var(--ink);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-style: normal;
   line-height: 14px;
 }
@@ -451,7 +451,7 @@
     grid-column: 2;
     grid-row: 2;
     justify-self: end;
-    font-size: 0.82rem;
+    font-size: 0.933rem;
   }
 }
 

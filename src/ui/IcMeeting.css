@@ -36,7 +36,7 @@
   gap: 6px;
   align-items: flex-start;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.933rem;
 }
 .talk-line[data-tone="good"] {
   box-shadow: inset 3px 0 0 var(--good);
@@ -67,11 +67,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .ic-answer span {
   color: var(--ink-soft, var(--ink));
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 .ic-verdict {
   display: grid;

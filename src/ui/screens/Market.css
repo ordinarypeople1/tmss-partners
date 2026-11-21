@@ -3,7 +3,7 @@
   align-items: center;
   gap: 6px;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -73,7 +73,7 @@
 .market .sector-cycle {
   display: grid;
   gap: 3px;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .market .sector-cycle b[data-tone="good"] {
   color: var(--good);
@@ -118,7 +118,7 @@
 }
 .market .sector-stats small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 
 .market .owner-legend {
@@ -127,7 +127,7 @@
   gap: 4px 12px;
   margin-bottom: 10px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .market .owner-legend li,
 .market .owner-cell {
@@ -201,7 +201,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   text-align: left;
   cursor: pointer;
 }
@@ -232,7 +232,7 @@
 }
 .market .share-map button {
   padding: 3px 5px;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   line-height: 1.2;
 }
 .market .rivals-table th.num,
@@ -268,7 +268,7 @@
   align-items: center;
   gap: 6px;
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .market .sector-research {
   display: flex;
@@ -291,7 +291,7 @@
 }
 .market .sector-research-text small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .market .country-grid {
   display: grid;
@@ -336,7 +336,7 @@
 }
 .market .country-stats small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .market .country-stats b[data-tone="accent"] {
   color: var(--accent);
@@ -355,7 +355,7 @@
   color: var(--bad);
 }
 .market .state-rank li > span small {
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 
 /* ---------- phone ---------- */
@@ -474,7 +474,7 @@
   }
   .market .share-map button {
     padding: 2px 3px;
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     line-height: 1.15;
   }
   /* Only boxes with room keep their label on a phone; the list below names the rest. */
@@ -532,7 +532,7 @@
   .market .holder-owner {
     grid-area: owner;
     color: var(--ink-soft);
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
   .market .holder-share {
     grid-area: share;
@@ -595,7 +595,7 @@
     content: attr(data-label);
     display: block;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     font-weight: 400;
   }
   .market .rival-last:has(.muted) {

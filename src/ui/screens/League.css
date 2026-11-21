@@ -12,7 +12,7 @@
   line-height: 1.1;
 }
 .league .league-standing span {
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   font-weight: 700;
   color: var(--muted);
 }
@@ -38,7 +38,7 @@
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .league .league-legend li {
   display: inline-flex;
@@ -146,7 +146,7 @@
 .league .house-style {
   min-height: 2.6em;
   color: var(--ink-soft);
-  font-size: 0.88rem;
+  font-size: 0.933rem;
 }
 .league .aggression-track {
   position: relative;
@@ -183,13 +183,13 @@
   gap: 2px 8px;
   margin-top: 4px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .league .house-deals {
   gap: 6px;
   padding-top: 8px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .league .house-deals ul {
   display: grid;
@@ -208,7 +208,7 @@
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--panel);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   text-align: left;
 }
 .league button.deal-chip {
@@ -312,12 +312,12 @@
     flex: 1 1 28%;
     gap: 1px;
     text-align: left !important;
-    font-size: 0.92rem;
+    font-size: 1rem;
   }
   .league .league-figure::before {
     content: attr(data-label);
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     font-weight: 400;
   }
   .league .league-count {
@@ -325,7 +325,7 @@
     padding: 2px 8px !important;
     border-radius: 999px;
     background: color-mix(in srgb, var(--ink) 8%, transparent) !important;
-    font-size: 0.78rem;
+    font-size: 0.867rem;
     font-weight: 700;
   }
   .league .league-count::before {

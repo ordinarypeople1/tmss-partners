@@ -10,7 +10,7 @@
   align-items: center;
 }
 .process-code {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -27,7 +27,7 @@
   justify-items: center;
   gap: 3px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 700;
   text-align: center;
   overflow-wrap: anywhere;
@@ -93,7 +93,7 @@
 }
 .indication-note {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   line-height: 1.4;
 }
 .indication .btn {
@@ -108,7 +108,7 @@
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .banks-marks b {
   margin-right: 4px;

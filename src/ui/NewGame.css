@@ -24,7 +24,7 @@
   border-radius: 8px;
   background: var(--warn-soft);
   color: var(--warn-ink);
-  font-size: 0.86rem;
+  font-size: 0.933rem;
 }
 .newgame-actions {
   justify-content: flex-end;

@@ -44,7 +44,7 @@
   line-height: 1.2;
 }
 .cp-name span {
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .cp-icon-btn {
   display: grid;
@@ -100,7 +100,7 @@
   gap: 6px;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .cp-meters {
   display: grid;
@@ -128,7 +128,7 @@
   gap: 4px 12px;
   margin-top: 7px;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .cp-rel-marks li {
   display: inline-flex;
@@ -174,12 +174,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .cp-mini {
   padding-top: 8px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .cp [data-tone="good"]:is(dd, b) {
   color: var(--good);
@@ -204,7 +204,7 @@
   flex: 1;
   gap: 6px;
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .cp-steps {
   display: grid;
@@ -216,7 +216,7 @@
   display: grid;
   gap: 4px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .cp-steps i {
@@ -241,7 +241,7 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .cp-rivals .chip {
   height: auto;
@@ -275,13 +275,13 @@
 .cp-statement th,
 .cp-statement td {
   padding: 4px 6px;
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .cp-statement thead th {
   position: static;
   background: transparent;
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 700;
 }
 .cp-statement thead th.num {
@@ -318,7 +318,7 @@
   padding-left: 9px;
   border-left: 3px solid var(--accent);
   color: var(--ink-soft);
-  font-size: 0.86rem;
+  font-size: 0.933rem;
   line-height: 1.45;
 }
 .cp-story-full {
@@ -346,7 +346,7 @@
   padding: 0 3px;
   border: 1px solid currentColor;
   border-radius: 3px;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1.3;
@@ -357,7 +357,7 @@
   border: 1px dashed var(--line);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 400;
 }
 .cp-traits {
@@ -369,7 +369,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 8px;
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .cp-traits li > span:last-child {
   flex: 1 1 140px;
@@ -405,7 +405,7 @@
   gap: 2px 8px;
 }
 .cp-ceo-name small {
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .cp-people-rating {
   display: grid;
@@ -424,7 +424,7 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .cp-stance small,
 .cp-warn small {
@@ -441,7 +441,7 @@
   border-radius: 8px;
   background: var(--bad-soft);
   color: var(--bad);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 600;
 }
 
@@ -517,7 +517,7 @@
     flex: none;
   }
   .cp-story {
-    font-size: 0.84rem;
+    font-size: 0.933rem;
   }
 
   /* Revenue, EBITDA and model value side by side. */
@@ -585,7 +585,7 @@
   }
   .cp-dock-note {
     color: var(--ink-soft);
-    font-size: 0.8rem;
+    font-size: 0.867rem;
     text-align: center;
   }
   .cp-dock-note[data-tone="warn"] {

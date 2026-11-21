@@ -26,7 +26,7 @@
 }
 .guide-head span {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .guide ol {
   display: grid;
@@ -38,7 +38,7 @@
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.933rem;
 }
 .guide li i {
   display: grid;
@@ -70,7 +70,7 @@
   padding: 9px 11px 11px;
   border-top: 1px solid var(--line-soft);
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 
 /* With a company open the map is narrow; the checklist steps aside. */

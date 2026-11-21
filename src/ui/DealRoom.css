@@ -18,7 +18,7 @@
   border-radius: 9px;
   background: var(--raised);
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   font-weight: 600;
 }
 .dr-steps i {
@@ -28,7 +28,7 @@
   height: 20px;
   border-radius: 50%;
   background: var(--line-soft);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-style: normal;
 }
 .dr-steps li[data-state="done"] {
@@ -65,7 +65,7 @@
   padding: 9px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .dr-streams li[data-state="running"] {
   border-color: var(--accent);
@@ -82,7 +82,7 @@
 }
 .dr-stream-head strong {
   flex: 1;
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 .dr-found {
   display: flex;
@@ -111,7 +111,7 @@
 .dr-sliders .slider output small {
   display: inline;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 400;
 }
 .dr-sliders input[type="range"] {
@@ -147,7 +147,7 @@
   border: 0;
   background: none;
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -162,7 +162,7 @@
   justify-content: space-between;
   margin-bottom: 8px;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .dr-plan ul {
@@ -199,11 +199,11 @@
   min-width: 0;
 }
 .dr-plan button b {
-  font-size: 0.85rem;
+  font-size: 0.933rem;
 }
 .dr-plan button small {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .dr-plan button[aria-pressed="true"] {
   border-color: var(--accent);
@@ -233,7 +233,7 @@
   flex-wrap: wrap;
   gap: 0 6px;
   padding: 0 7px;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .dr-structure .stack-legend {
   gap: 2px 10px;
@@ -269,7 +269,7 @@
   margin-top: 12px;
 }
 .dr .bridge li b {
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 
 .dr-outcome {
@@ -302,7 +302,7 @@
   display: flex;
   gap: 10px;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .dr-tally li {
   display: inline-flex;
@@ -356,7 +356,7 @@
 }
 .dr-trust .meter-head {
   margin-bottom: 2px;
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .dr-trust .meter-track {
   height: 5px;
@@ -382,7 +382,7 @@
   flex: 1 1 150px;
   min-width: 0;
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   line-height: 1.35;
 }
 .dr-seat-main {
@@ -403,7 +403,7 @@
 }
 .dr-seat-head small {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.867rem;
 }
 .dr-seat-head .tag {
   flex: none;
@@ -421,7 +421,7 @@
 .dr-note {
   margin-top: 8px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .dr-bid {
   display: flex;
@@ -433,7 +433,7 @@
   display: grid;
   flex: 1 1 150px;
   gap: 4px;
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .dr-bid .stat-value {
   font-size: 1.1rem;
@@ -446,7 +446,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 
 /* ---------- round 2: co-invest, rivals, final round ---------- */
@@ -485,11 +485,11 @@
   min-width: 0;
 }
 .dr-final strong {
-  font-size: 0.98rem;
+  font-size: 1rem;
 }
 .dr-final span {
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 .dr-final .ring b {
   font-size: 1rem;
@@ -502,7 +502,7 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line-soft);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
 }
 .dr-rival {
   flex-wrap: wrap;
@@ -512,7 +512,7 @@
   gap: 2px 6px;
 }
 .dr-rival small {
-  font-size: 0.75rem;
+  font-size: 0.867rem;
 }
 .dr-rival small[data-tone="bad"] {
   color: var(--bad);
@@ -564,7 +564,7 @@
     gap: 2px 5px;
     min-height: 40px;
     padding: 4px;
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
 
   .dr-streams .btn.small {
@@ -587,7 +587,7 @@
     font-size: 1.1rem;
   }
   :is(.dr, .holding-tab) .slider output small {
-    font-size: 0.85rem;
+    font-size: 0.933rem;
   }
   .dr-sliders,
   .hd-sliders {
@@ -679,7 +679,7 @@
   .dr-link {
     min-height: 40px;
     padding: 0 6px;
-    font-size: 0.85rem;
+    font-size: 0.933rem;
   }
 
   /* The plan: one initiative per row, its effect underneath. */
@@ -699,10 +699,10 @@
     border-radius: 6px;
   }
   .dr-plan button b {
-    font-size: 0.92rem;
+    font-size: 1rem;
   }
   .dr-plan button small {
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
 
   /* The preview: one block per row, figures two across. */
@@ -714,7 +714,7 @@
   }
   .dr-structure .tower-layer {
     padding: 0 10px;
-    font-size: 0.8rem;
+    font-size: 0.867rem;
   }
   .dr-stats,
   .dr-returns,
@@ -758,7 +758,7 @@
     overflow-wrap: anywhere;
   }
   .dr-seat-head > span:first-child b {
-    font-size: 0.88rem;
+    font-size: 0.933rem;
     line-height: 1.2;
   }
   .dr-seat-head .tag {
@@ -769,7 +769,7 @@
     grid-area: trust;
   }
   .dr-trust .meter-head {
-    font-size: 0.75rem;
+    font-size: 0.867rem;
   }
   .dr-trust .meter-track {
     height: 6px;
@@ -781,7 +781,7 @@
   .dr-says q,
   .dr-say-for {
     flex-basis: 100%;
-    font-size: 0.82rem;
+    font-size: 0.933rem;
     line-height: 1.4;
   }
 
@@ -825,7 +825,7 @@
   }
   .dr-dock-raise > .muted {
     grid-area: note;
-    font-size: 0.75rem;
+    font-size: 0.867rem;
     text-align: center;
   }
   .dr-dock-raise output {
@@ -853,7 +853,7 @@
 .dr-group {
   margin: 10px 0 2px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 800;
   letter-spacing: 0.04em;
 }

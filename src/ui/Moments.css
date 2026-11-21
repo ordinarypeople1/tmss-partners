@@ -37,7 +37,7 @@
   border-radius: 999px;
   background: var(--line-soft);
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .moment-head {
@@ -52,7 +52,7 @@
 .moment-kicker,
 .moment-date {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -138,7 +138,7 @@
 }
 .tombstone-verb {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.933rem;
   letter-spacing: 0.3em;
   text-indent: 0.3em;
 }
@@ -159,7 +159,7 @@
 }
 .tombstone-value small {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.867rem;
 }
 .tombstone-value b {
   font-size: 1.6rem;
@@ -171,7 +171,7 @@
 }
 .tombstone-fund {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.933rem;
   font-weight: 600;
 }
 
@@ -199,7 +199,7 @@
 }
 .scorecard-moic small {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
   font-weight: 600;
 }
 .scorecard-moic b {
@@ -312,12 +312,12 @@
 }
 .moment-badge-text small {
   color: var(--good);
-  font-size: 0.75rem;
+  font-size: 0.867rem;
   font-weight: 700;
 }
 .moment-badge-text span {
   color: var(--ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.867rem;
 }
 
 @media (max-width: 480px) {
@@ -441,7 +441,7 @@
     grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   }
   .moment-verdict {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
   .promotion-perks li {
     grid-template-columns: minmax(0, 1fr) 48px 16px 48px;
