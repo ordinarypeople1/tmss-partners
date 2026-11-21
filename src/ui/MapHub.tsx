@@ -700,12 +700,17 @@ function MapHubView() {
             onClick={() => setTools(!tools)}
           >
             <Icon name={tools ? "close" : "more"} size={16} />
-            <span>{t(tools ? "map.tools.hide" : "map.tools.show")}</span>
           </button>
           {tools ? LAYERS.map((item) => (
-            <button key={item.id} type="button" aria-pressed={layer === item.id} onClick={() => setLayer(item.id)}>
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={layer === item.id}
+              aria-label={t(`map.layer.${item.id}`)}
+              title={t(`map.layer.${item.id}`)}
+              onClick={() => setLayer(item.id)}
+            >
               <Icon name={item.icon} size={16} />
-              <span>{t(`map.layer.${item.id}`)}</span>
             </button>
           )) : null}
         </div>
