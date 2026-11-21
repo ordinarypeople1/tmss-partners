@@ -131,6 +131,46 @@ def model_multiple(
     return round(clamp(raw, industry.multiple_floor, industry.multiple_cap), 2)
 
 
+# A site keeps the proper name of the park it was drawn from and takes the
+# kind of estate its sector sits in, in the country's own way of naming one:
+# a plant in an industrial park, a cold store in a logistics park, a clinic
+# group in a medical centre. The draw itself is unchanged, so the rest of the
+# universe stays as it was.
+SITE_FILLER = {
+    "US": {"Works", "Commerce", "Park", "Industrial", "Logistics", "Packing", "District", "Siding", "Yards", "Dairy"},
+    "GB": {"Works", "Trading", "Estate", "Park", "Business", "Exchange", "Yard"},
+    "DE": {"Gewerbepark", "Technikhof", "Industriepark", "Werkhof", "Park", "Gewerbehof", "Gewerbe"},
+    "FR": {"Parc", "Zone", "Cité"},
+    "KR": {"Industrial", "Logistics", "Parts", "Machinery", "Food", "Cold", "Chain", "Complex"},
+    "JP": {"Industrial", "Park", "Works", "Logistics", "Food"},
+    "CN": {"Industrial", "Zone", "Export", "Park", "Equipment", "Components", "Food", "Logistics"},
+}
+SITE_KIND = {
+    "US": {"plant": "{stem} Industrial Park", "food": "{stem} Food Park", "logistics": "{stem} Logistics Park", "health": "{stem} Medical Plaza", "office": "{stem} Business Center"},
+    "GB": {"plant": "{stem} Industrial Estate", "food": "{stem} Food Park", "logistics": "{stem} Distribution Park", "health": "{stem} Medical Centre", "office": "{stem} Business Park"},
+    "DE": {"plant": "Industriepark {stem}", "food": "Gewerbepark {stem}", "logistics": "Logistikzentrum {stem}", "health": "Ärztehaus {stem}", "office": "Bürocenter {stem}"},
+    "FR": {"plant": "Zone industrielle {stem}", "food": "Zone agroalimentaire {stem}", "logistics": "Plateforme logistique {stem}", "health": "Pôle santé {stem}", "office": "Parc d'affaires {stem}"},
+    "KR": {"plant": "{stem} Industrial Complex", "food": "{stem} Food Industrial Complex", "logistics": "{stem} Logistics Complex", "health": "{stem} Medical Center", "office": "{stem} Business Center"},
+    "JP": {"plant": "{stem} Industrial Park", "food": "{stem} Food Park", "logistics": "{stem} Logistics Center", "health": "{stem} Medical Plaza", "office": "{stem} Business Park"},
+    "CN": {"plant": "{stem} Industrial Zone", "food": "{stem} Food Industrial Zone", "logistics": "{stem} Logistics Park", "health": "{stem} Medical Park", "office": "{stem} Business Park"},
+}
+SECTOR_SITE = {
+    "food_manufacturing": "food",
+    "industrial_components": "plant",
+    "building_products": "plant",
+    "cold_chain_logistics": "logistics",
+    "healthcare_services": "health",
+    "business_services": "office",
+}
+
+
+def site_for(park: str, sector_id: str, country: str) -> str:
+    filler = SITE_FILLER.get(country, SITE_FILLER["US"])
+    stem = " ".join(word for word in park.split() if word not in filler) or park.split()[-1]
+    kinds = SITE_KIND.get(country, SITE_KIND["US"])
+    return kinds[SECTOR_SITE.get(sector_id, "plant")].format(stem=stem)
+
+
 def hits_denylist(name: str) -> bool:
     lowered = name.lower()
     return any(token.lower() in lowered for token in NAME_DENYLIST)
@@ -511,7 +551,7 @@ def build_document(
                 "sector_id": industry.sector_id,
                 "country": country,
                 "admin1": profile.admin1,
-                "site_name": rng.choice(profile.parks),
+                "site_name": site_for(rng.choice(profile.parks), industry.sector_id, country),
                 "lat": lat,
                 "lon": lon,
                 "founded_year": rng.randint(1955, 2017),

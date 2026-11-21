@@ -23,6 +23,7 @@ import { bidderName } from "./messages";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
 import { FiveYearChart, StatementTables } from "./Statements";
+import { CompanyStory } from "./CompanyStory";
 
 type TabId = "overview" | "financials" | "deal" | "operations";
 type Tone = "good" | "bad" | "warn";
@@ -204,17 +205,7 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
         </div>
       </header>
       <div className="cp-body" role="tabpanel">
-        <p className="cp-story">
-          {t("company.story", {
-            year: company.founded,
-            abroad: company.country !== HOME ? "yes" : "no",
-            country: t(`country.${company.country}`),
-            region: t(`admin1.${company.admin1}`),
-            site: company.site_name,
-            product: t(`product.${company.sector}.${company.product}`),
-            count: company.employees,
-          })}
-        </p>
+        <CompanyStory company={company} full={current === "overview"} />
         {current === "overview" ? (
           <Overview game={game} company={company} />
         ) : null}
