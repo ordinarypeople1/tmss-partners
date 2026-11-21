@@ -142,6 +142,9 @@ pub struct Holding {
     pub earnout_open: bool,
     pub incentive_asked: bool,
     pub full_diligence: bool,
+    /// Convertible bonds outstanding: debt until the exit, shares at it.
+    #[serde(default)]
+    pub convertible: i64,
     /// Something diligence missed has gone off.
     pub surprised: bool,
     pub distressed_entry: bool,
@@ -189,6 +192,7 @@ impl Holding {
             earnout_open: false,
             incentive_asked: false,
             full_diligence: false,
+            convertible: 0,
             surprised: false,
             distressed_entry: false,
             cured: false,
@@ -218,8 +222,9 @@ impl World {
         let Some(holding) = &target.holding else {
             return 0;
         };
-        let equity = target
-            .model_equity(&self.industries[target.sector], &self.economy)
+        // Convertible bonds become shares rather than debt to repay.
+        let equity = (target.model_equity(&self.industries[target.sector], &self.economy)
+            + holding.convertible)
             .max(0);
         mul_bps(equity, holding.ownership_bps)
     }
@@ -962,12 +967,12 @@ impl World {
     /// What the fund receives if the company sells at `ev`.
     pub fn exit_proceeds(&self, company: usize, ev: i64) -> i64 {
         let target = &self.companies[company];
-        let ownership = target
+        let (ownership, convertible) = target
             .holding
             .as_ref()
-            .map(|holding| holding.ownership_bps)
-            .unwrap_or(0);
-        let equity = ev - mul_bps(ev, EXIT_FEE_BPS) - target.net_debt();
+            .map(|holding| (holding.ownership_bps, holding.convertible))
+            .unwrap_or((0, 0));
+        let equity = ev - mul_bps(ev, EXIT_FEE_BPS) - target.net_debt() + convertible;
         mul_bps(equity.max(0), ownership)
     }
 

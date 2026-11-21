@@ -35,7 +35,7 @@
   "dealroom.rollover": "롤오버",
   "dealroom.fundEquity": "펀드 에쿼티",
   "dealroom.entryMultiple": "진입 배수",
-  "dealroom.modelMultiple": "모델 {multiple}",
+  "dealroom.modelMultiple": "밸류에이션 {multiple}",
   "dealroom.priceVsModel": "밸류에이션 대비 가격",
   "dealroom.interest": "연 이자 {amount}",
   "dealroom.vsLimit": "에쿼티 / 건당 한도",

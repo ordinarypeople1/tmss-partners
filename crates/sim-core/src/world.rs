@@ -1163,6 +1163,8 @@ pub mod tests {
                     mezz_millis: 0,
                     rollover_bps: 0,
                     plan: vec![InitiativeKind::Procurement, InitiativeKind::LeanProgram],
+                    mezz_kind: crate::deal::MezzKind::Notes,
+                    primary: 0,
                 };
                 let _ = world.apply(Command::SetOffer { company, offer });
                 let _ = world.apply(Command::SubmitIc { company });
@@ -1479,6 +1481,8 @@ pub mod tests {
             mezz_millis: 0,
             rollover_bps: 0,
             plan: Vec::new(),
+            mezz_kind: crate::deal::MezzKind::Notes,
+            primary: 0,
         };
         assert_eq!(
             world.apply(Command::SetOffer { company: index, offer: offer.clone() }),
@@ -1629,6 +1633,35 @@ pub mod tests {
         ));
         assert_eq!(world.banker(2), world.banker(2));
         assert_ne!(world.banker(2).0, world.banker(3).0);
+    }
+
+    #[test]
+    fn convertibles_cost_less_interest_but_dilute_and_new_shares_add_cash() {
+        let mut world = world(7);
+        run(&mut world, 12);
+        let company = joinable(&mut world);
+        let base = Offer {
+            ev: world.model_ev(company),
+            senior_millis: 3_000,
+            mezz_millis: 1_000,
+            rollover_bps: 0,
+            plan: Vec::new(),
+            mezz_kind: crate::deal::MezzKind::Notes,
+            primary: 0,
+        };
+        let notes = world.financing(company, &base);
+        let convertible = world.financing(company, &Offer { mezz_kind: crate::deal::MezzKind::Convertible, ..base.clone() });
+        assert!(convertible.annual_interest < notes.annual_interest);
+        assert_eq!(notes.ownership_bps, 10_000);
+        assert!(convertible.ownership_bps < 10_000);
+        assert_eq!(convertible.ownership_bps + convertible.seller_bps + convertible.converted_bps, 10_000);
+        let primary = base.ev / 10;
+        let with_new = world.financing(company, &Offer { primary, ..base.clone() });
+        assert_eq!(with_new.equity, notes.equity + primary);
+        assert_eq!(
+            world.validate_offer(company, &Offer { primary: base.ev, ..base.clone() }),
+            Err(CommandError::InvalidOffer)
+        );
     }
 
     #[test]

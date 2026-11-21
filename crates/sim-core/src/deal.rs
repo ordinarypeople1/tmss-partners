@@ -26,7 +26,31 @@ pub struct Offer {
     pub rollover_bps: i64,
     /// The first hundred days: initiatives the committee is asked to back.
     pub plan: Vec<InitiativeKind>,
+    /// What the junior money is: notes repaid at maturity, or bonds that
+    /// convert into shares at exit.
+    #[serde(default)]
+    pub mezz_kind: MezzKind,
+    /// New shares the fund subscribes on top of buying the old ones. The
+    /// cash goes into the company, not to the seller.
+    #[serde(default)]
+    pub primary: i64,
 }
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MezzKind {
+    /// Subordinated notes: a high cash coupon, the principal repaid.
+    #[default]
+    Notes,
+    /// Convertible bonds: a low coupon; the holder converts into shares at exit.
+    Convertible,
+}
+
+/// New shares at most this share of the price.
+pub const MAX_PRIMARY_BPS: i64 = 3_000;
+/// Coupons over the senior spread.
+const NOTES_PREMIUM_BPS: i64 = 450;
+const CONVERTIBLE_PREMIUM_BPS: i64 = 100;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Financing {
@@ -44,6 +68,17 @@ pub struct Financing {
     pub cover_millis: i64,
     pub price_to_model_bps: i64,
     pub multiple_millis: i64,
+    /// New money into the company.
+    #[serde(default)]
+    pub primary: i64,
+    /// Junior money that converts into shares at exit.
+    #[serde(default)]
+    pub convertible: i64,
+    /// The seller's share after closing, and the bondholders' on conversion.
+    #[serde(default)]
+    pub seller_bps: i64,
+    #[serde(default)]
+    pub converted_bps: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -292,8 +327,11 @@ impl World {
         Ok(())
     }
 
-    fn validate_offer(&self, company: usize, offer: &Offer) -> Result<(), CommandError> {
+    pub(crate) fn validate_offer(&self, company: usize, offer: &Offer) -> Result<(), CommandError> {
         if offer.ev <= 0 || offer.senior_millis < 0 || offer.mezz_millis < 0 {
+            return Err(CommandError::InvalidOffer);
+        }
+        if offer.primary < 0 || offer.primary > mul_bps(offer.ev, MAX_PRIMARY_BPS) {
             return Err(CommandError::InvalidOffer);
         }
         if offer.senior_millis > self.economy.max_senior_millis()
@@ -329,10 +367,22 @@ impl World {
         let fees = mul_bps(offer.ev, FEE_BPS);
         let total_equity = offer.ev + fees - debt;
         let rollover = mul_bps(total_equity.max(0), offer.rollover_bps);
-        let equity = total_equity - rollover;
+        // The fund pays for the old shares it buys and for any new ones.
+        let primary = offer.primary.max(0);
+        let equity = total_equity - rollover + primary;
+        let convertible = if offer.mezz_kind == MezzKind::Convertible { mezz } else { 0 };
+        // Fully diluted: the seller's rolled shares and the bonds as converted.
+        let diluted = (equity + rollover + convertible).max(1);
+        let ownership_bps = ratio_bps(equity.max(0), diluted);
+        let seller_bps = ratio_bps(rollover, diluted);
+        let converted_bps = 10_000 - ownership_bps - seller_bps;
         let senior_spread = self.economy.credit_spread_bps;
+        let premium = match offer.mezz_kind {
+            MezzKind::Notes => NOTES_PREMIUM_BPS,
+            MezzKind::Convertible => CONVERTIBLE_PREMIUM_BPS,
+        };
         let spread_bps = if debt > 0 {
-            div_round(senior * senior_spread + mezz * (senior_spread + 450), debt)
+            div_round(senior * senior_spread + mezz * (senior_spread + premium), debt)
         } else {
             senior_spread
         };
@@ -345,7 +395,7 @@ impl World {
             fees,
             rollover,
             equity,
-            ownership_bps: 10_000 - offer.rollover_bps,
+            ownership_bps,
             spread_bps,
             annual_interest,
             leverage_millis: offer.senior_millis + offer.mezz_millis,
@@ -356,6 +406,10 @@ impl World {
             },
             price_to_model_bps: ratio_bps(offer.ev, self.model_ev(company)),
             multiple_millis: ratio_millis(offer.ev, ebitda),
+            primary,
+            convertible,
+            seller_bps,
+            converted_bps: converted_bps.max(0),
         }
     }
 
@@ -384,7 +438,8 @@ impl World {
         }
         let rate_bps = self.economy.policy_rate_bps + financing.spread_bps;
         let mut revenue = target.revenue;
-        let mut debt = financing.debt;
+        // New shares arrive as cash, which pays down debt from the first month.
+        let mut debt = (financing.debt - financing.primary).max(0);
         let mut trailing: Vec<i64> = Vec::new();
         for _ in 0..PROJECTION_MONTHS {
             revenue = mul_bps(revenue, 10_000 + growth_bps);
@@ -402,7 +457,8 @@ impl World {
         let exit_ebitda: i64 = trailing.iter().rev().take(12).sum();
         let model_multiple = target.multiple_millis(industry, &self.economy);
         let exit_ev = mul_millis(exit_ebitda, model_multiple);
-        let proceeds = mul_bps((exit_ev - debt).max(0), financing.ownership_bps);
+        // Bonds that convert are not repaid; their holders share the equity instead.
+        let proceeds = mul_bps((exit_ev - debt + financing.convertible).max(0), financing.ownership_bps);
         let equity = financing.equity.max(1);
         let entry_ebitda = financing.ebitda.max(1);
         let paid_multiple = financing.multiple_millis;
@@ -873,6 +929,8 @@ impl World {
         }
         let target = &mut self.companies[company];
         target.acquire(&industry, ev, financing.debt);
+        // New shares: the cash stays in the company.
+        target.inject_equity(financing.primary);
         target.debt_spread_bps = financing.spread_bps;
         target.owner = Owner::Player;
         target.process = None;
@@ -904,6 +962,7 @@ impl World {
                 .holding
                 .as_mut()
                 .expect("just created");
+            holding.convertible = financing.convertible;
             holding.votes = deal
                 .ic
                 .as_ref()

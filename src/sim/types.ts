@@ -371,7 +371,13 @@ export interface Offer {
   mezz_millis: number;
   rollover_bps: number;
   plan: InitiativeKind[];
+  /** Subordinated notes, or bonds that convert into shares at exit. */
+  mezz_kind: MezzKind;
+  /** New shares the fund subscribes; the cash goes into the company. */
+  primary: number;
 }
+
+export type MezzKind = "notes" | "convertible";
 
 export interface Financing {
   ebitda: number;
@@ -388,6 +394,11 @@ export interface Financing {
   cover_millis: number;
   price_to_model_bps: number;
   multiple_millis: number;
+  primary: number;
+  convertible: number;
+  /** Fully diluted shares after closing: the seller's rolled stake, the bonds as converted. */
+  seller_bps: number;
+  converted_bps: number;
 }
 
 export interface Returns {

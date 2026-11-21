@@ -35,7 +35,7 @@
   "dealroom.rollover": "ロールオーバー",
   "dealroom.fundEquity": "ファンドエクイティ",
   "dealroom.entryMultiple": "エントリーマルチプル",
-  "dealroom.modelMultiple": "モデル {multiple}",
+  "dealroom.modelMultiple": "バリュエーション {multiple}",
   "dealroom.priceVsModel": "バリュエーション比の価格",
   "dealroom.interest": "年間利息 {amount}",
   "dealroom.vsLimit": "エクイティ / 1件上限",
