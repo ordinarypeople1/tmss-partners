@@ -4,24 +4,30 @@ import type { CoverLine, CoverTalk, View } from "../sim/types";
 import { Meter, Tag } from "./charts";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { pick } from "./lines";
 import { Portrait } from "./Portrait";
 
 /** One of the banker's lines, with its figures filled in. */
-function lineText(t: Translate, view: View, line: CoverLine, variant: number): string {
+function lineText(t: Translate, view: View, line: CoverLine, seed: number): string {
   switch (line.kind) {
     case "market":
-      return t(`cover.line.market.${line.phase}`);
+      return t(pick(`cover.line.market.${line.phase}`, seed));
     case "credit":
-      return t(line.spread_bps >= 450 ? `cover.line.credit.tight.${variant}` : `cover.line.credit.easy.${variant}`, { spread: (line.spread_bps / 100).toFixed(2) });
+      return t(pick(line.spread_bps >= 450 ? "cover.line.credit.tight" : "cover.line.credit.easy", seed), { spread: (line.spread_bps / 100).toFixed(2) });
     case "sector":
-      return t(`cover.line.sector.${variant}`, { sector: t(`sector.${line.sector}`), months: String(line.months) });
+      return t(pick("cover.line.sector", seed), { sector: t(`sector.${line.sector}`), months: String(line.months) });
     case "rival":
-      return t("cover.line.rival", { house: view.rivals[line.house] ?? "", sector: t(`sector.${line.sector}`) });
+      return t(pick("cover.line.rival", seed), { house: view.rivals[line.house] ?? "", sector: t(`sector.${line.sector}`) });
     case "pipeline":
-      return t("cover.line.pipeline", { company: line.company, months: String(line.months) });
+      return t(pick("cover.line.pipeline", seed), { company: line.company, months: String(line.months) });
     case "reputation":
-      return t(line.good ? "cover.line.reputation.good" : "cover.line.reputation.bad");
+      return t(pick(line.good ? "cover.line.reputation.good" : "cover.line.reputation.bad", seed));
   }
+}
+
+/** How the banker opens: a stranger is sized up, a regular is welcomed, a friend is told first. */
+function opener(before: number, list: number, headsUp: number): string {
+  return before >= headsUp ? "cover.close" : before >= list ? "cover.open.warm" : "cover.open.cold";
 }
 
 /**
@@ -36,7 +42,8 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
     return null;
   }
   const [list, favour, headsUp] = view.coverage_marks;
-  const variant = ((talk.before + talk.adviser) % 2) + 1;
+  // The month, the bank and how well it knows the fund pick the words.
+  const seed = talk.before + talk.adviser * 7 + view.month;
   const crossed = [
     ["list", list],
     ["favour", favour],
@@ -57,9 +64,10 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
             <small className="muted">{t("cover.role", { bank: adviser.name })}</small>
           </div>
           <div className="talk-lines">
+            <blockquote className="talk-line">{t(pick(opener(talk.before, list, headsUp), seed))}</blockquote>
             {talk.lines.map((line, index) => (
               <blockquote key={index} className="talk-line">
-                {lineText(t, view, line, variant)}
+                {lineText(t, view, line, seed + index * 3)}
               </blockquote>
             ))}
           </div>

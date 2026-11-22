@@ -7,6 +7,7 @@ import { Meter, Tag } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
+import { pick } from "./lines";
 import { Portrait } from "./Portrait";
 import "./Journey.css";
 
@@ -282,30 +283,34 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
   const house = company.owner.kind === "sponsor" ? (game.view.rivals[company.owner.house] ?? "") : "";
   const marks = [approach.known_at, approach.early_notice_at, approach.proposal_at];
   const unlocked = MARKS.filter((_, index) => talk.before < marks[index] && after >= marks[index]);
-  const variant = ((company.i + talk.before) % 2) + 1;
+  // The company, the month and the relationship pick the words; reopening a meeting reads the same.
+  const seed = company.i * 3 + talk.before + game.view.month;
   const street = game.view.career.street;
   // Until the fund is known there, a senior executive takes the meeting, not the owner.
   const gatekeeper = talk.kind === "meet" && talk.before < approach.known_at && company.owner.kind !== "public";
   const executive = company.executive;
-  const line = gatekeeper
+  const base = gatekeeper
     ? talk.before === 0
-      ? `talk.exec.first.${variant}`
-      : `talk.exec.again.${variant}`
+      ? "talk.exec.first"
+      : "talk.exec.again"
     : talk.kind === "think"
-      ? `talk.think.${variant}`
+      ? "talk.think"
       : talk.kind === "yes"
-      ? "talk.yes"
-      : talk.kind === "no"
-        ? "talk.no"
-        : company.suitor
-          ? "talk.meet.suitor"
-          : company.sale
-            ? "talk.meet.sale"
-          : talk.before === 0
-            ? `talk.meet.first.${variant}`
-            : company.intent
-              ? `talk.meet.${company.intent}.${variant}`
-              : "talk.meet.unknown";
+        ? "talk.yes"
+        : talk.kind === "no"
+          ? "talk.no"
+          : company.suitor
+            ? "talk.meet.suitor"
+            : company.sale
+              ? "talk.meet.sale"
+              : talk.before === 0
+                ? "talk.meet.first"
+                : company.intent
+                  ? `talk.meet.${company.intent}`
+                  : "talk.meet.unknown";
+  const line = pick(base, seed);
+  // A close relationship shows: an owner who trusts the fund says so.
+  const warm = talk.kind === "meet" && !gatekeeper && company.access === "confidant";
   return (
     <Overlay>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t(`talk.title.${talk.kind}`)} onClick={onClose}>
@@ -333,7 +338,8 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
           <div className="talk-lines">
             <blockquote className="talk-line">{t(line, { house: company.suitor ? (game.view.rivals[company.suitor.house] ?? "") : "" })}</blockquote>
             {gatekeeper && after >= approach.known_at ? <blockquote className="talk-line">{t("talk.exec.intro")}</blockquote> : null}
-            {talk.kind === "meet" && Math.abs(street) >= 8 ? <blockquote className="talk-line">{t(street > 0 ? "talk.street.good" : "talk.street.bad")}</blockquote> : null}
+            {talk.kind === "meet" && Math.abs(street) >= 8 ? <blockquote className="talk-line">{t(pick(street > 0 ? "talk.street.good" : "talk.street.bad", seed))}</blockquote> : null}
+            {warm ? <blockquote className="talk-line">{t(pick("talk.warm", seed))}</blockquote> : null}
           </div>
         </div>
         <div className="talk-result">

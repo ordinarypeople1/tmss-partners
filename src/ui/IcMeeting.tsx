@@ -3,6 +3,7 @@ import { Overlay } from "./Overlay";
 import { useT, type Translate } from "../i18n/useT";
 import type { CompanyView, IcAnswer, IcFacts, IcMeeting as Meeting, IcQuestion, IcTopic } from "../sim/types";
 import { Tag } from "./charts";
+import { pick } from "./lines";
 import { useFormat, type Format } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
@@ -58,6 +59,8 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
     return null;
   }
   const values = factValues(t, f, deal.ic_facts);
+  // One seed per meeting: the same meeting reads the same when reopened.
+  const seed = company.i * 7 + meeting.date.year * 12 + meeting.date.month;
   const question: IcQuestion | undefined = meeting.questions[at];
   const finished = live === null;
   // After the last reaction the player steps to the vote.
@@ -87,7 +90,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
         </ol>
 
         {showVerdict || !question ? (
-          <Verdict t={t} outcome={outcome} meeting={meeting} />
+          <Verdict t={t} outcome={outcome} meeting={meeting} seed={seed} />
         ) : (
           <>
             <div className="talk-body">
@@ -97,7 +100,13 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
                 <small className="muted">{t(`partner.${question.partner}.role`)}</small>
               </div>
               <div className="talk-lines">
-                <blockquote className="talk-line">{t(`ic.q.${topicKey(question.topic)}`, values)}</blockquote>
+                {at === 0 && !question.answer ? (
+                  <p className="ic-open">
+                    <b>{t("partner.0.name")}</b>
+                    {t(pick("ic.open", seed), values)}
+                  </p>
+                ) : null}
+                <blockquote className="talk-line">{t(pick(`ic.q.${topicKey(question.topic)}`, seed + at * 5 + question.partner), values)}</blockquote>
                 {question.answer ? (
                   <>
                     <p className="ic-said">
@@ -105,7 +114,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
                       {t(`ic.a.${topicKey(question.topic)}.${question.answer}`, values)}
                     </p>
                     <blockquote className="talk-line" data-tone={question.landed ? "good" : "bad"}>
-                      {t(`ic.r.${question.answer}.${question.landed ? "yes" : "no"}`)}
+                      {t(pick(`ic.r.${question.answer}.${question.landed ? "yes" : "no"}`, seed + at * 3))}
                     </blockquote>
                   </>
                 ) : null}
@@ -141,7 +150,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
   );
 }
 
-function Verdict({ t, outcome, meeting }: { t: Translate; outcome: string | null; meeting: Meeting }) {
+function Verdict({ t, outcome, meeting, seed }: { t: Translate; outcome: string | null; meeting: Meeting; seed: number }) {
   const tone = outcome === "approved" ? "good" : outcome === "rejected" ? "bad" : "warn";
   return (
     <div className="ic-verdict">
@@ -149,6 +158,11 @@ function Verdict({ t, outcome, meeting }: { t: Translate; outcome: string | null
         {outcome ? t(`outcome.${outcome}`) : t("ic.pending")}
       </Tag>
       <p>{outcome ? t(`ic.verdict.${outcome}`) : null}</p>
+      {outcome ? (
+        <blockquote className="talk-line">
+          <b>{t("partner.0.name")}</b> {t(pick(`ic.verdict.${outcome}.say`, seed))}
+        </blockquote>
+      ) : null}
       {meeting.conditions.length > 0 ? (
         <p className="muted">{t("ic.conditions", { streams: meeting.conditions.map((stream) => t(`stream.${stream}`)).join(", ") })}</p>
       ) : null}

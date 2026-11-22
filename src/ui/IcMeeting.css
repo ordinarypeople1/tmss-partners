@@ -78,3 +78,14 @@
   gap: 8px;
   justify-items: start;
 }
+/* The chair opens the meeting, once, above the first question. */
+.ic-open {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+}
+.ic-open b {
+  margin-right: 6px;
+}
+.ic-verdict .talk-line b {
+  margin-right: 4px;
+}

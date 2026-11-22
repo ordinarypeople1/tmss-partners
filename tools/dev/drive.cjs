@@ -65,7 +65,9 @@ async function prepare(page, company) {
     await months(page);
     const valued = (await view(page)).companies.find((item) => item.i === company);
     if (valued && valued.ev) {
-      await cmd(page, { type: "submit_indication", company, ev: Math.round(valued.ev[0] * 1.06) });
+      const ev = Math.round(valued.ev[0] * 1.06);
+      // The indication is a term sheet: price, debt, lender and rate.
+      await cmd(page, { type: "submit_indication", company, offer: { ev, senior_millis: 3500, mezz_millis: 0, rollover_bps: 0, plan: [], mezz_kind: "notes", primary: 0 } });
     }
   }
   for (let wait = 0; wait < 4; wait += 1) {
