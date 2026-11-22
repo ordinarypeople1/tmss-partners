@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useT, type Translate } from "../i18n/useT";
 import { Overlay } from "./Overlay";
 import type { CoverLine, CoverTalk, View } from "../sim/types";
@@ -5,10 +6,14 @@ import { Meter, Tag } from "./charts";
 import { useGame } from "./game";
 import { Icon } from "./icons";
 import { pick } from "./lines";
+import { AdviserLink, FollowContext, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 
 /** One of the banker's lines, with its figures filled in. */
-function lineText(t: Translate, view: View, line: CoverLine, seed: number): string {
+type Rich = ReturnType<typeof useRich>;
+
+/** One of the banker's lines, its houses and companies linked to their pages. */
+function lineText(t: Translate, rich: Rich, view: View, line: CoverLine, seed: number): ReactNode {
   switch (line.kind) {
     case "market":
       return t(pick(`cover.line.market.${line.phase}`, seed));
@@ -17,9 +22,16 @@ function lineText(t: Translate, view: View, line: CoverLine, seed: number): stri
     case "sector":
       return t(pick("cover.line.sector", seed), { sector: t(`sector.${line.sector}`), months: String(line.months) });
     case "rival":
-      return t(pick("cover.line.rival", seed), { house: view.rivals[line.house] ?? "", sector: t(`sector.${line.sector}`) });
+      return rich(pick("cover.line.rival", seed), { house: view.rivals[line.house] ?? "", sector: t(`sector.${line.sector}`) }, { house: { kind: "house", id: line.house } });
     case "pipeline":
-      return t(pick("cover.line.pipeline", seed), { company: line.company, months: String(line.months) });
+    {
+      const row = view.companies.find((item) => item.name === line.company);
+      return rich(
+        pick("cover.line.pipeline", seed),
+        { company: line.company, months: String(line.months) },
+        row ? { company: { kind: "company", id: row.i } } : {},
+      );
+    }
     case "reputation":
       return t(pick(line.good ? "cover.line.reputation.good" : "cover.line.reputation.bad", seed));
   }
@@ -36,6 +48,7 @@ function opener(before: number, list: number, headsUp: number): string {
  */
 export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => void }) {
   const t = useT();
+  const rich = useRich();
   const { view } = useGame();
   const adviser = view.advisers[talk.adviser];
   if (!adviser) {
@@ -51,11 +64,14 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
   ].filter(([, mark]) => talk.before < Number(mark) && talk.after >= Number(mark));
   return (
     <Overlay>
+    <FollowContext.Provider value={onClose}>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t("cover.title")} onClick={onClose}>
       <div className="talk" onClick={(event) => event.stopPropagation()}>
         <header>
           <span className="talk-kicker">{t("cover.title")}</span>
-          <span className="muted clip">{adviser.name}</span>
+          <span className="muted clip">
+            <AdviserLink adviser={talk.adviser} />
+          </span>
         </header>
         <div className="talk-body">
           <div className="talk-who">
@@ -67,7 +83,7 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
             <blockquote className="talk-line">{t(pick(opener(talk.before, list, headsUp), seed))}</blockquote>
             {talk.lines.map((line, index) => (
               <blockquote key={index} className="talk-line">
-                {lineText(t, view, line, seed + index * 3)}
+                {lineText(t, rich, view, line, seed + index * 3)}
               </blockquote>
             ))}
           </div>
@@ -87,6 +103,7 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
         </button>
       </div>
     </div>
+    </FollowContext.Provider>
     </Overlay>
   );
 }

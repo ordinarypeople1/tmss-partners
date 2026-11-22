@@ -23,7 +23,7 @@ import { Bridge, Meter, Ring, StackBar, Stat, Tag, Tower } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
-import { bidderName } from "./messages";
+import { BidderName } from "./Links";
 import { Portrait } from "./Portrait";
 import "./DealRoom.css";
 
@@ -1399,7 +1399,9 @@ export function DealRoom({ company }: { company: CompanyView }) {
                       name={rival.kind === "strategic" ? "layers" : "fund"}
                       size={13}
                     />
-                    <b>{bidderName(t, view, rival)}</b>
+                    <b>
+                      <BidderName bidder={rival} t={t} view={view} />
+                    </b>
                     {style && style.aggression !== 0 ? (
                       <small data-tone={style.aggression > 0 ? "bad" : "good"}>
                         {t(

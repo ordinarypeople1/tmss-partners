@@ -1,12 +1,24 @@
 import type { Translate } from "../i18n/useT";
 import type { Bidder, Message, View } from "../sim/types";
 import type { Format } from "./format";
+import type { Page } from "./game";
 
 export interface MessageText {
   title: string;
   body: string;
   icon: string;
   tone?: "good" | "bad" | "warn";
+  /** The ids and values behind title and body, for a rendering with linked names. */
+  titleId: string;
+  bodyId: string;
+  values: Record<string, string>;
+  /** Which values name a company, a rival house or a bank, and which page each opens. */
+  links: Record<string, Page>;
+}
+
+/** The page a bidder's name opens: a rival house's. Strategic buyers and the player have none. */
+export function bidderPage(bidder: Bidder): Page | null {
+  return bidder.kind === "house" ? { kind: "house", id: bidder.house } : null;
 }
 
 export function bidderName(t: Translate, view: View, bidder: Bidder): string {
@@ -75,6 +87,27 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
   const company =
     message.company === null ? "" : (view.companies.find((row) => row.i === message.company)?.name ?? "");
   const values: Record<string, string> = { company };
+  const links: Record<string, Page> = {};
+  if (message.company !== null && company) {
+    links.company = { kind: "company", id: message.company };
+  }
+  const link = (key: string, page: Page | null) => {
+    if (page) {
+      links[key] = page;
+    }
+  };
+  if ("house" in message && typeof message.house === "number") {
+    link("house", { kind: "house", id: message.house });
+  }
+  if ("adviser" in message && typeof message.adviser === "number") {
+    link("adviser", { kind: "adviser", id: message.adviser });
+  }
+  if ("buyer" in message && message.buyer) {
+    link("buyer", bidderPage(message.buyer));
+  }
+  if ("winner" in message && message.winner) {
+    link("winner", bidderPage(message.winner));
+  }
   let bodyId = `msg.${message.type}.body`;
   let titleId = `msg.${message.type}.title`;
   switch (message.type) {
@@ -235,5 +268,5 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
       break;
   }
   const [icon, tone] = LOOK[message.type];
-  return { title: t(titleId, values), body: t(bodyId, values), icon, tone };
+  return { title: t(titleId, values), body: t(bodyId, values), icon, tone, titleId, bodyId, values, links };
 }

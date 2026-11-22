@@ -6,6 +6,7 @@ import { mid, useFormat } from "../format";
 import { useGame } from "../game";
 import { Icon } from "../icons";
 import { bidderName } from "../messages";
+import { HouseLink } from "../Links";
 import "./League.css";
 
 /**
@@ -183,7 +184,7 @@ export function League() {
                     </span>
                   </td>
                   <td className="name">
-                    {me ? t(`app.house.${view.house}`) : (view.rivals[row.house ?? 0] ?? "")}
+                    {me || row.house === null ? t(`app.house.${view.house}`) : <HouseLink house={row.house} />}
                     {me ? (
                       <Tag tone="accent">{t("league.me")}</Tag>
                     ) : style?.focus ? (
@@ -265,7 +266,9 @@ export function League() {
             return (
               <article key={name} className="card stack house-card">
                 <div className="row between">
-                  <h3>{name}</h3>
+                  <h3>
+                    <HouseLink house={house} />
+                  </h3>
                   {standing ? (
                     <Tag tone={bandTone(bandOf(standing.rank, houses))}>
                       {t("league.rankTag", { rank: standing.rank })}

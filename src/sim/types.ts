@@ -255,6 +255,19 @@ export interface SaleView {
   first_round_closed: boolean;
 }
 
+export interface HouseView {
+  /** The sector it pays up for, if any. */
+  focus: string | null;
+  /** Added to every bid it makes, in basis points of the price. */
+  aggression_bps: number;
+  /** The trailing EBITDA it will look at, thousand USD. Null max is no ceiling. */
+  min_ebitda: number;
+  max_ebitda: number | null;
+  /** Bidding harder (fresh money) or softer (a partner gone) for a while. */
+  mood_bps: number;
+  mood_months: number;
+}
+
 export interface Adviser {
   name: string;
   tier: "bulge" | "boutique" | "regional";
@@ -784,6 +797,8 @@ export interface View {
   };
   market: { companies: number; live: number; visible: number };
   rivals: string[];
+  /** Each rival house's style and current mood, in the order of `rivals`. */
+  houses: HouseView[];
   /** The sell-side banks. */
   advisers: Adviser[];
   /** The last coverage meeting, for the banker's lines. */

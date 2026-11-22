@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useT } from "../i18n/useT";
 import type { CompanyView } from "../sim/types";
 import { useFormat } from "./format";
 import { useGame } from "./game";
+import { useRich } from "./Links";
 
 const HOME = "US";
 /** Business traits told as prose, at most this many. */
@@ -16,6 +17,7 @@ const TRAIT_LINES = 3;
  */
 export function CompanyStory({ company, full }: { company: CompanyView; full: boolean }) {
   const t = useT();
+  const rich = useRich();
   const f = useFormat();
   const { view } = useGame();
   const [open, setOpen] = useState(false);
@@ -35,10 +37,10 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
   const ceo = company.ceo;
   const owner = company.owner;
   const age = view.date.year - company.founded;
-  const paragraphs: string[] = [];
+  const paragraphs: ReactNode[] = [];
 
   // Who owns it and who runs it.
-  let ownerLine: string | null = null;
+  let ownerLine: ReactNode = null;
   switch (owner.kind) {
     case "founder":
       ownerLine = !ceo.founder
@@ -48,11 +50,11 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
           : t("story.owner.founder", { name: ceo.name, age: ceo.age, tenure: ceo.tenure });
       break;
     case "sponsor":
-      ownerLine = t("story.owner.sponsor", {
-        house: view.rivals[owner.house] ?? "",
-        years: Math.max(Math.round(owner.months_held / 12), 1),
-        name: ceo.name,
-      });
+      ownerLine = rich(
+        "story.owner.sponsor",
+        { house: view.rivals[owner.house] ?? "", years: Math.max(Math.round(owner.months_held / 12), 1), name: ceo.name },
+        { house: { kind: "house", id: owner.house } },
+      );
       break;
     case "corporate":
       ownerLine = t("story.owner.corporate", { name: ceo.name });
@@ -63,7 +65,15 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
     default:
       break;
   }
-  paragraphs.push(ownerLine ? `${origin} ${ownerLine}` : origin);
+  paragraphs.push(
+    ownerLine ? (
+      <>
+        {origin} {ownerLine}
+      </>
+    ) : (
+      origin
+    ),
+  );
 
   // What kind of business: the traits the player has seen, as sentences.
   const business = company.traits.slice(0, TRAIT_LINES).map((trait) => t(`story.trait.${trait}`));

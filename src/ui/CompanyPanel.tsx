@@ -20,7 +20,7 @@ import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
 import { ActionBar, Journey } from "./Journey";
 import { MinorityCard } from "./Minority";
-import { bidderName } from "./messages";
+import { BidderName, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
 import { FiveYearChart, StatementTables } from "./Statements";
@@ -36,17 +36,24 @@ const HOME = "US";
 
 const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 
-function ownerText(t: Translate, view: View, owner: Owner): string {
+/** Who owns the company; a rival house's name opens its page. */
+function OwnerText({ t, view, owner }: { t: Translate; view: View; owner: Owner }) {
+  const rich = useRich();
   if (owner.kind === "founder") {
-    return t("owner.founderAge", { age: owner.age });
+    return <>{t("owner.founderAge", { age: owner.age })}</>;
   }
   if (owner.kind === "sponsor") {
-    return t("owner.sponsorHeld", {
-      house: view.rivals[owner.house] ?? t("owner.sponsor"),
-      months: owner.months_held,
-    });
+    return (
+      <>
+        {rich(
+          "owner.sponsorHeld",
+          { house: view.rivals[owner.house] ?? t("owner.sponsor"), months: owner.months_held },
+          { house: { kind: "house", id: owner.house } },
+        )}
+      </>
+    );
   }
-  return t(`owner.${owner.kind}`);
+  return <>{t(`owner.${owner.kind}`)}</>;
 }
 
 function leverageTone(millis: number): Tone {
@@ -158,7 +165,7 @@ function Dossier({ game, company }: { game: Game; company: CompanyView }) {
                   : undefined
             }
           >
-            {ownerText(t, view, company.owner)}
+            <OwnerText t={t} view={view} owner={company.owner} />
           </Tag>
           {sale ? (
             <Tag
@@ -424,7 +431,9 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
           <dt>{t("company.site")}</dt>
           <dd>{company.site_name}</dd>
           <dt>{t("term.owner")}</dt>
-          <dd>{ownerText(t, view, company.owner)}</dd>
+          <dd>
+            <OwnerText t={t} view={view} owner={company.owner} />
+          </dd>
         </dl>
         {company.owner.kind === "public" ? (
           <p className="cp-hint">
@@ -581,7 +590,7 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
                     name={rival.kind === "strategic" ? "layers" : "fund"}
                     size={13}
                   />
-                  {bidderName(t, view, rival)}
+                  <BidderName bidder={rival} t={t} view={view} />
                 </span>
               ))
             ) : (

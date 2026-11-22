@@ -299,6 +299,15 @@ impl World {
                 "visible": active.iter().filter(|index| self.process_visible(**index)).count(),
             },
             "rivals": RIVAL_NAMES,
+            // How each rival house behaves and how it is doing: what its page shows.
+            "houses": crate::market::HOUSE_STYLES.iter().zip(self.houses.iter()).map(|(style, record)| json!({
+                "focus": style.focus,
+                "aggression_bps": style.aggression_bps,
+                "min_ebitda": style.min_ebitda,
+                "max_ebitda": if style.max_ebitda == i64::MAX { Value::Null } else { json!(style.max_ebitda) },
+                "mood_bps": if record.mood_months > 0 { record.mood_bps } else { 0 },
+                "mood_months": record.mood_months,
+            })).collect::<Vec<_>>(),
             "advisers": crate::advisers::ADVISER_BOOK.iter().enumerate().map(|(id, adviser)| json!({
                 "name": adviser.name,
                 "tier": adviser.tier,

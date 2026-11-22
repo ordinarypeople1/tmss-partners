@@ -1,0 +1,21 @@
+{
+  "entity.house": "경쟁 하우스",
+  "entity.adviser": "셀사이드 자문사",
+  "entity.news": "최근 소식",
+  "entity.news.none": "아직 소식이 없습니다.",
+  "entity.house.bidding.high": "입찰가를 {pct} 얹는다",
+  "entity.house.bidding.low": "입찰가를 {pct} 깎는다",
+  "entity.house.bidding.fair": "시장가 입찰 ({pct})",
+  "entity.house.mood.up": "새 펀드로 공격적 · {months, plural, other {#개월}}",
+  "entity.house.mood.down": "파트너 이탈로 신중 · {months, plural, other {#개월}}",
+  "entity.house.owns": "보유 회사 {count, number, ::integer}곳",
+  "entity.house.ownsNone": "지금 보유한 회사가 없습니다.",
+  "entity.house.held": "보유 {months, plural, other {#개월}}",
+  "entity.house.after": "노리는 회사",
+  "entity.house.afterNone": "지금 보이는 움직임은 없습니다.",
+  "entity.house.suitor": "오너에게 제안함",
+  "entity.adviser.mandates": "맡은 매각 {count, number, ::integer}건",
+  "entity.adviser.mandatesNone": "지금 보이는 매각이 없습니다.",
+  "entity.adviser.next": "커버리지 {at, number, ::integer}에서 열림: {what}",
+  "entity.adviser.top": "이 자문사가 줄 수 있는 것은 다 열렸습니다."
+}

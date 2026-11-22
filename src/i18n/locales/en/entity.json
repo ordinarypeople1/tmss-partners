@@ -1,0 +1,21 @@
+{
+  "entity.house": "Rival house",
+  "entity.adviser": "Sell-side adviser",
+  "entity.news": "Recent news",
+  "entity.news.none": "No news yet.",
+  "entity.house.bidding.high": "Bids {pct} over",
+  "entity.house.bidding.low": "Bids {pct} under",
+  "entity.house.bidding.fair": "Bids near the market ({pct})",
+  "entity.house.mood.up": "Fresh fund, bidding hard · {months, plural, one {# month} other {# months}}",
+  "entity.house.mood.down": "A partner gone, bidding soft · {months, plural, one {# month} other {# months}}",
+  "entity.house.owns": "Owns {count, plural, one {# company} other {# companies}}",
+  "entity.house.ownsNone": "It owns no companies now.",
+  "entity.house.held": "Held {months, plural, one {# month} other {# months}}",
+  "entity.house.after": "What it is after",
+  "entity.house.afterNone": "Nothing you can see right now.",
+  "entity.house.suitor": "Proposed to the owner",
+  "entity.adviser.mandates": "Mandates: {count, number, ::integer}",
+  "entity.adviser.mandatesNone": "No sale you can see right now.",
+  "entity.adviser.next": "At coverage {at, number, ::integer}: {what}",
+  "entity.adviser.top": "Everything this bank can offer is open."
+}

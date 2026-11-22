@@ -1,0 +1,22 @@
+/* A name in running text that opens its page. It reads as text until it is pointed at. */
+.entity-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: inherit;
+  cursor: pointer;
+}
+.entity-link:hover,
+.entity-link:focus-visible {
+  border-bottom-color: var(--accent);
+  color: var(--accent-ink);
+}
+.entity-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

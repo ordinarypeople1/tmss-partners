@@ -4,6 +4,7 @@ import { useT } from "../i18n/useT";
 import type { CompanyView, Financing, Offer, SaleView } from "../sim/types";
 import { Meter, Tag } from "./charts";
 import { sameOffer } from "./DealRoom";
+import { AdviserLink } from "./Links";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
@@ -52,7 +53,7 @@ export function ProcessCard({ company }: { company: CompanyView }) {
     <div className="process">
       <div className="process-head">
         <span className="process-code">{t("process.project", { name: sale.codename })}</span>
-        <Tag icon={<Icon name="career" size={12} />}>{adviser?.name ?? ""}</Tag>
+        <Tag icon={<Icon name="career" size={12} />}>{adviser ? <AdviserLink adviser={sale.adviser} /> : null}</Tag>
         <Tag tone={sale.format === "targeted" ? "warn" : "muted"}>{t(`format.${sale.format}`)}</Tag>
         {sale.invited ? null : (
           <Tag tone="bad" icon={<Icon name="lock" size={11} />}>

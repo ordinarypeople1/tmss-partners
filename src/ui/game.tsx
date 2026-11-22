@@ -45,6 +45,10 @@ export interface Game {
   company: CompanyView | null;
   /** Opens a company in the main area; null leaves it, as going back does. */
   select(company: number | null): void;
+  /** The page open over the screen, if any. */
+  page: Page | null;
+  /** Opens a company, a rival house or a bank. */
+  open(page: Page): void;
   /**
    * Sends one command to sim-core and redraws. Returns whether it applied.
    * A refusal raises a toast with the reason; callers need not handle it.
@@ -99,12 +103,16 @@ function summarize(view: View): SaveSummary {
   };
 }
 
-/** Where the player is: a screen, and a company opened over it. */
+/** A page opened over a screen: a company, a rival house or a sell-side bank. */
+export type Page = { kind: "company" | "house" | "adviser"; id: number };
+
+/** Where the player is: a screen, and a page opened over it. */
 interface Route {
   screen: Screen;
-  company: number | null;
+  page: Page | null;
 }
-const HOME: Route = { screen: "map", company: null };
+const HOME: Route = { screen: "map", page: null };
+const samePage = (a: Page | null, b: Page | null) => a === b || (a !== null && b !== null && a.kind === b.kind && a.id === b.id);
 /** How many moves back the history keeps. */
 const HISTORY_LIMIT = 50;
 
@@ -209,6 +217,7 @@ export function GameProvider({
       selectedRef.current = null;
       setSelected(null);
       history.current = { stack: [HOME], at: 0 };
+      setPage(null);
       setPosition({ at: 0, length: 1 });
       setTurn(null);
       setScreen("map");
@@ -352,11 +361,14 @@ export function GameProvider({
     };
   }, [persist]);
 
+  const [page, setPage] = useState<Page | null>(null);
   const show = useCallback((route: Route) => {
-    selectedRef.current = route.company;
-    setSelected(route.company);
+    const company = route.page?.kind === "company" ? route.page.id : null;
+    selectedRef.current = company;
+    setSelected(company);
+    setPage(route.page);
     setScreen(route.screen);
-    setCompany(route.company === null || !session.current ? null : session.current.company(route.company));
+    setCompany(company === null || !session.current ? null : session.current.company(company));
     setPosition({ at: history.current.at, length: history.current.stack.length });
   }, []);
 
@@ -364,7 +376,7 @@ export function GameProvider({
     (route: Route) => {
       const { stack, at } = history.current;
       const here = stack[at];
-      if (here.screen === route.screen && here.company === route.company) {
+      if (here.screen === route.screen && samePage(here.page, route.page)) {
         return;
       }
       const next = [...stack.slice(0, at + 1), route].slice(-HISTORY_LIMIT);
@@ -389,25 +401,30 @@ export function GameProvider({
   const back = useCallback(() => move(-1), [move]);
   const forward = useCallback(() => move(1), [move]);
 
-  const go = useCallback((target: Screen) => navigate({ screen: target, company: null }), [navigate]);
+  const go = useCallback((target: Screen) => navigate({ screen: target, page: null }), [navigate]);
+
+  const open = useCallback(
+    (target: Page) => navigate({ screen: history.current.stack[history.current.at].screen, page: target }),
+    [navigate],
+  );
 
   const select = useCallback(
     (index: number | null) => {
       const { stack, at } = history.current;
       const here = stack[at];
       if (index !== null) {
-        navigate({ screen: here.screen, company: index });
-      } else if (here.company !== null) {
-        // Leaving a company is going back to where it was opened from.
+        open({ kind: "company", id: index });
+      } else if (here.page !== null) {
+        // Leaving a page is going back to where it was opened from.
         const previous = stack[at - 1];
-        if (previous && previous.company === null) {
+        if (previous && previous.screen === here.screen) {
           move(-1);
         } else {
-          navigate({ screen: here.screen, company: null });
+          navigate({ screen: here.screen, page: null });
         }
       }
     },
-    [navigate, move],
+    [navigate, move, open],
   );
 
   useEffect(() => {
@@ -424,9 +441,10 @@ export function GameProvider({
       view: () => session.current?.view(),
       company: (index: number) => session.current?.company(index),
       select,
+      open,
       go,
     };
-  }, [redraw, select, go]);
+  }, [redraw, select, open, go]);
 
   const rows = useMemo(() => new Map((view?.companies ?? []).map((row) => [row.i, row])), [view]);
 
@@ -446,6 +464,8 @@ export function GameProvider({
       selected,
       company,
       select,
+      page,
+      open,
       act,
       peek: (index) => session.current?.company(index) ?? null,
       previewOffer: (index, offer) => session.current?.previewOffer(index, offer) ?? null,
@@ -459,7 +479,7 @@ export function GameProvider({
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, go, back, forward, position, selected, company, select, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
+  }, [view, rows, screen, go, back, forward, position, selected, company, select, page, open, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
 
   if (error) {
     return <>{failed}</>;

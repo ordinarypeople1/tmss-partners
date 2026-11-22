@@ -1,0 +1,21 @@
+{
+  "entity.house": "竞争基金",
+  "entity.adviser": "卖方顾问",
+  "entity.news": "最新消息",
+  "entity.news.none": "暂无消息。",
+  "entity.house.bidding.high": "出价上浮{pct}",
+  "entity.house.bidding.low": "出价压低{pct}",
+  "entity.house.bidding.fair": "按市场价出价({pct})",
+  "entity.house.mood.up": "新基金出价积极 · {months, plural, other {#个月}}",
+  "entity.house.mood.down": "合伙人离职出价谨慎 · {months, plural, other {#个月}}",
+  "entity.house.owns": "持有公司{count, number, ::integer}家",
+  "entity.house.ownsNone": "目前没有持有公司。",
+  "entity.house.held": "持有{months, plural, other {#个月}}",
+  "entity.house.after": "正在追的公司",
+  "entity.house.afterNone": "目前看不到动作。",
+  "entity.house.suitor": "已向所有者提议",
+  "entity.adviser.mandates": "在办出售{count, number, ::integer}单",
+  "entity.adviser.mandatesNone": "目前看不到出售项目。",
+  "entity.adviser.next": "覆盖度达{at, number, ::integer}解锁：{what}",
+  "entity.adviser.top": "该顾问能提供的都已解锁。"
+}

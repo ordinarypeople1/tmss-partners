@@ -8,6 +8,7 @@ import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
 import { pick } from "./lines";
+import { FollowContext, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 import "./Journey.css";
 
@@ -185,6 +186,7 @@ interface Talk {
 export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpenDeal: () => void }) {
   const game = useGame();
   const t = useT();
+  const rich = useRich();
   const { view } = game;
   const { step, block } = company.next;
   const abroad = company.country !== "US";
@@ -238,7 +240,11 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
         {company.suitor ? (
           <p className="action-suitor" role="status">
             <Icon name="flag" size={13} />
-            {t("journey.suitor", { house: view.rivals[company.suitor.house] ?? "", months: company.suitor.months_left })}
+            {rich(
+              "journey.suitor",
+              { house: view.rivals[company.suitor.house] ?? "", months: company.suitor.months_left },
+              { house: { kind: "house", id: company.suitor.house } },
+            )}
           </p>
         ) : null}
         <div className="action-text">
@@ -277,6 +283,7 @@ export function ActionBar({ company, onOpenDeal }: { company: CompanyView; onOpe
 function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Talk; onClose: () => void }) {
   const game = useGame();
   const t = useT();
+  const rich = useRich();
   const { approach } = company;
   const after = company.relationship;
   const founder = company.owner.kind === "founder";
@@ -313,6 +320,7 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
   const warm = talk.kind === "meet" && !gatekeeper && company.access === "confidant";
   return (
     <Overlay>
+    <FollowContext.Provider value={onClose}>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t(`talk.title.${talk.kind}`)} onClick={onClose}>
       <div className="talk" data-kind={talk.kind} onClick={(event) => event.stopPropagation()}>
         <header>
@@ -330,13 +338,23 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
             ) : (
               <>
             <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} country={company.country} size={104} />
-            <b>{founder ? company.ceo.name : t(`talk.role.${company.owner.kind}`, { house })}</b>
+            <b>
+              {founder
+                ? company.ceo.name
+                : company.owner.kind === "sponsor"
+                  ? rich("talk.role.sponsor", { house }, { house: { kind: "house", id: company.owner.house } })
+                  : t(`talk.role.${company.owner.kind}`, { house })}
+            </b>
             {founder ? <small className="muted">{t("talk.role.founder")}</small> : null}
               </>
             )}
           </div>
           <div className="talk-lines">
-            <blockquote className="talk-line">{t(line, { house: company.suitor ? (game.view.rivals[company.suitor.house] ?? "") : "" })}</blockquote>
+            <blockquote className="talk-line">
+              {company.suitor
+                ? rich(line, { house: game.view.rivals[company.suitor.house] ?? "" }, { house: { kind: "house", id: company.suitor.house } })
+                : t(line, { house: "" })}
+            </blockquote>
             {gatekeeper && after >= approach.known_at ? <blockquote className="talk-line">{t("talk.exec.intro")}</blockquote> : null}
             {talk.kind === "meet" && Math.abs(street) >= 8 ? <blockquote className="talk-line">{t(pick(street > 0 ? "talk.street.good" : "talk.street.bad", seed))}</blockquote> : null}
             {warm ? <blockquote className="talk-line">{t(pick("talk.warm", seed))}</blockquote> : null}
@@ -360,6 +378,7 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
         </button>
       </div>
     </div>
+    </FollowContext.Provider>
     </Overlay>
   );
 }

@@ -5,6 +5,7 @@ import { monthsBetween, useFormat } from "./format";
 import { SCREENS, useGame, type Screen } from "./game";
 import { Icon } from "./icons";
 import { describeMessage } from "./messages";
+import { AdviserPage, HousePage } from "./EntityPages";
 import { Moments } from "./Moments";
 import { NewGame } from "./NewGame";
 import { Objectives } from "./Objectives";
@@ -386,7 +387,7 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
   const game = useGame();
   const t = useT();
   const [choosing, setChoosing] = useState(false);
-  const open = game.selected !== null;
+  const open = game.page !== null;
   const { back, forward } = game;
   // Back and forward: Alt+arrows as in a browser, and the mouse's side buttons.
   useEffect(() => {
@@ -427,9 +428,9 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
         <main className="screen" data-screen={game.screen} hidden={open}>
           {children}
         </main>
-        {open ? (
-          <main className="screen company-screen" data-screen="company">
-            {panel}
+        {game.page ? (
+          <main className="screen company-screen" data-screen={game.page.kind}>
+            {game.page.kind === "company" ? panel : game.page.kind === "house" ? <HousePage house={game.page.id} /> : <AdviserPage adviser={game.page.id} />}
           </main>
         ) : null}
       </div>

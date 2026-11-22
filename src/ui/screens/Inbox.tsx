@@ -6,6 +6,7 @@ import { Meter, Ring, Stat, Tag } from "../charts";
 import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
 import { Icon } from "../icons";
+import { RichMessage } from "../Links";
 import { describeMessage } from "../messages";
 import "./Inbox.css";
 
@@ -360,7 +361,9 @@ function Reading({ message }: { message: Message }) {
           <Icon name={text.icon} size={22} />
         </span>
         <div>
-          <h2>{text.title}</h2>
+          <h2>
+            <RichMessage text={text} part="title" />
+          </h2>
           <div className="row">
             <span className="muted">{f.date(message.date)}</span>
             <Tag tone={category === "news" ? "muted" : undefined}>{t(`inbox.category.${category}`)}</Tag>
@@ -381,7 +384,9 @@ function Reading({ message }: { message: Message }) {
           </div>
         </div>
       ) : (
-        <p className="inbox-body">{text.body}</p>
+        <p className="inbox-body">
+          <RichMessage text={text} part="body" />
+        </p>
       )}
 
       <Facts message={message} sale={row?.sale ?? null} />
@@ -411,6 +416,26 @@ function Reading({ message }: { message: Message }) {
           </span>
         </button>
       ) : null}
+
+      {/* The houses and banks the message names, each a way to its page. */}
+      {Object.entries(text.links)
+        .filter(([, page]) => page.kind !== "company")
+        .filter(([, page], index, list) => list.findIndex(([, other]) => other.kind === page.kind && other.id === page.id) === index)
+        .map(([key, page]) => (
+          <button key={key} type="button" className="inbox-company" onClick={() => game.open(page)}>
+            <span className="inbox-icon">
+              <Icon name={page.kind === "house" ? "flag" : "career"} size={16} />
+            </span>
+            <span className="inbox-item-text">
+              <b>{page.kind === "house" ? view.rivals[page.id] : view.advisers[page.id]?.name}</b>
+              <span className="inbox-item-sub">{t(page.kind === "house" ? "entity.house" : "entity.adviser")}</span>
+            </span>
+            <span className="inbox-open">
+              {t("action.open")}
+              <Icon name="exit" size={14} />
+            </span>
+          </button>
+        ))}
 
       {decision ? (
         <section className="inbox-decision" data-tone={open ? deadlineTone(left) : undefined}>

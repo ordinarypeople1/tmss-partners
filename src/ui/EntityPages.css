@@ -1,0 +1,121 @@
+/* A rival house's or a bank's page: the same frame as a company's, in the main area. */
+
+.ep {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.ep-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 14px 12px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.ep-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ep-title h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+.ep-kicker {
+  color: var(--accent-ink);
+  font-size: 0.867rem;
+  font-weight: 800;
+}
+.ep-tags {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 6px;
+}
+.ep-body {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.ep-body .card > h3 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.ep-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.ep-list,
+.ep-news {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ep-list li,
+.ep-news li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.ep-list li:last-child,
+.ep-news li:last-child {
+  border-bottom: 0;
+}
+.ep-list .icon,
+.ep-news .icon {
+  align-self: center;
+  color: var(--muted);
+}
+.ep-note {
+  margin-left: auto;
+  color: var(--ink-soft);
+}
+.ep-news li[data-tone="good"] .icon {
+  color: var(--good);
+}
+.ep-news li[data-tone="bad"] .icon {
+  color: var(--bad);
+}
+.ep-news li[data-tone="warn"] .icon {
+  color: var(--warn);
+}
+.ep-banker {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.ep-banker > .stack {
+  flex: 1;
+  min-width: 0;
+}
+.ep-banker .btn {
+  justify-self: start;
+}
+.company-screen > .ep {
+  max-width: 960px;
+  margin: 0 auto;
+  border-right: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+@media (max-width: 760px) {
+  .company-screen > .ep {
+    border: 0;
+  }
+  .ep-banker {
+    flex-direction: column;
+  }
+}

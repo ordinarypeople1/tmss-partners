@@ -1,0 +1,21 @@
+{
+  "entity.house": "競合ファンド",
+  "entity.adviser": "売り手側アドバイザー",
+  "entity.news": "最近のニュース",
+  "entity.news.none": "まだニュースはありません。",
+  "entity.house.bidding.high": "入札額に{pct}上乗せ",
+  "entity.house.bidding.low": "入札額を{pct}抑える",
+  "entity.house.bidding.fair": "市場並みの入札({pct})",
+  "entity.house.mood.up": "新ファンドで強気 · {months, plural, other {#か月}}",
+  "entity.house.mood.down": "パートナー離脱で慎重 · {months, plural, other {#か月}}",
+  "entity.house.owns": "保有企業{count, number, ::integer}社",
+  "entity.house.ownsNone": "現在保有している企業はありません。",
+  "entity.house.held": "保有{months, plural, other {#か月}}",
+  "entity.house.after": "狙っている企業",
+  "entity.house.afterNone": "今のところ見える動きはありません。",
+  "entity.house.suitor": "オーナーに提案済み",
+  "entity.adviser.mandates": "担当中の売却{count, number, ::integer}件",
+  "entity.adviser.mandatesNone": "今見える売却案件はありません。",
+  "entity.adviser.next": "カバレッジ{at, number, ::integer}で解放:{what}",
+  "entity.adviser.top": "このアドバイザーが提供できるものはすべて解放されました。"
+}

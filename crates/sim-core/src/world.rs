@@ -1482,6 +1482,16 @@ pub mod tests {
     }
 
     #[test]
+    fn an_owner_not_selling_still_has_a_price() {
+        let world = world(3);
+        let index = (0..world.companies.len())
+            .find(|index| world.companies[*index].process.is_none() && world.companies[*index].is_active())
+            .expect("some company is not for sale");
+        // Rivals that buy off-market pay at least this; it used to be zero.
+        assert!(world.reserve_ev(index) > world.model_ev(index) * 9 / 10);
+    }
+
+    #[test]
     fn lender_and_rate_terms_change_the_debt() {
         let mut world = world(7);
         run(&mut world, 12);

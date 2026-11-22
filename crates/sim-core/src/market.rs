@@ -460,16 +460,18 @@ impl World {
 
     /// The seller's floor for this company today.
     pub(crate) fn reserve_ev(&self, index: usize) -> i64 {
-        let Some(process) = &self.companies[index].process else {
-            return 0;
-        };
         // Some owners hold out; some want it done.
         let stance = match self.companies[index].stance {
             crate::company::Stance::PriceMaximizer => 300,
             crate::company::Stance::Hurried => -300,
             _ => 0,
         };
-        mul_bps(self.model_ev(index), process.reason.reserve_bps() + stance)
+        // An owner who was not selling takes nothing under what the business is worth.
+        let base = self.companies[index]
+            .process
+            .as_ref()
+            .map_or(10_000, |process| process.reason.reserve_bps());
+        mul_bps(self.model_ev(index), base + stance)
     }
 
     pub(crate) fn auction_outcome(&self, index: usize) -> Outcome {
