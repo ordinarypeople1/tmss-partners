@@ -34,10 +34,16 @@ export interface Game {
   /** Rows by the index sim-core commands take. */
   rows: Map<number, CompanyRow>;
   screen: Screen;
+  /** Opens a screen. Every move is kept, so the player can go back and forward. */
   go(screen: Screen): void;
-  /** The company open in the side panel, if any. */
+  back(): void;
+  forward(): void;
+  canBack: boolean;
+  canForward: boolean;
+  /** The company open in the main area, if any. */
   selected: number | null;
   company: CompanyView | null;
+  /** Opens a company in the main area; null leaves it, as going back does. */
   select(company: number | null): void;
   /**
    * Sends one command to sim-core and redraws. Returns whether it applied.
@@ -92,6 +98,15 @@ function summarize(view: View): SaveSummary {
     options: view.options,
   };
 }
+
+/** Where the player is: a screen, and a company opened over it. */
+interface Route {
+  screen: Screen;
+  company: number | null;
+}
+const HOME: Route = { screen: "map", company: null };
+/** How many moves back the history keeps. */
+const HISTORY_LIMIT = 50;
 
 const GameContext = createContext<Game | null>(null);
 
@@ -158,6 +173,8 @@ export function GameProvider({
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
   const selectedRef = useRef<number | null>(null);
+  const history = useRef<{ stack: Route[]; at: number }>({ stack: [HOME], at: 0 });
+  const [position, setPosition] = useState({ at: 0, length: 1 });
   const saveTimer = useRef<number | undefined>(undefined);
   const lastMessage = useRef(-1);
 
@@ -191,6 +208,8 @@ export function GameProvider({
       session.current = opened;
       selectedRef.current = null;
       setSelected(null);
+      history.current = { stack: [HOME], at: 0 };
+      setPosition({ at: 0, length: 1 });
       setTurn(null);
       setScreen("map");
       const first = redraw();
@@ -333,11 +352,63 @@ export function GameProvider({
     };
   }, [persist]);
 
-  const select = useCallback((index: number | null) => {
-    selectedRef.current = index;
-    setSelected(index);
-    setCompany(index === null || !session.current ? null : session.current.company(index));
+  const show = useCallback((route: Route) => {
+    selectedRef.current = route.company;
+    setSelected(route.company);
+    setScreen(route.screen);
+    setCompany(route.company === null || !session.current ? null : session.current.company(route.company));
+    setPosition({ at: history.current.at, length: history.current.stack.length });
   }, []);
+
+  const navigate = useCallback(
+    (route: Route) => {
+      const { stack, at } = history.current;
+      const here = stack[at];
+      if (here.screen === route.screen && here.company === route.company) {
+        return;
+      }
+      const next = [...stack.slice(0, at + 1), route].slice(-HISTORY_LIMIT);
+      history.current = { stack: next, at: next.length - 1 };
+      show(route);
+    },
+    [show],
+  );
+
+  const move = useCallback(
+    (step: number) => {
+      const { stack, at } = history.current;
+      const target = at + step;
+      if (target < 0 || target >= stack.length) {
+        return;
+      }
+      history.current = { stack, at: target };
+      show(stack[target]);
+    },
+    [show],
+  );
+  const back = useCallback(() => move(-1), [move]);
+  const forward = useCallback(() => move(1), [move]);
+
+  const go = useCallback((target: Screen) => navigate({ screen: target, company: null }), [navigate]);
+
+  const select = useCallback(
+    (index: number | null) => {
+      const { stack, at } = history.current;
+      const here = stack[at];
+      if (index !== null) {
+        navigate({ screen: here.screen, company: index });
+      } else if (here.company !== null) {
+        // Leaving a company is going back to where it was opened from.
+        const previous = stack[at - 1];
+        if (previous && previous.company === null) {
+          move(-1);
+        } else {
+          navigate({ screen: here.screen, company: null });
+        }
+      }
+    },
+    [navigate, move],
+  );
 
   useEffect(() => {
     if (!import.meta.env.DEV) {
@@ -353,9 +424,9 @@ export function GameProvider({
       view: () => session.current?.view(),
       company: (index: number) => session.current?.company(index),
       select,
-      go: setScreen,
+      go,
     };
-  }, [redraw, select]);
+  }, [redraw, select, go]);
 
   const rows = useMemo(() => new Map((view?.companies ?? []).map((row) => [row.i, row])), [view]);
 
@@ -367,7 +438,11 @@ export function GameProvider({
       view,
       rows,
       screen,
-      go: setScreen,
+      go,
+      back,
+      forward,
+      canBack: position.at > 0,
+      canForward: position.at < position.length - 1,
       selected,
       company,
       select,
@@ -384,7 +459,7 @@ export function GameProvider({
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, selected, company, select, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
+  }, [view, rows, screen, go, back, forward, position, selected, company, select, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
 
   if (error) {
     return <>{failed}</>;

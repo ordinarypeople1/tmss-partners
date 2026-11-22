@@ -396,8 +396,11 @@
 }
 @media (max-width: 760px) {
   .action-bar {
-    grid-template-columns: minmax(0, 1fr);
     bottom: 0;
+  }
+  .action-bar > .action-text,
+  .action-bar > :last-child:not(.action-text) {
+    flex: 1 1 100%;
   }
   .action-bar .journey-buttons .btn {
     flex: 1;

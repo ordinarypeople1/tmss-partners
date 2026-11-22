@@ -50,5 +50,8 @@
   "shell.tip.uncalled": "Uncalled commitments: fund money not yet invested. After the investment period it cannot go into new deals.",
   "shell.wire": "MARKET WIRE",
   "shell.toTitle": "Back to title",
-  "shell.turn.label": "Turn"
+  "shell.turn.label": "Turn",
+  "shell.history": "Navigation",
+  "shell.back": "Back (Alt+←)",
+  "shell.forward": "Forward (Alt+→)"
 }

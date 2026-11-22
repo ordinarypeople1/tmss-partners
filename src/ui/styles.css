@@ -178,9 +178,6 @@ th,
   grid-template-rows: minmax(0, 1fr);
   height: 100%;
 }
-.shell[data-panel="open"] {
-  grid-template-columns: 196px minmax(0, 1fr) minmax(380px, 30vw);
-}
 
 .sidebar {
   display: flex;
@@ -480,11 +477,34 @@ th,
   overflow: hidden;
   padding: 0;
 }
-.panel {
-  min-height: 0;
-  overflow: auto;
+.screen[hidden] {
+  display: none;
+}
+/* A company opens in the main area, as a page. Wide screens keep it to a readable column. */
+.company-screen {
+  padding: 0;
+  background: var(--paper);
+}
+.company-screen > .cp {
+  max-width: 960px;
+  margin: 0 auto;
+  border-right: 1px solid var(--line);
   border-left: 1px solid var(--line);
   background: var(--panel);
+}
+.history {
+  display: flex;
+  gap: 4px;
+}
+.history .icon-btn {
+  color: var(--ink);
+}
+.history .icon-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.history .icon-btn:disabled:hover {
+  border-color: var(--line);
 }
 
 .toasts {
@@ -1203,8 +1223,7 @@ th,
 }
 
 @media (max-width: 1100px) {
-  .shell,
-  .shell[data-panel="open"] {
+  .shell {
     grid-template-columns: 64px minmax(0, 1fr);
   }
   .nav-item span,
@@ -1212,15 +1231,6 @@ th,
   .sidebar-turn,
   .sidebar-foot {
     display: none;
-  }
-  .panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 30;
-    width: min(440px, 100vw);
-    box-shadow: var(--shadow);
   }
   .fund-strip {
     margin-left: 0;
@@ -1240,8 +1250,7 @@ th,
     --tabbar: calc(58px + env(safe-area-inset-bottom));
     --gap: 10px;
   }
-  .shell,
-  .shell[data-panel="open"] {
+  .shell {
     grid-template-columns: minmax(0, 1fr);
   }
   .sidebar {
@@ -1309,11 +1318,8 @@ th,
   .screen {
     padding: 10px;
   }
-  .panel {
-    top: 0;
-    bottom: var(--tabbar);
-    width: 100vw;
-    border-left: 0;
+  .company-screen > .cp {
+    border: 0;
   }
   /* Refusals show under the top bar, clear of the badges that rise above the tab bar. */
   .toasts {
@@ -1939,12 +1945,8 @@ body[data-resizing="x"] {
 body[data-resizing="y"] {
   cursor: row-resize;
 }
-/* The panel width the player set, when they set one. */
 .shell {
   position: relative;
-}
-.shell[data-panel="open"][data-sized] {
-  grid-template-columns: 196px minmax(0, 1fr) var(--panel-w);
 }
 .map-hub[data-drawer="open"][data-sized] {
   grid-template-rows: minmax(0, 1fr) var(--drawer-h);
@@ -1959,14 +1961,8 @@ body[data-resizing="y"] {
   .splitter {
     display: none;
   }
-  .shell[data-panel="open"][data-sized] {
-    grid-template-columns: 64px minmax(0, 1fr);
-  }
 }
 @media (max-width: 760px) {
-  .shell[data-panel="open"][data-sized] {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .map-hub[data-drawer="open"][data-sized] {
     grid-template-rows: minmax(0, 1fr) minmax(150px, 44%);
   }

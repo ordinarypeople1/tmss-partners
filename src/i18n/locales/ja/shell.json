@@ -50,5 +50,8 @@
   "shell.tip.uncalled": "未使用コミットメント。まだ投資していないファンド枠です。投資期間が終わると新規案件には使えません。",
   "shell.wire": "市場ニュース",
   "shell.toTitle": "タイトルへ",
-  "shell.turn.label": "ターン"
+  "shell.turn.label": "ターン",
+  "shell.history": "画面の移動",
+  "shell.back": "戻る (Alt+←)",
+  "shell.forward": "進む (Alt+→)"
 }

@@ -73,11 +73,6 @@
   font-size: 0.933rem;
 }
 
-/* With a company open the map is narrow; the checklist steps aside. */
-.shell[data-panel="open"] .guide {
-  display: none;
-}
-
 @media (max-width: 760px) {
   /* At the foot of the map, clear of the layer and country rows. */
   .guide {

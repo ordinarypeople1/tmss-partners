@@ -50,5 +50,8 @@
   "shell.tip.uncalled": "미소진 약정. 아직 투자하지 않은 펀드 약정액입니다. 투자 기간이 끝나면 새 딜에 쓸 수 없습니다.",
   "shell.wire": "시장 소식",
   "shell.toTitle": "타이틀로",
-  "shell.turn.label": "턴"
+  "shell.turn.label": "턴",
+  "shell.history": "화면 이동",
+  "shell.back": "뒤로 (Alt+←)",
+  "shell.forward": "앞으로 (Alt+→)"
 }
