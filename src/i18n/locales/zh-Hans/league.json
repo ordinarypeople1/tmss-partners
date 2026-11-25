@@ -1,6 +1,6 @@
 {
   "league.title": "机构排行榜",
-  "league.lead": "九家机构的总倍数排名。",
+  "league.lead": "二十家机构的总倍数排名。",
   "league.rankOf": "第{rank, number, ::integer}名 / {total, number, ::integer}",
   "league.band.top": "前四分位",
   "league.band.mid": "中游",
@@ -49,5 +49,17 @@
   "league.house.4.style": "小型价值买家。低价买建筑材料。",
   "league.house.5.style": "商务服务整合收购。对可并入平台的公司出手大方。",
   "league.house.6.style": "食品制造。不着急，看得久。",
-  "league.house.7.style": "小型综合型。只要是小交易，哪里都有它。"
+  "league.house.7.style": "小型综合型。只要是小交易，哪里都有它。",
+  "league.homeAbroad": "{country} · 也投海外",
+  "league.house.8.style": "在美国打造医疗平台的基金，出价略高于市场。",
+  "league.house.9.style": "专注德国中型企业的工业零部件。数字核到底，从不勉强。",
+  "league.house.10.style": "主要做德国家族企业的传承交易，小公司也不嫌弃。",
+  "league.house.11.style": "专做法国商业服务的补强收购，对合适标的出手大方。",
+  "league.house.12.style": "瞄准法国大集团的分拆，只出现在较大交易中。",
+  "league.house.13.style": "积极竞购韩国财阀旗下的分拆资产。",
+  "league.house.14.style": "做韩国医疗与服务领域的中小型交易。",
+  "league.house.15.style": "日本工业零部件企业的传承收购，纪律严明，出价偏低。",
+  "league.house.16.style": "收购日本大集团的非核心子公司，尤其是食品。",
+  "league.house.17.style": "中国成长与物流基金，竞拍出价很高。",
+  "league.house.18.style": "中国中小型综合基金，不挑行业。"
 }

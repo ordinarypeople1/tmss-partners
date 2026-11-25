@@ -1,6 +1,6 @@
 {
   "league.title": "하우스 리그",
-  "league.lead": "아홉 하우스의 총배수 순위.",
+  "league.lead": "스무 하우스의 총배수 순위.",
   "league.rankOf": "{rank, number, ::integer}위 / {total, number, ::integer}",
   "league.band.top": "상위 사분위",
   "league.band.mid": "중위권",
@@ -49,5 +49,17 @@
   "league.house.4.style": "소형 가치 매수자. 건축 자재를 싸게 삽니다.",
   "league.house.5.style": "비즈니스 서비스 롤업. 플랫폼에 붙일 회사에 후합니다.",
   "league.house.6.style": "식품 제조. 서두르지 않고 오래 봅니다.",
-  "league.house.7.style": "소형 제너럴리스트. 작은 딜이면 어디든 나타납니다."
+  "league.house.7.style": "소형 제너럴리스트. 작은 딜이면 어디든 나타납니다.",
+  "league.homeAbroad": "{country} · 해외 투자",
+  "league.house.8.style": "헬스케어 플랫폼을 키우는 미국 하우스. 시장가보다 조금 더 냅니다.",
+  "league.house.9.style": "독일 미텔슈탄트 산업 부품 전문. 숫자를 끝까지 확인하고 무리하지 않습니다.",
+  "league.house.10.style": "독일 가족 기업의 승계 딜을 주로 합니다. 작은 회사도 마다하지 않습니다.",
+  "league.house.11.style": "프랑스 비즈니스 서비스 볼트온 전문. 붙일 회사에는 후하게 냅니다.",
+  "league.house.12.style": "프랑스 대기업의 카브아웃을 노립니다. 큰 딜에서만 보입니다.",
+  "league.house.13.style": "한국 대기업 계열사 카브아웃에 공격적으로 들어옵니다.",
+  "league.house.14.style": "한국의 헬스케어·서비스 중소형 딜을 합니다.",
+  "league.house.15.style": "일본 산업 부품 회사의 사업 승계 바이아웃. 규율 있게 사고 가격을 깎습니다.",
+  "league.house.16.style": "일본 대기업의 비핵심 자회사, 특히 식품 쪽을 삽니다.",
+  "league.house.17.style": "중국 그로스·물류 하우스. 경매에서 높게 부릅니다.",
+  "league.house.18.style": "중국 중소형 제너럴리스트. 섹터를 가리지 않습니다."
 }

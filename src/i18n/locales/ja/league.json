@@ -1,6 +1,6 @@
 {
   "league.title": "ファームリーグ",
-  "league.lead": "9ファームのグロスマルチプル順位。",
+  "league.lead": "20ファンドの総倍率ランキング。",
   "league.rankOf": "{rank, number, ::integer}位 / {total, number, ::integer}",
   "league.band.top": "上位四分位",
   "league.band.mid": "中位",
@@ -49,5 +49,17 @@
   "league.house.4.style": "小型のバリュー投資家。建材を安く買います。",
   "league.house.5.style": "ビジネスサービスのロールアップ。プラットフォームに加える会社には気前よく払います。",
   "league.house.6.style": "食品製造。急がず、じっくり見ます。",
-  "league.house.7.style": "小型のジェネラリスト。小さなディールならどこにでも現れます。"
+  "league.house.7.style": "小型のジェネラリスト。小さなディールならどこにでも現れます。",
+  "league.homeAbroad": "{country} · 海外投資も",
+  "league.house.8.style": "ヘルスケアのプラットフォームを育てる米国ファンド。市場より少し高く払います。",
+  "league.house.9.style": "ドイツ中堅の産業部品専門。数字を最後まで確かめ、無理をしません。",
+  "league.house.10.style": "ドイツ同族企業の承継案件が中心。小さな会社も厭いません。",
+  "league.house.11.style": "フランスのビジネスサービスのボルトオン専門。合う会社には気前よく払います。",
+  "league.house.12.style": "フランス大企業のカーブアウトを狙います。大型案件でしか見かけません。",
+  "league.house.13.style": "韓国財閥系のカーブアウトに強気で入ってきます。",
+  "league.house.14.style": "韓国のヘルスケア・サービスの中小型案件を手がけます。",
+  "league.house.15.style": "日本の産業部品企業の事業承継バイアウト。規律があり、価格を抑えます。",
+  "league.house.16.style": "日本大企業のノンコア子会社、特に食品を買います。",
+  "league.house.17.style": "中国のグロース・物流ファンド。入札で高値を付けます。",
+  "league.house.18.style": "中国の中小型ジェネラリスト。セクターを選びません。"
 }

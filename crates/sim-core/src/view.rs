@@ -304,6 +304,8 @@ impl World {
             "rivals": RIVAL_NAMES,
             // How each rival house behaves and how it is doing: what its page shows.
             "houses": crate::market::HOUSE_STYLES.iter().zip(self.houses.iter()).map(|(style, record)| json!({
+                "country": style.country,
+                "cross_border": style.cross_border,
                 "focus": style.focus,
                 "aggression_bps": style.aggression_bps,
                 "min_ebitda": style.min_ebitda,

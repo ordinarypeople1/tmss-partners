@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useT } from "../../i18n/useT";
-import type { Message } from "../../sim/types";
+import type { HouseView, Message } from "../../sim/types";
 import { Meter, Stat, Tag } from "../charts";
 import { mid, useFormat } from "../format";
 import { useGame } from "../game";
@@ -9,21 +9,23 @@ import { bidderName } from "../messages";
 import { HouseLink } from "../Links";
 import "./League.css";
 
-/**
- * How each rival house bids. Fixed sim constants, copied for display only:
- * see `HOUSE_STYLES` in crates/sim-core/src/market.rs (index = house number).
- * EBITDA bounds are thousand USD; `maxEbitda` null means no ceiling.
- */
-const HOUSE_STYLES: { aggressionBps: number; focus: string | null; minEbitda: number; maxEbitda: number | null }[] = [
-  { aggressionBps: -150, focus: "industrial_components", minEbitda: 12_000, maxEbitda: null },
-  { aggressionBps: 150, focus: "healthcare_services", minEbitda: 6_000, maxEbitda: null },
-  { aggressionBps: 0, focus: "cold_chain_logistics", minEbitda: 3_000, maxEbitda: 40_000 },
-  { aggressionBps: 350, focus: null, minEbitda: 8_000, maxEbitda: null },
-  { aggressionBps: -300, focus: "building_products", minEbitda: 0, maxEbitda: 15_000 },
-  { aggressionBps: 200, focus: "business_services", minEbitda: 3_000, maxEbitda: 30_000 },
-  { aggressionBps: -50, focus: "food_manufacturing", minEbitda: 4_000, maxEbitda: 50_000 },
-  { aggressionBps: 50, focus: null, minEbitda: 0, maxEbitda: 12_000 },
-];
+/** How a rival house bids, from the view (`HOUSE_STYLES` in crates/sim-core/src/market.rs). */
+interface Style {
+  aggressionBps: number;
+  focus: string | null;
+  minEbitda: number;
+  maxEbitda: number | null;
+  country: string;
+  crossBorder: boolean;
+}
+const styleOf = (house: HouseView): Style => ({
+  aggressionBps: house.aggression_bps,
+  focus: house.focus,
+  minEbitda: house.min_ebitda,
+  maxEbitda: house.max_ebitda,
+  country: house.country,
+  crossBorder: house.cross_border,
+});
 /** The bid bias in a focus sector, from the same file. */
 const FOCUS_BPS = 350;
 /** Half-width of the aggression meter. */
@@ -114,7 +116,7 @@ export function League() {
   const mostLost = Math.max(...losses.rows.map((row) => row.count), 1);
 
   const rankOf = (house: number) => view.league.find((row) => row.house === house) ?? null;
-  const band = (style: (typeof HOUSE_STYLES)[number]) =>
+  const band = (style: Style) =>
     style.maxEbitda === null
       ? t("league.band.from", { min: f.money(style.minEbitda) })
       : style.minEbitda === 0
@@ -175,7 +177,7 @@ export function League() {
           <tbody>
             {view.league.map((row) => {
               const me = row.house === null;
-              const style = row.house === null ? null : HOUSE_STYLES[row.house];
+              const style = row.house === null || !view.houses[row.house] ? null : styleOf(view.houses[row.house]);
               return (
                 <tr key={row.house ?? "me"} data-band={bandOf(row.rank, houses)} data-me={me}>
                   <td className="league-rank">
@@ -254,7 +256,7 @@ export function League() {
         </h2>
         <div className="league-houses">
           {view.rivals.map((name, house) => {
-            const style = HOUSE_STYLES[house];
+            const style = view.houses[house] ? styleOf(view.houses[house]) : null;
             if (!style) {
               return null;
             }
@@ -282,6 +284,9 @@ export function League() {
                     {style.focus ? t(`sector.${style.focus}`) : t("league.generalist")}
                   </Tag>
                   <Tag>{band(style)}</Tag>
+                  <Tag icon={<Icon name="map" size={12} />}>
+                    {style.crossBorder ? t("league.homeAbroad", { country: t(`country.${style.country}`) }) : t(`country.${style.country}`)}
+                  </Tag>
                 </div>
                 <div className="aggression" data-tone={tone}>
                   <div className="meter-head">

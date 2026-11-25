@@ -7,7 +7,7 @@ use crate::calendar::GameDate;
 use crate::company::{Budget, GrowthEffect, IssueKind, Owner, Trait};
 use crate::economy::Phase;
 use crate::fund::Realized;
-use crate::market::{Bidder, RIVAL_HOUSES};
+use crate::market::Bidder;
 use crate::math::{irr_bps, mul_bps, mul_millis, ratio_millis};
 use crate::world::{Choice, CommandError, MessageKind, World};
 
@@ -1033,7 +1033,8 @@ impl World {
             proceeds
         };
         let industry = self.industries[self.companies[company].sector].clone();
-        let house = self.rng.below(RIVAL_HOUSES as u64) as u8;
+        let country = self.companies[company].country.clone();
+        let house = crate::market::pick_house(&country, &mut self.rng);
         let senior = self.economy.max_senior_millis();
         let mut secondary_equity = None;
         let target = &mut self.companies[company];

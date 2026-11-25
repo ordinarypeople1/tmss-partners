@@ -117,6 +117,9 @@ export function HousePage({ house }: { house: number }) {
         <Tag tone="accent" icon={<Icon name={style.focus ?? "layers"} size={13} />}>
           {style.focus ? t(`sector.${style.focus}`) : t("league.generalist")}
         </Tag>
+        <Tag icon={<Icon name="map" size={12} />}>
+          {style.cross_border ? t("league.homeAbroad", { country: t(`country.${style.country}`) }) : t(`country.${style.country}`)}
+        </Tag>
         <Tag>{band}</Tag>
         <Tag tone={bidding === "high" ? "bad" : bidding === "low" ? "good" : "muted"}>
           {t(`entity.house.bidding.${bidding}`, { pct: f.signedPct(style.aggression_bps) })}

@@ -256,6 +256,10 @@ export interface SaleView {
 }
 
 export interface HouseView {
+  /** Home country, ISO 3166-1 alpha-2. */
+  country: string;
+  /** Also buys outside its home country. */
+  cross_border: boolean;
   /** The sector it pays up for, if any. */
   focus: string | null;
   /** Added to every bid it makes, in basis points of the price. */

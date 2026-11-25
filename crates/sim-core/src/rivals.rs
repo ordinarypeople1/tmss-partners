@@ -115,6 +115,7 @@ impl World {
                     && company.suitor.is_none()
                     && company.cooldown == 0
                     && matches!(company.owner, Owner::Founder { .. } | Owner::Corporate)
+                    && crate::market::house_works_in(house, &company.country)
                     && ebitda >= style.min_ebitda
                     && ebitda <= style.max_ebitda
                     && self.sale_motive(index).is_some();

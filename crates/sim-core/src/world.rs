@@ -631,7 +631,13 @@ impl World {
         if header.schema_version != SAVE_SCHEMA_VERSION {
             return Err(SaveError::UnsupportedVersion(header.schema_version));
         }
-        serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))
+        let mut world: World =
+            serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))?;
+        // Saves from before the market grew to nineteen houses carry fewer records.
+        if world.houses.len() < RIVAL_HOUSES {
+            world.houses.resize(RIVAL_HOUSES, HouseRecord::default());
+        }
+        Ok(world)
     }
 
     pub fn apply(&mut self, command: Command) -> Result<(), CommandError> {
@@ -1492,6 +1498,25 @@ pub mod tests {
     }
 
     #[test]
+    fn houses_spread_across_the_countries_and_own_at_home() {
+        use crate::market::{house_works_in, HOUSE_STYLES};
+        assert_eq!(RIVAL_HOUSES, 19);
+        for country in ["US", "GB", "DE", "FR", "KR", "JP", "CN"] {
+            let home = HOUSE_STYLES.iter().filter(|style| style.country == country).count();
+            assert!(home >= 2, "{country} has {home} houses");
+        }
+        let world = world(4);
+        let mut owners = std::collections::HashSet::new();
+        for company in &world.companies {
+            if let crate::company::Owner::Sponsor { house, .. } = company.owner {
+                assert!(house_works_in(house as usize, &company.country), "{} owns abroad", house);
+                owners.insert(house);
+            }
+        }
+        assert!(owners.len() >= 15, "most houses start with a portfolio: {}", owners.len());
+    }
+
+    #[test]
     fn banks_publish_research_and_a_meeting_can_follow_it() {
         let mut world = world(5);
         run(&mut world, 6);
@@ -1851,9 +1876,18 @@ pub mod tests {
     fn deals_abroad_wait_for_a_principal() {
         let mut world = world(2);
         run(&mut world, 14);
-        let abroad = (0..world.companies.len())
-            .find(|index| world.companies[*index].is_abroad() && world.process_visible(*index))
-            .expect("something abroad is for sale");
+        // A sale abroad whose bank would send the player its teaser: only the rank stands in the way.
+        let mut abroad = None;
+        for _ in 0..24 {
+            abroad = (0..world.companies.len()).find(|index| {
+                world.companies[*index].is_abroad() && world.process_visible(*index) && world.on_buyer_list(*index)
+            });
+            if abroad.is_some() {
+                break;
+            }
+            run(&mut world, 1);
+        }
+        let abroad = abroad.expect("something abroad is for sale");
         assert_eq!(
             world.apply(Command::SignNda { company: abroad }),
             Err(CommandError::CrossBorderLocked)

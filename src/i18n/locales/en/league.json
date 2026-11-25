@@ -1,6 +1,6 @@
 {
   "league.title": "Firm league",
-  "league.lead": "Nine firms ranked by gross multiple.",
+  "league.lead": "Twenty houses ranked by gross multiple.",
   "league.rankOf": "#{rank, number, ::integer} of {total, number, ::integer}",
   "league.band.top": "Top quartile",
   "league.band.mid": "Middle of the pack",
@@ -49,5 +49,17 @@
   "league.house.4.style": "Small-cap value buyer. Buys building products cheap.",
   "league.house.5.style": "Business services roll-up. Pays up for companies it can add to a platform.",
   "league.house.6.style": "Food manufacturing. Takes its time and looks for a long while.",
-  "league.house.7.style": "Small-cap generalist. Shows up on any small deal."
+  "league.house.7.style": "Small-cap generalist. Shows up on any small deal.",
+  "league.homeAbroad": "{country} · buys abroad",
+  "league.house.8.style": "A US house building healthcare platforms. Pays a little over the market.",
+  "league.house.9.style": "German Mittelstand industrials. Checks every number and does not stretch.",
+  "league.house.10.style": "Mostly succession deals at German family companies. Will look at small ones.",
+  "league.house.11.style": "French business-services build-ups. Generous for companies that fit a platform.",
+  "league.house.12.style": "Goes after carve-outs from large French groups. Seen only on bigger deals.",
+  "league.house.13.style": "Bids hard for carve-outs from Korean conglomerates.",
+  "league.house.14.style": "Smaller healthcare and services deals in Korea.",
+  "league.house.15.style": "Succession buyouts of Japanese industrials. Disciplined, bids under the market.",
+  "league.house.16.style": "Buys non-core subsidiaries of Japanese groups, food above all.",
+  "league.house.17.style": "A Chinese growth and logistics house. Bids high in auctions.",
+  "league.house.18.style": "A Chinese small and mid-cap generalist. Any sector."
 }

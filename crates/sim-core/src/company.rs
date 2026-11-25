@@ -382,7 +382,7 @@ impl Company {
             }
         } else if draw < founders + sponsors {
             Owner::Sponsor {
-                house: rng.below(crate::market::RIVAL_HOUSES as u64) as u8,
+                house: crate::market::pick_house(&seed.country, rng),
                 months_held: rng.range(0, 66) as u32,
             }
         } else if seed.country == "US" && seed.monthly_revenue >= 9_000 && rng.chance_bps(4_000) {

@@ -9,7 +9,7 @@ use crate::economy::Phase;
 use crate::math::mul_bps;
 use crate::world::{MessageKind, World};
 
-pub const RIVAL_HOUSES: usize = 8;
+pub const RIVAL_HOUSES: usize = 19;
 /// Invented names. Not real firms.
 pub const RIVAL_NAMES: [&str; RIVAL_HOUSES] = [
     "Halberd Capital",
@@ -20,11 +20,27 @@ pub const RIVAL_NAMES: [&str; RIVAL_HOUSES] = [
     "Larkmoor Capital",
     "Cinderfield Partners",
     "Harrow & Pike",
+    "Bellwater Equity",
+    "Rheinfeld Beteiligungen",
+    "Kesselberg Partners",
+    "Vauclair Capital",
+    "Ardent Partenaires",
+    "Hangyeol Private Equity",
+    "Seorin Partners",
+    "Kasumi Capital Partners",
+    "Shirokane Equity",
+    "Jinhe Capital",
+    "Qingyun Partners",
 ];
 
 /// How a rival house behaves. Aggression shifts every bid; a focus sector
 /// earns a further premium; the size band is what the house will look at.
+/// A house works in its home country; a few large ones also buy abroad.
 pub struct HouseStyle {
+    /// ISO 3166-1 alpha-2, one of the seven countries in play.
+    pub country: &'static str,
+    /// Bids and buys outside its home country too.
+    pub cross_border: bool,
     pub aggression_bps: i64,
     pub focus: Option<&'static str>,
     /// Trailing EBITDA the house will buy, thousand USD.
@@ -33,36 +49,46 @@ pub struct HouseStyle {
 }
 
 pub const HOUSE_STYLES: [HouseStyle; RIVAL_HOUSES] = [
-    // Halberd: large, disciplined, industrial.
+    // Halberd: large, disciplined, industrial; buys abroad.
     HouseStyle {
+        country: "US",
+        cross_border: true,
         aggression_bps: -150,
         focus: Some("industrial_components"),
         min_ebitda: 12_000,
         max_ebitda: i64::MAX,
     },
-    // Northmere: pays up for healthcare.
+    // Northmere: London; pays up for healthcare, at home and abroad.
     HouseStyle {
+        country: "GB",
+        cross_border: true,
         aggression_bps: 150,
         focus: Some("healthcare_services"),
         min_ebitda: 6_000,
         max_ebitda: i64::MAX,
     },
-    // Calder Wharf: logistics specialist, fair prices.
+    // Calder: logistics specialist, fair prices.
     HouseStyle {
+        country: "GB",
+        cross_border: false,
         aggression_bps: 0,
         focus: Some("cold_chain_logistics"),
         min_ebitda: 3_000,
         max_ebitda: 40_000,
     },
-    // Ninth Meridian: generalist that overpays in auctions.
+    // Ninth: generalist that overpays in auctions, anywhere.
     HouseStyle {
+        country: "US",
+        cross_border: true,
         aggression_bps: 350,
         focus: None,
         min_ebitda: 8_000,
         max_ebitda: i64::MAX,
     },
-    // Wabash Row: small-cap value buyer.
+    // Wabash: small-cap value buyer.
     HouseStyle {
+        country: "US",
+        cross_border: false,
         aggression_bps: -300,
         focus: Some("building_products"),
         min_ebitda: 0,
@@ -70,6 +96,8 @@ pub const HOUSE_STYLES: [HouseStyle; RIVAL_HOUSES] = [
     },
     // Larkmoor: services roll-ups.
     HouseStyle {
+        country: "US",
+        cross_border: false,
         aggression_bps: 200,
         focus: Some("business_services"),
         min_ebitda: 3_000,
@@ -77,19 +105,139 @@ pub const HOUSE_STYLES: [HouseStyle; RIVAL_HOUSES] = [
     },
     // Cinderfield: food, patient.
     HouseStyle {
+        country: "US",
+        cross_border: false,
         aggression_bps: -50,
         focus: Some("food_manufacturing"),
         min_ebitda: 4_000,
         max_ebitda: 50_000,
     },
-    // Harrow & Pike: small generalist.
+    // Harrow: small generalist.
     HouseStyle {
+        country: "GB",
+        cross_border: false,
         aggression_bps: 50,
         focus: None,
         min_ebitda: 0,
         max_ebitda: 12_000,
     },
+    // Bellwater: healthcare platforms.
+    HouseStyle {
+        country: "US",
+        cross_border: false,
+        aggression_bps: 100,
+        focus: Some("healthcare_services"),
+        min_ebitda: 4_000,
+        max_ebitda: 40_000,
+    },
+    // Rheinfeld: Mittelstand industrials, careful.
+    HouseStyle {
+        country: "DE",
+        cross_border: false,
+        aggression_bps: -100,
+        focus: Some("industrial_components"),
+        min_ebitda: 5_000,
+        max_ebitda: i64::MAX,
+    },
+    // Kesselberg: family-company successions.
+    HouseStyle {
+        country: "DE",
+        cross_border: false,
+        aggression_bps: 0,
+        focus: None,
+        min_ebitda: 2_000,
+        max_ebitda: 25_000,
+    },
+    // Vauclair: services build-ups.
+    HouseStyle {
+        country: "FR",
+        cross_border: false,
+        aggression_bps: 150,
+        focus: Some("business_services"),
+        min_ebitda: 3_000,
+        max_ebitda: 35_000,
+    },
+    // Ardent: carve-outs from large groups.
+    HouseStyle {
+        country: "FR",
+        cross_border: false,
+        aggression_bps: -50,
+        focus: None,
+        min_ebitda: 6_000,
+        max_ebitda: i64::MAX,
+    },
+    // Hangyeol: chaebol carve-outs, bids hard.
+    HouseStyle {
+        country: "KR",
+        cross_border: false,
+        aggression_bps: 200,
+        focus: None,
+        min_ebitda: 4_000,
+        max_ebitda: i64::MAX,
+    },
+    // Seorin: healthcare and services.
+    HouseStyle {
+        country: "KR",
+        cross_border: false,
+        aggression_bps: 50,
+        focus: Some("healthcare_services"),
+        min_ebitda: 2_000,
+        max_ebitda: 20_000,
+    },
+    // Kasumi: succession buyouts, disciplined.
+    HouseStyle {
+        country: "JP",
+        cross_border: false,
+        aggression_bps: -200,
+        focus: Some("industrial_components"),
+        min_ebitda: 3_000,
+        max_ebitda: i64::MAX,
+    },
+    // Shirokane: non-core subsidiaries, food.
+    HouseStyle {
+        country: "JP",
+        cross_border: false,
+        aggression_bps: -100,
+        focus: Some("food_manufacturing"),
+        min_ebitda: 2_000,
+        max_ebitda: 25_000,
+    },
+    // Jinhe: growth and logistics, aggressive.
+    HouseStyle {
+        country: "CN",
+        cross_border: false,
+        aggression_bps: 300,
+        focus: Some("cold_chain_logistics"),
+        min_ebitda: 5_000,
+        max_ebitda: i64::MAX,
+    },
+    // Qingyun: generalist.
+    HouseStyle {
+        country: "CN",
+        cross_border: false,
+        aggression_bps: 150,
+        focus: None,
+        min_ebitda: 3_000,
+        max_ebitda: 30_000,
+    },
 ];
+
+/// A house for a company in `country`: one at home most of the time, sometimes one that buys
+/// across borders. Every country in play has a house of its own.
+pub fn pick_house(country: &str, rng: &mut crate::rng::Rng) -> u8 {
+    let home: Vec<usize> = (0..RIVAL_HOUSES).filter(|house| HOUSE_STYLES[*house].country == country).collect();
+    let abroad: Vec<usize> = (0..RIVAL_HOUSES)
+        .filter(|house| HOUSE_STYLES[*house].cross_border && HOUSE_STYLES[*house].country != country)
+        .collect();
+    let pool = if home.is_empty() || (!abroad.is_empty() && rng.chance_bps(2_000)) { &abroad } else { &home };
+    pool[rng.below(pool.len() as u64) as usize] as u8
+}
+
+/// Whether a house looks at companies in `country`.
+pub fn house_works_in(house: usize, country: &str) -> bool {
+    let style = &HOUSE_STYLES[house % RIVAL_HOUSES];
+    style.country == country || style.cross_border
+}
 
 /// What a rival house has done since the game opened.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -442,7 +590,8 @@ impl World {
             let bidder = if self.rng.chance_bps(3_000) {
                 Bidder::Strategic
             } else {
-                let house = self.rng.below(RIVAL_HOUSES as u64) as u8;
+                let country = self.companies[index].country.clone();
+                let house = pick_house(&country, &mut self.rng);
                 let style = &HOUSE_STYLES[house as usize];
                 // A house passes on what is outside its size band.
                 if ebitda < style.min_ebitda || ebitda > style.max_ebitda {

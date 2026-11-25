@@ -54,21 +54,6 @@ const OUTCOME_TONE = {
   held: "warn",
   rejected: "bad",
 } as const;
-/**
- * How each rival house bids. Mirrors `HOUSE_STYLES` in
- * crates/sim-core/src/market.rs (index = house number): the sign of its bid
- * bias and its focus sector. Shown as a hint; the sim prices the bids.
- */
-const HOUSE_STYLES: { aggression: -1 | 0 | 1; focus: string | null }[] = [
-  { aggression: -1, focus: "industrial_components" },
-  { aggression: 1, focus: "healthcare_services" },
-  { aggression: 0, focus: "cold_chain_logistics" },
-  { aggression: 1, focus: null },
-  { aggression: -1, focus: "building_products" },
-  { aggression: 1, focus: "business_services" },
-  { aggression: -1, focus: "food_manufacturing" },
-  { aggression: 1, focus: null },
-];
 /** The concerns each seat has a spoken line for in the catalog (`dealroom.say.<seat>.<concern>`). */
 const SEAT_LINES: Concern[][] = [
   ["leverage", "price", "interest_cover", "no_financial_dd"],
@@ -1394,8 +1379,8 @@ export function DealRoom({ company }: { company: CompanyView }) {
             {sale.rivals.length ? (
               sale.rivals.map((rival, index) => {
                 const style =
-                  rival.kind === "house"
-                    ? HOUSE_STYLES[rival.house]
+                  rival.kind === "house" && view.houses[rival.house]
+                    ? { aggression: Math.sign(view.houses[rival.house].aggression_bps), focus: view.houses[rival.house].focus }
                     : undefined;
                 return (
                   <span key={index} className="chip dr-rival">
