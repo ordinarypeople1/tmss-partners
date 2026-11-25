@@ -152,6 +152,9 @@ impl World {
             "suitor": suitor,
             "name": company.legal_name,
             "short": short_name(&company.legal_name),
+            // Names for the search: the chief, and the executive who meets first.
+            "ceo_name": company.ceo.name,
+            "executive_name": self.executive_json(index)["name"],
             "sector": self.industries[company.sector].sector_id,
             "admin1": company.admin1,
             "country": company.country,

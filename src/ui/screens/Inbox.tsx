@@ -178,6 +178,18 @@ export function Inbox() {
     return [...open, ...rest];
   }, [view.messages, filter]);
 
+  // A message chosen elsewhere (the search): show it, whatever the filter was.
+  const { inboxFocus, clearInboxFocus } = game;
+  useEffect(() => {
+    if (inboxFocus === null) {
+      return;
+    }
+    setFilter("all");
+    setPicked(inboxFocus);
+    setOpened(true);
+    clearInboxFocus();
+  }, [inboxFocus, clearInboxFocus]);
+
   const found = list.find((message) => message.id === picked) ?? null;
   // A desk always has a message in the reading pane; a phone only after a tap.
   const reading = phone && opened && found !== null;

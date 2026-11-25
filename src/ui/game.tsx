@@ -49,6 +49,10 @@ export interface Game {
   page: Page | null;
   /** Opens a company, a rival house or a bank. */
   open(page: Page): void;
+  /** Opens the inbox on one message. The inbox reads `inboxFocus` and clears it. */
+  openMessage(id: number): void;
+  inboxFocus: number | null;
+  clearInboxFocus(): void;
   /**
    * Sends one command to sim-core and redraws. Returns whether it applied.
    * A refusal raises a toast with the reason; callers need not handle it.
@@ -372,6 +376,7 @@ export function GameProvider({
   }, [persist]);
 
   const [page, setPage] = useState<Page | null>(null);
+  const [inboxFocus, setInboxFocus] = useState<number | null>(null);
   const show = useCallback((route: Route) => {
     const company = route.page?.kind === "company" ? route.page.id : null;
     selectedRef.current = company;
@@ -417,6 +422,15 @@ export function GameProvider({
     (target: Page) => navigate({ screen: history.current.stack[history.current.at].screen, page: target }),
     [navigate],
   );
+
+  const openMessage = useCallback(
+    (id: number) => {
+      setInboxFocus(id);
+      navigate({ screen: "inbox", page: null });
+    },
+    [navigate],
+  );
+  const clearInboxFocus = useCallback(() => setInboxFocus(null), []);
 
   const select = useCallback(
     (index: number | null) => {
@@ -476,6 +490,9 @@ export function GameProvider({
       select,
       page,
       open,
+      openMessage,
+      inboxFocus,
+      clearInboxFocus,
       act,
       peek: (index) => session.current?.company(index) ?? null,
       previewOffer: (index, offer) => session.current?.previewOffer(index, offer) ?? null,
@@ -489,7 +506,7 @@ export function GameProvider({
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, go, back, forward, position, selected, company, select, page, open, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
+  }, [view, rows, screen, go, back, forward, position, selected, company, select, page, open, openMessage, inboxFocus, clearInboxFocus, act, nextMonth, skipAhead, turn, start, toTitle, toasts]);
 
   if (error) {
     return <>{failed}</>;

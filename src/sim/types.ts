@@ -287,6 +287,9 @@ export interface CompanyRow {
   suitor: { house: number; months_left: number } | null;
   /** The name without its legal form, for lists and tables. */
   short: string;
+  /** The chief's and the first-meeting executive's names, for the search. */
+  ceo_name: string;
+  executive_name: string;
   sector: string;
   admin1: string;
   /** "US" is home. Deals elsewhere need the rank of principal. */

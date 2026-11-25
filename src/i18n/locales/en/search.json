@@ -1,0 +1,14 @@
+{
+  "search.label": "Search everything",
+  "search.placeholder": "Search companies, people, houses, banks, news",
+  "search.none": "No matches.",
+  "search.group.screen": "Screens",
+  "search.group.company": "Companies",
+  "search.group.person": "People",
+  "search.group.house": "Rival houses",
+  "search.group.adviser": "Banks",
+  "search.group.message": "Inbox and news",
+  "search.person.ceo": "Chief, {company}",
+  "search.person.executive": "Executive, {company}",
+  "search.shortcut": "Ctrl K"
+}

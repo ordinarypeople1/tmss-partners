@@ -7,6 +7,7 @@ import { Icon } from "./icons";
 import { describeMessage } from "./messages";
 import { AdviserPage, HousePage, PersonPage } from "./EntityPages";
 import { Moments } from "./Moments";
+import { Search } from "./Search";
 import { NewGame } from "./NewGame";
 import { Objectives } from "./Objectives";
 import { Preferences } from "./Preferences";
@@ -298,6 +299,7 @@ function Topbar() {
           {t("shell.forSale", { count: view.market.visible })}
         </span>
       </div>
+      <Search />
       <div className="fund-strip tip" tabIndex={0} data-tip={t("shell.tip.uncalled")}>
         <Meter value={fund.uncalled} max={fund.committed} tone="ink" label={t("shell.uncalled")} text={f.money(fund.uncalled)} />
         <Tag tone={fund.investing ? "accent" : "muted"} icon={<Icon name="clock" size={13} />}>

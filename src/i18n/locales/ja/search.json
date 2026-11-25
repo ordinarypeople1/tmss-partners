@@ -1,0 +1,14 @@
+{
+  "search.label": "統合検索",
+  "search.placeholder": "企業・人物・ファンド・アドバイザー・ニュースを検索",
+  "search.none": "該当する結果はありません。",
+  "search.group.screen": "画面",
+  "search.group.company": "企業",
+  "search.group.person": "人物",
+  "search.group.house": "競合ファンド",
+  "search.group.adviser": "アドバイザー",
+  "search.group.message": "受信箱・ニュース",
+  "search.person.ceo": "{company} 代表",
+  "search.person.executive": "{company} 役員",
+  "search.shortcut": "Ctrl K"
+}

@@ -1,0 +1,14 @@
+{
+  "search.label": "全局搜索",
+  "search.placeholder": "搜索公司、人物、基金、顾问、消息",
+  "search.none": "没有匹配的结果。",
+  "search.group.screen": "页面",
+  "search.group.company": "公司",
+  "search.group.person": "人物",
+  "search.group.house": "竞争基金",
+  "search.group.adviser": "顾问",
+  "search.group.message": "收件箱与消息",
+  "search.person.ceo": "{company} 负责人",
+  "search.person.executive": "{company} 高管",
+  "search.shortcut": "Ctrl K"
+}

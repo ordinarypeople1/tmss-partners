@@ -1,0 +1,14 @@
+{
+  "search.label": "통합 검색",
+  "search.placeholder": "회사, 인물, 하우스, 자문사, 소식 검색",
+  "search.none": "맞는 결과가 없습니다.",
+  "search.group.screen": "화면",
+  "search.group.company": "회사",
+  "search.group.person": "인물",
+  "search.group.house": "경쟁 하우스",
+  "search.group.adviser": "자문사",
+  "search.group.message": "인박스·소식",
+  "search.person.ceo": "{company} 대표",
+  "search.person.executive": "{company} 임원",
+  "search.shortcut": "Ctrl K"
+}
