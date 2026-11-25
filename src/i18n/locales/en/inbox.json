@@ -47,5 +47,6 @@
   "inbox.fact.met": "Objectives met",
   "inbox.fact.bonus": "Bonus",
   "inbox.finalRound.open": "Open company",
-  "inbox.achievement.label": "Achievement"
+  "inbox.achievement.label": "Achievement",
+  "inbox.toCalendar": "Open in calendar"
 }

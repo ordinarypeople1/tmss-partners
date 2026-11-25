@@ -17,6 +17,7 @@ import { isMuted, setMuted } from "./sound";
 const NAV_ICON: Record<Screen, string> = {
   map: "map",
   inbox: "inbox",
+  calendar: "calendar",
   deals: "deals",
   portfolio: "portfolio",
   market: "market",

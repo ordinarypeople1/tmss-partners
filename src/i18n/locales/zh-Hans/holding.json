@@ -111,5 +111,22 @@
   "holding.lever.family_workforce": "长工龄员工 · 罢工·声誉风险 ↑",
   "holding.lever.fragmented_market": "市场分散 · 协同 ↑",
   "holding.lever.aging_equipment": "设备老化 · 维持性资本开支 ↑",
-  "holding.lever.single_plant": "单一工厂 · 停产风险"
+  "holding.lever.single_plant": "单一工厂 · 停产风险",
+  "holding.hedge.title": "利率对冲",
+  "holding.hedge.none": "无",
+  "holding.hedge.floating": "当地基准利率 {rate}",
+  "holding.hedge.paying": "当前支付基准利率 {rate}",
+  "holding.hedge.held.swap": "{share}的债务改为固定{rate}。剩余{months}个月。",
+  "holding.hedge.held.cap": "{share}的债务基准利率不超过{rate}。剩余{months}个月。",
+  "holding.hedge.term": "合约期限",
+  "holding.hedge.left": "剩余{months}个月",
+  "holding.hedge.hint": "债务随当地央行利率浮动。掉期锁定基准利率，利率上限需预付费用设定封顶。这是合约条件，不是价格。",
+  "holding.hedge.kind.swap": "利率掉期",
+  "holding.hedge.kind.cap": "利率上限",
+  "holding.hedge.share": "债务的{share}",
+  "holding.hedge.years": "{years}年",
+  "holding.hedge.strikeAbove": "当前+{offset}",
+  "holding.hedge.swapTerms": "将{share}债务的基准利率固定为{rate}。无需预付。央行偏鹰时固定利率更高。",
+  "holding.hedge.capTerms": "将{share}债务的基准利率封顶于{strike}。公司现付费用{premium}。",
+  "holding.hedge.submit": "签约"
 }

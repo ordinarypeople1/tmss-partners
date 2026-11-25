@@ -310,6 +310,52 @@ pub struct Company {
     /// The player's proposal, while the owner thinks it over.
     #[serde(default)]
     pub pending: Option<crate::sourcing::Pending>,
+    /// How much the business leans on China, exports and energy. Commercial
+    /// diligence opens it. Filled on load for saves from before it existed.
+    #[serde(default)]
+    pub exposure: Option<Exposure>,
+}
+
+/// Shares in basis points. Sales to China, sales abroad, and energy in costs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Exposure {
+    pub china_bps: i64,
+    pub export_bps: i64,
+    pub energy_bps: i64,
+}
+
+impl Exposure {
+    /// Drawn from the company's id, so it needs no random draw and a save
+    /// that lacks it gets the same values back.
+    pub fn for_company(id: &str, sector_id: &str, country: &str, export_heavy: bool) -> Exposure {
+        let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+        for byte in id.bytes() {
+            hash ^= u64::from(byte);
+            hash = hash.wrapping_mul(0x0100_0000_01b3);
+        }
+        let mut part = |low: i64, high: i64| {
+            hash = hash.rotate_left(17).wrapping_mul(0x9E37_79B9_7F4A_7C15);
+            low + (hash % (high - low + 1) as u64) as i64
+        };
+        // Ranges per sector: China, exports, energy.
+        let ((c0, c1), (x0, x1), (e0, e1)) = match sector_id {
+            "food_manufacturing" => ((500, 2_500), (0, 3_000), (1_500, 4_000)),
+            "industrial_components" => ((1_000, 4_000), (2_000, 6_000), (1_000, 3_000)),
+            "cold_chain_logistics" => ((0, 1_000), (0, 1_500), (3_000, 7_000)),
+            "business_services" => ((0, 500), (0, 1_500), (200, 1_000)),
+            "healthcare_services" => ((0, 300), (0, 500), (300, 1_200)),
+            _ => ((500, 2_000), (500, 3_000), (1_500, 4_000)),
+        };
+        let china = part(c0, c1);
+        let export = part(x0, x1);
+        let energy = part(e0, e1);
+        Exposure {
+            // A Chinese company's home market is not exposure to China; its own bloc covers it.
+            china_bps: if country == "CN" { 0 } else { china },
+            export_bps: if export_heavy { (export * 2).min(8_000) } else { export },
+            energy_bps: energy,
+        }
+    }
 }
 
 fn monthly_ebitda(
@@ -495,6 +541,7 @@ impl Company {
             _ => Stance::Balanced,
         };
         let free_cash = ebitda - mul_bps(seed.monthly_revenue, industry.capex_ratio_bps);
+        let traits_export_heavy = traits.contains(&Trait::ExportHeavy);
         Company {
             id: seed.id.clone(),
             legal_name: seed.legal_name.clone(),
@@ -549,6 +596,12 @@ impl Company {
             approach_cooldown: 0,
             suitor: None,
             pending: None,
+            exposure: Some(Exposure::for_company(
+                &seed.id,
+                &industry.sector_id,
+                &seed.country,
+                traits_export_heavy,
+            )),
         }
     }
 
@@ -591,8 +644,34 @@ impl Company {
             ratio_millis(self.net_debt().max(0), ebitda)
         }
     }
+    /// What China's news, tariffs and energy prices do to this company's growth each month.
+    pub fn exposure_growth_bps(&self, economy: &Economy) -> i64 {
+        let Some(exposure) = self.exposure else {
+            return 0;
+        };
+        let china = economy.bloc_growth_bps.get(2).copied().unwrap_or(0);
+        exposure.china_bps * china / 10_000
+            - economy.trade_drag_bps * exposure.export_bps / 10_000 / 15
+            - economy.energy_shock_bps * exposure.energy_bps / 10_000 / 25
+    }
+
+    /// The base rate on the debt: the local policy rate, with any hedge on part of it.
+    pub fn base_rate_bps(&self, economy: &Economy) -> i64 {
+        let floating = economy.policy_rate_for(&self.country);
+        let Some(hedge) = self
+            .holding
+            .as_ref()
+            .and_then(|holding| holding.hedge)
+            .filter(|hedge| hedge.months_left > 0)
+        else {
+            return floating;
+        };
+        let hedged = hedge.hedged_rate_bps(floating);
+        (floating * (10_000 - hedge.share_bps) + hedged * hedge.share_bps) / 10_000
+    }
+
     pub fn interest_rate_bps(&self, economy: &Economy) -> i64 {
-        economy.policy_rate_bps + self.debt_spread_bps
+        self.base_rate_bps(economy) + self.debt_spread_bps
     }
     /// Trailing EBITDA over a year of interest at today's rate, in thousandths.
     pub fn interest_cover_millis(&self, economy: &Economy) -> i64 {
@@ -636,10 +715,11 @@ impl Company {
         let mut multiple = self.base_multiple_millis;
         multiple = mul_millis(
             multiple,
-            economy.rate_factor_millis(industry.rate_beta_millis),
+            economy.rate_factor_for(&self.country, industry.rate_beta_millis),
         );
         multiple = mul_bps(multiple, 10_000 + economy.sector_cycle_bps[self.sector]);
         multiple = mul_bps(multiple, economy.phase_multiple_bps());
+        multiple = mul_bps(multiple, 10_000 + economy.bloc_multiple_for(&self.country));
         multiple = mul_bps(multiple, self.quality_bps(industry));
         multiple.clamp(
             industry.multiple_floor_millis * 85 / 100,
@@ -693,6 +773,8 @@ impl Company {
         };
         let mut growth = self.growth_bps
             + economy.growth_bps(self.sector, industry) * cycle_pct / 100
+            + economy.bloc_growth_for(&self.country) * cycle_pct / 100
+            + self.exposure_growth_bps(economy)
             + rng.noise(industry.monthly_growth_std_bps * noise_pct / 100)
             + (self.management - 10) * 2;
         growth +=
@@ -725,7 +807,8 @@ impl Company {
             mul_bps(self.books.net_ppe(), industry.monthly_da_rate_bps).min(self.books.net_ppe());
         let interest = div_round(self.books.debt * self.interest_rate_bps(economy), 120_000);
         let ebt = ebitda - da - interest;
-        let tax = mul_bps(ebt.max(0), industry.tax_rate_bps);
+        let tax_rate = (industry.tax_rate_bps + economy.tax_delta_for(&self.country)).clamp(0, 6_000);
+        let tax = mul_bps(ebt.max(0), tax_rate);
         let net_income = ebt - tax;
 
         // Working capital.
@@ -1003,7 +1086,13 @@ pub mod tests {
             let mut company = company(rng_seed);
             let industries = [industry.clone()];
             for month in 1..=360 {
-                economy.step(&mut rng, &industries, month % 3 == 0);
+                economy.step(&mut rng, &industries, 0);
+                // News tilts and rate moves, as the macro calendar would make them.
+                economy.bloc_growth_bps[0] = rng.noise(10).clamp(-15, 15);
+                economy.bloc_multiple_bps[0] = rng.noise(500).clamp(-800, 800);
+                if month % 2 == 0 {
+                    economy.policy_rate_bps = (economy.policy_rate_bps + rng.noise(25)).clamp(0, 800);
+                }
                 let equity_before = company.books.total_equity();
                 let debt_before = company.books.debt;
                 company.step(&industry, &economy, &mut rng);

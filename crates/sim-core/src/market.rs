@@ -258,7 +258,9 @@ impl World {
                 _ if self.economy.valuation_index() >= 100 => 130,
                 _ => 100,
             };
-            (base * market / 100, reason)
+            // Owners wait out an election or a shock.
+            let waiting = (130 - self.economy.uncertainty_for(&company.country)).clamp(40, 120);
+            (base * market / 100 * waiting / 110, reason)
         };
         Some((chance.clamp(0, 10_000), reason))
     }
@@ -634,7 +636,7 @@ impl World {
 
     pub(crate) fn transfer_to_rival(&mut self, index: usize, bidder: Bidder, ev: i64) {
         self.record_house_exit(index, ev);
-        let senior = self.economy.max_senior_millis();
+        let senior = self.economy.max_senior_for(&self.companies[index].country);
         let spread = self.economy.credit_spread_bps;
         let industry = self.industries[self.companies[index].sector].clone();
         let ebitda = self.companies[index].ttm_ebitda().max(0);

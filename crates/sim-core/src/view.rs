@@ -267,7 +267,16 @@ impl World {
                 "mezz_rate_bps": self.economy.mezz_rate_bps(),
                 "history": self.economy.history,
                 "sectors": sectors,
+                "bloc_growth_bps": self.economy.bloc_growth_bps,
+                "bloc_multiple_bps": self.economy.bloc_multiple_bps,
+                "uncertainty": self.economy.uncertainty,
+                "bloc_tax_delta_bps": self.economy.bloc_tax_delta_bps,
+                "bloc_approval_drag_bps": self.economy.bloc_approval_drag_bps,
+                "trade_drag_bps": self.economy.trade_drag_bps,
+                "energy_shock_bps": self.economy.energy_shock_bps,
+                "bloc_policy_rate_bps": self.economy.bloc_policy_rate_bps,
             },
+            "calendar": self.calendar_view(),
             "fund": {
                 "name": self.fund.name,
                 "committed": self.fund.committed,
@@ -410,6 +419,24 @@ impl World {
                 Value::Null
             },
         );
+        let country = company.country.as_str();
+        detail.insert(
+            "local_credit".into(),
+            json!({
+                "policy_rate_bps": self.economy.policy_rate_for(country),
+                "neutral_bps": self.economy.neutral_for(country),
+                "max_senior_millis": self.economy.max_senior_for(country),
+                "senior_rate_bps": self.economy.senior_rate_for(country),
+            }),
+        );
+        detail.insert(
+            "exposure".into(),
+            if self.knows(index, DdStream::Commercial) {
+                json!(company.exposure)
+            } else {
+                Value::Null
+            },
+        );
         detail.insert(
             "customer_concentration_bps".into(),
             if self.knows(index, DdStream::Commercial) {
@@ -516,6 +543,8 @@ impl World {
                     "coinvest": deal.coinvest,
                     "approved_ev": deal.approved_ev,
                     "indication": deal.indication,
+                    "lock": self.active_lock(index),
+                    "lock_fee": self.lock_fee(index),
                     "open_streams": crate::company::DD_STREAMS.iter().filter(|stream| self.stream_open(index, **stream)).collect::<Vec<_>>(),
                 }),
             );
@@ -583,6 +612,9 @@ impl World {
                     "irr_bps": crate::math::irr_bps(&flows),
                     "bridge": { "ebitda": from_ebitda, "multiple": from_multiple, "debt": from_debt },
                     "max_leverage_millis": holding.max_leverage_millis,
+                    "hedge": holding.hedge,
+                    "hedge_quote": self.hedge_quote(index),
+                    "base_rate_bps": company.base_rate_bps(&self.economy),
                     "min_cover_millis": holding.min_cover_millis,
                     "maturity": holding.maturity,
                     "breaches": holding.breaches,
@@ -816,5 +848,51 @@ impl World {
         let (name, feminine) = crate::people::name(&mut rng, &self.companies[company].country);
         let role = [ExecutiveRole::Cfo, ExecutiveRole::Coo, ExecutiveRole::Strategy][rng.below(3) as usize];
         json!({ "name": name, "feminine": feminine, "role": role })
+    }
+}
+
+impl World {
+    /// The macro calendar as the player may see it: every scheduled release,
+    /// a consensus only for the open month (and the polls for elections), and
+    /// results only once a month has closed.
+    fn calendar_view(&self) -> Value {
+        use crate::macro_events::MacroKind;
+        let calendar = &self.macro_calendar;
+        let events: Vec<Value> = calendar
+            .events
+            .iter()
+            .map(|event| {
+                let kind: MacroKind = event.kind;
+                json!({
+                    "id": event.id,
+                    "kind": kind,
+                    "bloc": event.bloc(),
+                    "target": event.target,
+                    "breaking": event.breaking,
+                    "measure": event.measure,
+                    "race": kind.race(),
+                    "call": event.call,
+                    "exposed": self.holdings_exposed_to(event),
+                    "category": kind.category(),
+                    "unit": kind.unit(),
+                    "importance": kind.importance(),
+                    "sectors": kind.sectors(),
+                    "date": event.date,
+                    "day": event.day,
+                    "consensus": event.consensus,
+                    "range": event.range,
+                    "previous": event.previous,
+                    "actual": event.actual,
+                    "surprise_centi": event.surprise_centi,
+                    "stance": event.stance,
+                    "upset": event.upset,
+                    "effects": event.effects,
+                })
+            })
+            .collect();
+        json!({
+            "events": events,
+            "races": calendar.races,
+        })
     }
 }

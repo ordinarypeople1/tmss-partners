@@ -69,5 +69,10 @@
   "company.ownerStance": "오너 태도",
   "company.stanceHint": "관계 {need, number, ::integer} 또는 NDA로 확인",
   "company.founderLeaves": "창업자 은퇴",
-  "company.founderLeavesNote": "종결 때 창업자가 떠나고 경영진 점수가 내려갑니다. 100일 계획에 경영진 교체를 넣어 대비하세요."
+  "company.founderLeavesNote": "종결 때 창업자가 떠나고 경영진 점수가 내려갑니다. 100일 계획에 경영진 교체를 넣어 대비하세요.",
+  "company.exposure": "노출",
+  "company.exposureUnknown": "중국·수출·에너지 노출은 상업 실사가 연다.",
+  "company.exposure.china_bps": "중국 매출",
+  "company.exposure.export_bps": "수출",
+  "company.exposure.energy_bps": "에너지 원가"
 }

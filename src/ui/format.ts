@@ -21,6 +21,8 @@ export interface Format {
   date(date: GameDate): string;
   shortDate(date: GameDate): string;
   integer(value: number): string;
+  /** A plain number with fixed decimals: 50.2. */
+  decimal(value: number, digits?: number): string;
   /** Thousand USD as millions for a statement table: 12345 → "12.3", −500 → "(0.5)". */
   millions(value: number): string;
 }
@@ -54,6 +56,7 @@ export function makeFormat(intl: IntlShape): Format {
     shortDate: (date) =>
       intl.formatMessage({ id: "format.shortDate" }, { year: date.year % 100, month: date.month }),
     integer: (value) => intl.formatNumber(value, { maximumFractionDigits: 0 }),
+    decimal: (value, digits = 1) => number(value, digits),
     millions: (value) => {
       const text = number(Math.abs(value) / 1000, 1);
       return value < -0.05 * 1000 ? `(${text})` : text;

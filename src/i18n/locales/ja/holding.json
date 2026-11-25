@@ -111,5 +111,22 @@
   "holding.lever.family_workforce": "長期勤続の従業員 · スト・評判リスク ↑",
   "holding.lever.fragmented_market": "分散した市場 · シナジー ↑",
   "holding.lever.aging_equipment": "老朽設備 · 維持設備投資 ↑",
-  "holding.lever.single_plant": "単一工場 · 操業停止リスク"
+  "holding.lever.single_plant": "単一工場 · 操業停止リスク",
+  "holding.hedge.title": "金利ヘッジ",
+  "holding.hedge.none": "なし",
+  "holding.hedge.floating": "現地政策金利 {rate}",
+  "holding.hedge.paying": "現在の支払基準金利 {rate}",
+  "holding.hedge.held.swap": "負債の{share}を{rate}固定に交換。残り{months}か月。",
+  "holding.hedge.held.cap": "負債{share}の基準金利は{rate}を超えない。残り{months}か月。",
+  "holding.hedge.term": "契約期間",
+  "holding.hedge.left": "残り{months}か月",
+  "holding.hedge.hint": "負債は現地中央銀行の金利に連動する。スワップは基準金利を固定し、キャップは前払い手数料で上限を付ける。価格ではなく契約条件。",
+  "holding.hedge.kind.swap": "金利スワップ",
+  "holding.hedge.kind.cap": "金利キャップ",
+  "holding.hedge.share": "負債の{share}",
+  "holding.hedge.years": "{years}年",
+  "holding.hedge.strikeAbove": "現在+{offset}",
+  "holding.hedge.swapTerms": "負債{share}の基準金利を{rate}で固定。前払いなし。中銀がタカ派なら固定金利は高い。",
+  "holding.hedge.capTerms": "負債{share}の基準金利上限{strike}。手数料{premium}を会社が今払う。",
+  "holding.hedge.submit": "契約"
 }

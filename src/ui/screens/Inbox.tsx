@@ -386,6 +386,13 @@ function Reading({ message }: { message: Message }) {
 
       <Facts message={message} sale={row?.sale ?? null} />
 
+      {message.type === "macro_surprise" || message.type === "election" || message.type === "law_vote" || message.type === "macro_shock" || message.type === "macro_alert" ? (
+        <button type="button" className="btn inbox-go" onClick={() => game.showEvent(message.type === "macro_alert" ? (message.events[0] ?? null) : message.event)}>
+          <Icon name="calendar" size={15} />
+          {t("inbox.toCalendar")}
+        </button>
+      ) : null}
+
       {message.type === "final_round" && row ? (
         <button type="button" className="btn primary inbox-go" onClick={() => game.select(row.i)}>
           <Icon name="gavel" size={15} />

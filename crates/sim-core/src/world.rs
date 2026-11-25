@@ -104,6 +104,50 @@ pub enum MessageKind {
         from: Phase,
         to: Phase,
     },
+    /// A release that missed its consensus by a wide margin.
+    MacroSurprise {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        actual: i64,
+        consensus: i64,
+        surprise_centi: i64,
+    },
+    /// An election result. `winner` indexes the two fictional parties.
+    Election {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        winner: u8,
+        upset: bool,
+        /// Called early, not on the schedule.
+        #[serde(default)]
+        snap: bool,
+    },
+    /// A law a new government put to a vote.
+    LawVote {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        bloc: crate::macro_events::Bloc,
+        /// +1 raises taxes, protects trade or tightens rules.
+        direction: i64,
+        passed: bool,
+    },
+    /// A tariff, a geopolitical shock or a bank in trouble.
+    MacroShock {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        bloc: crate::macro_events::Bloc,
+        target: Option<crate::macro_events::Bloc>,
+        severity: i64,
+    },
+    /// A swap or cap ran its term.
+    HedgeExpired {
+        kind: crate::portfolio::HedgeKind,
+    },
+    /// This month's big releases that touch the fund's holdings.
+    MacroAlert {
+        events: Vec<u64>,
+        companies: u32,
+    },
     SaleEarlyNotice {
         reason: SaleReason,
     },
@@ -396,6 +440,24 @@ pub enum Command {
         message: u64,
     },
     MarkAllRead,
+    /// One attention: the fund's economist narrows a release or meeting this month.
+    CallEconomist {
+        event: u64,
+    },
+    /// Holds today's credit spread and leverage for a deal for three months, for a fee.
+    LockFinancing {
+        company: usize,
+    },
+    /// One attention: a swap or a cap on part of a holding's debt.
+    Hedge {
+        company: usize,
+        kind: crate::portfolio::HedgeKind,
+        share_bps: i64,
+        months: u32,
+        /// For a cap: the strike above today's base rate.
+        #[serde(default)]
+        strike_offset_bps: i64,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -451,6 +513,10 @@ pub enum CommandError {
     NoMeeting,
     /// A report the committee asked for is not in yet.
     ConditionOpen,
+    /// No macro event with that id.
+    UnknownEvent,
+    /// The economist can only call this month's releases and meetings.
+    NotThisMonth,
 }
 
 #[derive(Debug)]
@@ -516,6 +582,9 @@ pub struct World {
     /// Coverage of each sell-side bank, 0 to 100.
     #[serde(default)]
     pub banks: Vec<i64>,
+    /// Central banks, releases and elections, scheduled ahead.
+    #[serde(default)]
+    pub macro_calendar: crate::macro_events::MacroCalendar,
     next_message_id: u64,
     pub(crate) rng: Rng,
 }
@@ -547,7 +616,11 @@ impl World {
         }
         let career = Career::new();
         let sectors = universe.industries.len();
-        let economy = Economy::new(universe.industries.len(), &mut rng, options.era);
+        let mut economy = Economy::new(universe.industries.len(), &mut rng, options.era);
+        // The calendar opens first: each country's rate prices its companies' history.
+        let macro_calendar =
+            crate::macro_events::MacroCalendar::open(seed, universe.opens, &economy, options.era);
+        macro_calendar.sync_rates(&mut economy);
         // Five years of statements behind each company, from a seed of its own
         // so the main stream of the game is untouched.
         for (index, company) in companies.iter_mut().enumerate() {
@@ -584,6 +657,7 @@ impl World {
             fund_started_month: 0,
             street: 0,
             banks: vec![0; crate::advisers::ADVISERS],
+            macro_calendar,
             next_message_id: 0,
             rng,
         };
@@ -613,7 +687,31 @@ impl World {
         if header.schema_version != SAVE_SCHEMA_VERSION {
             return Err(SaveError::UnsupportedVersion(header.schema_version));
         }
-        serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))
+        let mut world: World =
+            serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))?;
+        // Saves from before the calendar open one on the month they stand in;
+        // saves from before six blocs gain the rest.
+        world.economy.ensure_blocs();
+        if !world.macro_calendar.is_open() {
+            world.macro_calendar = crate::macro_events::MacroCalendar::open(
+                world.seed,
+                world.date,
+                &world.economy,
+                world.options.era,
+            );
+        }
+        world.macro_calendar.upgrade(world.date, &world.economy);
+        if world.economy.bloc_policy_rate_bps.len() != crate::macro_events::BLOC_COUNT {
+            world.macro_calendar.sync_rates(&mut world.economy);
+        }
+        for company in &mut world.companies {
+            if company.exposure.is_none() {
+                let sector = &world.industries[company.sector].sector_id;
+                let heavy = company.has(crate::company::Trait::ExportHeavy);
+                company.exposure = Some(crate::company::Exposure::for_company(&company.id, sector, &company.country, heavy));
+            }
+        }
+        Ok(world)
     }
 
     pub fn apply(&mut self, command: Command) -> Result<(), CommandError> {
@@ -664,6 +762,15 @@ impl World {
                 found.ok_or(CommandError::UnknownMessage)?.read = true;
                 Ok(())
             }
+            Command::CallEconomist { event } => self.call_economist(event),
+            Command::LockFinancing { company } => self.lock_financing(company),
+            Command::Hedge {
+                company,
+                kind,
+                share_bps,
+                months,
+                strike_offset_bps,
+            } => self.hedge(company, kind, share_bps, months, strike_offset_bps),
             Command::MarkAllRead => {
                 for message in &mut self.messages {
                     message.read = true;
@@ -877,9 +984,67 @@ impl World {
         let closes_quarter = closing.closes_a_quarter();
 
         for news in self
-            .economy
-            .step(&mut self.rng, &self.industries, closes_quarter)
+            .macro_calendar
+            .close_month(closing, &mut self.economy, &self.industries)
         {
+            use crate::macro_events::MacroNews;
+            match news {
+                MacroNews::RateChanged { from_bps, to_bps } => {
+                    self.post_news(MessageKind::RateChanged { from_bps, to_bps }, None)
+                }
+                MacroNews::Surprise { event } => {
+                    if let Some(item) = self.macro_calendar.event(event) {
+                        let kind = MessageKind::MacroSurprise {
+                            event,
+                            kind: item.kind,
+                            actual: item.actual.unwrap_or(0),
+                            consensus: item.consensus.unwrap_or(0),
+                            surprise_centi: item.surprise_centi.unwrap_or(0),
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+                MacroNews::Election { event } => {
+                    if let Some(item) = self.macro_calendar.event(event) {
+                        let kind = MessageKind::Election {
+                            event,
+                            kind: item.kind,
+                            winner: item.actual.unwrap_or(0) as u8,
+                            upset: item.upset,
+                            snap: item.breaking,
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+                MacroNews::Vote { event } => {
+                    if let Some(item) = self.macro_calendar.event(event) {
+                        let kind = MessageKind::LawVote {
+                            event,
+                            kind: item.kind,
+                            bloc: item.bloc(),
+                            direction: item.measure.map(|measure| measure.direction).unwrap_or(0),
+                            passed: item.actual == Some(1),
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+                MacroNews::Breaking { event } => {
+                    // A snap election already came in as an election.
+                    if let Some(item) = self.macro_calendar.event(event).filter(|item| item.kind.race().is_none()) {
+                        let kind = MessageKind::MacroShock {
+                            event,
+                            kind: item.kind,
+                            bloc: item.bloc(),
+                            target: item.target,
+                            severity: item.actual.unwrap_or(1),
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+            }
+        }
+        let signal = self.macro_calendar.growth_signal_bps();
+        for news in self.economy.step(&mut self.rng, &self.industries, signal) {
             match news {
                 EconomyNews::RateChanged { from_bps, to_bps } => {
                     self.post_news(MessageKind::RateChanged { from_bps, to_bps }, None)
@@ -924,6 +1089,8 @@ impl World {
         self.expire_decisions();
 
         self.date = closing.next();
+        self.macro_calendar.open_month(self.date, &self.economy);
+        self.alert_holdings();
         self.months_elapsed += 1;
         self.convene_committees();
         self.career_step();
@@ -935,6 +1102,65 @@ impl World {
         self.attention_left = self.attention_max();
         for months in &mut self.insight {
             *months = months.saturating_sub(1);
+        }
+    }
+
+    fn call_economist(&mut self, event: u64) -> Result<(), CommandError> {
+        use crate::macro_events::CallError;
+        if self.attention_left < 1 {
+            return Err(CommandError::NoAttention);
+        }
+        self.macro_calendar
+            .call_economist(event, self.date, &self.economy)
+            .map_err(|err| match err {
+                CallError::UnknownEvent => CommandError::UnknownEvent,
+                CallError::NotThisMonth => CommandError::NotThisMonth,
+                CallError::AlreadyDone => CommandError::AlreadyDone,
+            })?;
+        self.spend_attention(1)
+    }
+
+    /// Companies the fund holds that a macro event reaches.
+    pub(crate) fn holdings_exposed_to(&self, event: &crate::macro_events::MacroEvent) -> Vec<usize> {
+        let bloc = event.bloc();
+        let sectors = event.kind.sectors();
+        (0..self.companies.len())
+            .filter(|index| {
+                let company = &self.companies[*index];
+                if !company.is_player_owned() {
+                    return false;
+                }
+                let home = crate::macro_events::Bloc::of_country(&company.country) == Some(bloc)
+                    && (sectors.is_empty() || sectors.contains(&self.industries[company.sector].sector_id.as_str()));
+                let china = bloc == crate::macro_events::Bloc::Cn
+                    && company.exposure.is_some_and(|exposure| exposure.china_bps >= 2_000);
+                home || china
+            })
+            .collect()
+    }
+
+    /// When the month opens: the big releases that reach a holding, in one line on the wire.
+    fn alert_holdings(&mut self) {
+        let mut events = Vec::new();
+        let mut companies: Vec<usize> = Vec::new();
+        for event in &self.macro_calendar.events {
+            if event.date != self.date || event.resolved() || event.kind.importance() < 3 {
+                continue;
+            }
+            let hit = self.holdings_exposed_to(event);
+            if hit.is_empty() {
+                continue;
+            }
+            events.push(event.id);
+            for index in hit {
+                if !companies.contains(&index) {
+                    companies.push(index);
+                }
+            }
+        }
+        if !events.is_empty() {
+            let count = companies.len() as u32;
+            self.post_news(MessageKind::MacroAlert { events, companies: count }, None);
         }
     }
 
@@ -962,7 +1188,7 @@ impl World {
                 continue;
             }
             let stretched =
-                self.companies[index].leverage_millis() > self.economy.max_senior_millis();
+                self.companies[index].leverage_millis() > self.economy.max_senior_for(&self.companies[index].country);
             let spread_bps = self.economy.credit_spread_bps + if stretched { 250 } else { 0 };
             let date = self.date;
             let target = &mut self.companies[index];
@@ -1606,6 +1832,95 @@ pub mod tests {
     }
 
     #[test]
+    fn the_calendar_shows_the_schedule_ahead_and_results_only_behind() {
+        let mut world = world(6);
+        run(&mut world, 14);
+        let view = world.view();
+        let open = (world.date.year, world.date.month as i64);
+        let events = view["calendar"]["events"].as_array().unwrap();
+        assert!(events.iter().any(|event| event["kind"] == "fomc"));
+        for event in events {
+            let date = (event["date"]["year"].as_i64().unwrap() as i32, event["date"]["month"].as_i64().unwrap());
+            let behind = date < open;
+            assert_eq!(!event["actual"].is_null(), behind, "{event}");
+            // Polls and the odds on a law are known ahead; nothing else is.
+            let ahead = !event["race"].is_null() || !event["measure"].is_null();
+            if date > open && !ahead {
+                assert!(event["consensus"].is_null(), "{event}");
+            }
+            if date >= open {
+                assert_eq!(event["breaking"], false, "{event}");
+            }
+        }
+        assert!(events.iter().any(|event| event["date"]["year"].as_i64() == Some(open.0 as i64 + 1)));
+    }
+
+    #[test]
+    fn the_economist_costs_attention_and_only_takes_this_months_events() {
+        let mut world = world(12);
+        let open = world.date;
+        let this_month = world.macro_calendar.events.iter().find(|event| event.date == open && event.kind == crate::macro_events::MacroKind::UsCpi).unwrap().id;
+        let later = world.macro_calendar.events.iter().find(|event| event.date > open && event.kind == crate::macro_events::MacroKind::UsCpi).unwrap().id;
+        let before = world.attention_left;
+        assert_eq!(world.apply(Command::CallEconomist { event: later }), Err(CommandError::NotThisMonth));
+        world.apply(Command::CallEconomist { event: this_month }).unwrap();
+        assert_eq!(world.attention_left, before - 1);
+        assert_eq!(world.apply(Command::CallEconomist { event: this_month }), Err(CommandError::AlreadyDone));
+        assert_eq!(world.apply(Command::CallEconomist { event: 999_999 }), Err(CommandError::UnknownEvent));
+        let view = world.view();
+        let shown = view["calendar"]["events"].as_array().unwrap().iter().find(|event| event["id"] == this_month).unwrap().clone();
+        assert!(!shown["call"].is_null());
+        assert!(shown.get("preset_noise").is_none());
+    }
+
+    #[test]
+    fn a_save_from_before_six_blocs_gains_them() {
+        let mut world = world(13);
+        run(&mut world, 2);
+        let mut save: serde_json::Value = serde_json::from_str(&world.to_save()).unwrap();
+        let economy = save["economy"].as_object_mut().unwrap();
+        for key in ["bloc_growth_bps", "bloc_multiple_bps", "uncertainty"] {
+            economy.insert(key.into(), serde_json::json!([0, 0, 20]));
+        }
+        for key in ["bloc_tax_delta_bps", "bloc_approval_drag_bps", "trade_drag_bps", "energy_shock_bps"] {
+            economy.remove(key);
+        }
+        save["macro_calendar"]["version"] = serde_json::json!(1);
+        save["macro_calendar"].as_object_mut().unwrap().remove("races");
+        for company in save["companies"].as_array_mut().unwrap() {
+            company.as_object_mut().unwrap().remove("exposure");
+        }
+        let mut loaded = World::from_save(&save.to_string()).unwrap();
+        assert_eq!(loaded.economy.uncertainty.len(), crate::macro_events::BLOC_COUNT);
+        assert_eq!(loaded.macro_calendar.races.len(), 6);
+        assert!(loaded.companies.iter().all(|company| company.exposure.is_some()));
+        assert_eq!(loaded.companies[7].exposure, world.companies[7].exposure);
+        run(&mut loaded, 3);
+    }
+
+    #[test]
+    fn a_save_from_before_the_calendar_opens_one() {
+        let mut world = world(8);
+        run(&mut world, 3);
+        let mut save: serde_json::Value = serde_json::from_str(&world.to_save()).unwrap();
+        save.as_object_mut().unwrap().remove("macro_calendar");
+        let loaded = World::from_save(&save.to_string()).unwrap();
+        assert!(loaded.macro_calendar.is_open());
+        assert!(loaded.macro_calendar.events.iter().all(|event| event.date >= loaded.date));
+    }
+
+    #[test]
+    fn a_saved_game_continues_with_the_same_calendar() {
+        let mut world = world(9);
+        run(&mut world, 5);
+        let mut loaded = World::from_save(&world.to_save()).unwrap();
+        run(&mut world, 8);
+        run(&mut loaded, 8);
+        assert_eq!(world.macro_calendar, loaded.macro_calendar);
+        assert_eq!(world.economy, loaded.economy);
+    }
+
+    #[test]
     fn every_company_opens_with_five_years_and_keeps_closing_quarters() {
         let mut world = world(4);
         for company in &world.companies {
@@ -1731,6 +2046,131 @@ pub mod tests {
             world.apply(Command::ResearchSector { sector: 99 }),
             Err(CommandError::UnknownSector)
         );
+    }
+
+    #[test]
+    fn each_country_borrows_over_its_own_central_bank() {
+        let mut world = world(14);
+        run(&mut world, 6);
+        assert_eq!(world.economy.bloc_policy_rate_bps.len(), crate::macro_events::BLOC_COUNT);
+        let latent = &world.macro_calendar.latent;
+        for (country, rate) in [
+            ("US", world.economy.policy_rate_bps),
+            ("DE", latent.ecb_rate),
+            ("FR", latent.ecb_rate),
+            ("CN", latent.cn_lpr),
+            ("GB", latent.boe_rate),
+            ("JP", latent.boj_rate),
+            ("KR", latent.bok_rate),
+        ] {
+            let company = world.companies.iter().find(|company| company.country == country).unwrap();
+            assert_eq!(company.interest_rate_bps(&world.economy), rate + company.debt_spread_bps, "{country}");
+        }
+        // A bloc whose rate sits above its neutral gets less senior debt than the global market.
+        let mut economy = world.economy.clone();
+        economy.bloc_policy_rate_bps[4] = economy.neutral_for_bloc(4) + 300;
+        economy.policy_rate_bps = economy.neutral_rate_bps;
+        assert!(economy.max_senior_for("JP") < economy.max_senior_for("US") || economy.max_senior_for("JP") == 2_500);
+    }
+
+    #[test]
+    fn a_swap_fixes_the_base_rate_and_a_cap_bounds_it() {
+        let mut world = world(4);
+        let mut company = None;
+        for _ in 0..90 {
+            play_month(&mut world);
+            company = (0..world.companies.len()).find(|index| world.companies[*index].is_player_owned());
+            if company.is_some() {
+                break;
+            }
+        }
+        let company = company.expect("the bot buys something in 90 months");
+        let country = world.companies[company].country.clone();
+        assert_eq!(
+            world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Swap, share_bps: 3_000, months: 12, strike_offset_bps: 0 }),
+            Err(CommandError::InvalidAmount)
+        );
+        world.attention_left = 5;
+        world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Swap, share_bps: 10_000, months: 12, strike_offset_bps: 0 }).unwrap();
+        let fixed = world.companies[company].holding.as_ref().unwrap().hedge.unwrap().rate_bps;
+        // However the central bank moves, the base rate stays where the swap put it.
+        for shock in [-200, 300] {
+            let mut economy = world.economy.clone();
+            economy.policy_rate_bps = (economy.policy_rate_bps + shock).clamp(0, 800);
+            for slot in &mut economy.bloc_policy_rate_bps {
+                *slot = (*slot + shock).clamp(0, 800);
+            }
+            assert_eq!(world.companies[company].base_rate_bps(&economy), fixed);
+        }
+        assert_eq!(
+            world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Cap, share_bps: 10_000, months: 12, strike_offset_bps: 100 }),
+            Err(CommandError::AlreadyDone)
+        );
+        // Twelve months on, it has run out and the floating rate is back.
+        for _ in 0..12 {
+            world.advance_month();
+            if !world.companies[company].is_player_owned() {
+                return;
+            }
+            assert!(world.companies[company].books.balances());
+        }
+        assert!(world.companies[company].holding.as_ref().unwrap().hedge.is_none());
+        assert_eq!(world.companies[company].base_rate_bps(&world.economy), world.economy.policy_rate_for(&country));
+
+        // A cap: the premium comes out of the company, and the base rate never passes the strike.
+        world.attention_left = 5;
+        let equity = world.companies[company].books.total_equity();
+        world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Cap, share_bps: 5_000, months: 24, strike_offset_bps: 50 }).unwrap();
+        let hedge = world.companies[company].holding.as_ref().unwrap().hedge.unwrap();
+        assert!(hedge.premium > 0);
+        assert_eq!(world.companies[company].books.total_equity(), equity - hedge.premium);
+        assert!(world.companies[company].books.balances());
+        let mut economy = world.economy.clone();
+        for slot in &mut economy.bloc_policy_rate_bps {
+            *slot = 800;
+        }
+        economy.policy_rate_bps = 800;
+        let base = world.companies[company].base_rate_bps(&economy);
+        assert_eq!(base, (800 + hedge.rate_bps.min(800)) / 2);
+    }
+
+    #[test]
+    fn a_lock_holds_the_spread_and_the_leverage_for_three_months() {
+        let mut world = world(4);
+        for _ in 0..90 {
+            play_month(&mut world);
+            let Some(company) = world.deals.iter().find(|deal| deal.approved_ev > 0 && deal.offer.is_some()).map(|deal| deal.company) else {
+                continue;
+            };
+            if world.active_lock(company).is_some() {
+                continue;
+            }
+            let spread = world.economy.credit_spread_bps;
+            let senior = world.economy.max_senior_millis();
+            let costs = world.fund.deal_costs;
+            let fee = world.lock_fee(company).unwrap();
+            world.apply(Command::LockFinancing { company }).unwrap();
+            assert_eq!(world.fund.deal_costs, costs + fee);
+            assert_eq!(world.apply(Command::LockFinancing { company }), Err(CommandError::AlreadyDone));
+            // Lenders take fright; the deal keeps its terms.
+            world.economy.credit_spread_bps = 900;
+            let offer = world.deals[world.deal_index(company).unwrap()].offer.clone().unwrap();
+            let locked = world.financing(company, &offer);
+            assert_eq!(world.lender_caps(company).0, senior);
+            let unlocked_spread = {
+                let deal = world.deal_index(company).unwrap();
+                let lock = world.deals[deal].lock.take();
+                let financing = world.financing(company, &offer);
+                world.deals[deal].lock = lock;
+                financing.spread_bps
+            };
+            assert!(locked.spread_bps < unlocked_spread, "{} vs {unlocked_spread}", locked.spread_bps);
+            assert!(locked.spread_bps >= spread);
+            let expires = world.active_lock(company).unwrap().expires;
+            assert_eq!(expires, world.date.plus_months(2));
+            return;
+        }
+        panic!("no approved deal in 90 months");
     }
 
     #[test]

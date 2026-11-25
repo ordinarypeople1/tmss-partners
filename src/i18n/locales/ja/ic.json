@@ -112,5 +112,7 @@
   "error.condition_open": "ICが求めたDDがまだ終わっていません。",
   "talk.title.think": "オーナーの返事",
   "talk.think.1": "良い提案ですね。家族と相談して、1、2か月のうちにご連絡します。",
-  "talk.think.2": "数字は分かりました。会計士と銀行の話も聞いてからお返事します。"
+  "talk.think.2": "数字は分かりました。会計士と銀行の話も聞いてからお返事します。",
+  "error.unknown_event": "その予定はありません。",
+  "error.not_this_month": "今月の発表と会合だけ聞けます。"
 }

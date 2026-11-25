@@ -861,3 +861,25 @@
   justify-self: start;
   margin-bottom: 4px;
 }
+
+.dr-lock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+.dr-lock[data-locked="true"] {
+  border-style: solid;
+  border-color: var(--good);
+  background: color-mix(in srgb, var(--good) var(--soft), transparent);
+}
+.dr-lock > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

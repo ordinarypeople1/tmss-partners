@@ -23,5 +23,9 @@
   "structure.cap": "交割后股权结构（完全稀释）",
   "structure.cap.fund": "我方基金",
   "structure.cap.seller": "卖方",
-  "structure.cap.bonds": "可转债投资人"
+  "structure.cap.bonds": "可转债投资人",
+  "structure.lock.about": "锁定贷款条件三个月。即使会议或数据扩大利差，此交易仍按当前条件。",
+  "structure.lock.buy": "锁定条件 {fee}",
+  "structure.lock.held": "条件已锁定：利差 {spread}，至 {until}",
+  "structure.lock.needsCommittee": "需先获IC批准"
 }

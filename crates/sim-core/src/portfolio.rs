@@ -149,6 +149,56 @@ pub struct Holding {
     pub surprised: bool,
     pub distressed_entry: bool,
     pub cured: bool,
+    /// A swap or a cap on the base rate of part of the debt.
+    #[serde(default)]
+    pub hedge: Option<Hedge>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HedgeKind {
+    /// Pays a fixed base rate instead of the floating one.
+    Swap,
+    /// Pays the floating base rate up to a strike, for a premium up front.
+    Cap,
+}
+
+/// A contract on the base rate. Terms, not a price: nothing here is marked to market.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Hedge {
+    pub kind: HedgeKind,
+    /// Share of the debt it covers.
+    pub share_bps: i64,
+    /// The swap's fixed base rate, or the cap's strike.
+    pub rate_bps: i64,
+    pub months: u32,
+    pub months_left: u32,
+    /// What the company paid up front. Zero for a swap.
+    pub premium: i64,
+}
+
+/// Terms a bank offers for a hedge on one holding, today.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HedgeQuote {
+    pub floating_bps: i64,
+    /// (months, fixed base rate).
+    pub swaps: Vec<(u32, i64)>,
+    /// (strike above today's rate, months, strike, premium for the whole debt).
+    pub caps: Vec<(i64, u32, i64, i64)>,
+}
+
+pub const HEDGE_MONTHS: [u32; 3] = [12, 24, 36];
+pub const CAP_OFFSETS_BPS: [i64; 3] = [50, 100, 200];
+pub const HEDGE_SHARES_BPS: [i64; 2] = [5_000, 10_000];
+
+impl Hedge {
+    /// The base rate on the debt it covers, given the floating one.
+    pub fn hedged_rate_bps(&self, floating: i64) -> i64 {
+        match self.kind {
+            HedgeKind::Swap => self.rate_bps,
+            HedgeKind::Cap => floating.min(self.rate_bps),
+        }
+    }
 }
 
 impl Holding {
@@ -196,6 +246,7 @@ impl Holding {
             surprised: false,
             distressed_entry: false,
             cured: false,
+            hedge: None,
         }
     }
 }
@@ -492,6 +543,7 @@ impl World {
             self.surface_issues(company);
             self.maybe_event(company);
             self.maybe_approach(company);
+            self.age_hedge(company);
             if closes_quarter {
                 self.test_covenants(company);
                 // The lenders may just have taken the company.
@@ -503,6 +555,113 @@ impl World {
                 self.exit_step(company);
             }
         }
+    }
+
+    fn age_hedge(&mut self, company: usize) {
+        let holding = self.holding_mut(company);
+        let Some(hedge) = holding.hedge.as_mut() else {
+            return;
+        };
+        hedge.months_left = hedge.months_left.saturating_sub(1);
+        if hedge.months_left == 0 {
+            let kind = hedge.kind;
+            holding.hedge = None;
+            self.post(MessageKind::HedgeExpired { kind }, Some(company));
+        }
+    }
+
+    /// Terms for a swap or a cap on a holding's debt. A swap's fixed rate leans
+    /// on the last stance of the company's central bank; a cap costs more the
+    /// closer its strike and the more uncertain the bloc.
+    pub fn hedge_quote(&self, company: usize) -> Option<HedgeQuote> {
+        let target = self.companies.get(company)?;
+        target.holding.as_ref()?;
+        let floating = self.economy.policy_rate_for(&target.country);
+        let bloc = crate::macro_events::Bloc::of_country(&target.country).unwrap_or(crate::macro_events::Bloc::Us);
+        let stance = self
+            .macro_calendar
+            .events
+            .iter()
+            .rev()
+            .find(|event| {
+                event.resolved()
+                    && event.kind.category() == crate::macro_events::Category::CentralBank
+                    && event.bloc() == bloc
+            })
+            .and_then(|event| event.stance)
+            .unwrap_or(0);
+        let uncertainty = self.economy.uncertainty_for(&target.country);
+        let debt = target.books.debt.max(0);
+        let swaps = HEDGE_MONTHS
+            .iter()
+            .map(|months| {
+                let years = i64::from(*months / 12);
+                (*months, (floating + years * (10 + stance * 20)).max(0))
+            })
+            .collect();
+        let mut caps = Vec::new();
+        for offset in CAP_OFFSETS_BPS {
+            let yearly_bps = match offset {
+                50 => 90,
+                100 => 50,
+                _ => 20,
+            } * (100 + uncertainty)
+                / 120;
+            for months in HEDGE_MONTHS {
+                let years = i64::from(months / 12);
+                caps.push((offset, months, floating + offset, mul_bps(debt, yearly_bps * years)));
+            }
+        }
+        Some(HedgeQuote { floating_bps: floating, swaps, caps })
+    }
+
+    pub(crate) fn hedge(
+        &mut self,
+        company: usize,
+        kind: HedgeKind,
+        share_bps: i64,
+        months: u32,
+        strike_offset_bps: i64,
+    ) -> Result<(), CommandError> {
+        self.held(company)?;
+        if self.held(company)?.hedge.is_some() {
+            return Err(CommandError::AlreadyDone);
+        }
+        if !HEDGE_SHARES_BPS.contains(&share_bps) || !HEDGE_MONTHS.contains(&months) {
+            return Err(CommandError::InvalidAmount);
+        }
+        if kind == HedgeKind::Cap && !CAP_OFFSETS_BPS.contains(&strike_offset_bps) {
+            return Err(CommandError::InvalidAmount);
+        }
+        let quote = self.hedge_quote(company).ok_or(CommandError::NotHeld)?;
+        let (rate_bps, premium) = match kind {
+            HedgeKind::Swap => (
+                quote.swaps.iter().find(|(m, _)| *m == months).map(|(_, rate)| *rate).unwrap_or(quote.floating_bps),
+                0,
+            ),
+            HedgeKind::Cap => {
+                let (_, _, strike, full) = quote
+                    .caps
+                    .iter()
+                    .copied()
+                    .find(|(offset, m, _, _)| *offset == strike_offset_bps && *m == months)
+                    .ok_or(CommandError::InvalidAmount)?;
+                (strike, mul_bps(full, share_bps))
+            }
+        };
+        self.spend_attention(1)?;
+        if premium > 0 {
+            self.charge(company, premium);
+        }
+        self.holding_mut(company).hedge = Some(Hedge {
+            kind,
+            share_bps,
+            rate_bps,
+            months,
+            months_left: months,
+            premium,
+        });
+        Ok(())
     }
 
     /// What diligence did not find goes off after the close.
@@ -747,7 +906,7 @@ impl World {
         let target = &self.companies[company];
         let ebitda = target.ttm_ebitda().max(1);
         let after = ratio_millis(target.net_debt() + amount, ebitda);
-        let market = self.economy.max_senior_millis() + self.economy.max_mezz_millis();
+        let market = self.economy.max_senior_for(&target.country) + self.economy.max_mezz_millis();
         if after > market.min(holding.max_leverage_millis - 500) {
             return Err(CommandError::LendersRefuse);
         }
@@ -891,7 +1050,8 @@ impl World {
         }
         let route = exit.route;
         let phase = self.economy.phase;
-        if route == ExitRoute::Ipo && phase == Phase::Recession {
+        let shut = self.economy.uncertainty_for(&self.companies[company].country) >= 70;
+        if route == ExitRoute::Ipo && (phase == Phase::Recession || shut) {
             self.holding_mut(company).exit = None;
             self.post(MessageKind::ExitPulled { route }, Some(company));
             return;
@@ -910,7 +1070,9 @@ impl World {
                 10_000 + self.rng.noise(400) - (self.economy.credit_spread_bps - 400) * 3
             }
             ExitRoute::Ipo => {
+                let country = &self.companies[company].country;
                 11_200 + self.rng.noise(700) + (self.economy.valuation_index() - 100) * 40
+                    - (self.economy.uncertainty_for(country) - crate::macro_events::UNCERTAINTY_BASE).max(0) * 20
             }
         };
         let ev = mul_bps(self.model_ev(company), factor.clamp(6_000, 14_000));
@@ -1001,7 +1163,7 @@ impl World {
         };
         let industry = self.industries[self.companies[company].sector].clone();
         let house = self.rng.below(RIVAL_HOUSES as u64) as u8;
-        let senior = self.economy.max_senior_millis();
+        let senior = self.economy.max_senior_for(&self.companies[company].country);
         let mut secondary_equity = None;
         let target = &mut self.companies[company];
         let mut holding = target.holding.take().expect("held company has a holding");

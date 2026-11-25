@@ -23,5 +23,9 @@
   "structure.cap": "인수 후 지분 구조(완전 희석)",
   "structure.cap.fund": "우리 펀드",
   "structure.cap.seller": "매도자",
-  "structure.cap.bonds": "전환사채 투자자"
+  "structure.cap.bonds": "전환사채 투자자",
+  "structure.lock.about": "대주 조건을 3개월 묶는다. FOMC나 지표가 스프레드를 벌려도 이 딜은 지금 조건으로 간다.",
+  "structure.lock.buy": "조건 고정 {fee}",
+  "structure.lock.held": "조건 고정: 스프레드 {spread}, {until}까지",
+  "structure.lock.needsCommittee": "IC 승인 뒤에 묶을 수 있다"
 }

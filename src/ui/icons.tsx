@@ -26,6 +26,7 @@ const PATHS: Record<string, ReactNode> = {
   bolt: <path d="M13 2L4 14h7l-1 8 9-12h-7z" />,
   layers: <path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 17l9 5 9-5" />,
   table: <path d="M3 5h18v14H3zM3 10h18M3 15h18M9 5v14" />,
+  calendar: <path d="M4 5h16v15H4zM4 10h16M8 3v4M16 3v4" />,
   clock: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 3" />,
   up: <path d="M12 19V5M5 12l7-7 7 7" />,
   down: <path d="M12 5v14M5 12l7 7 7-7" />,

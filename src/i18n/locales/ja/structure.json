@@ -23,5 +23,9 @@
   "structure.cap": "取得後の株主構成（完全希薄化後）",
   "structure.cap.fund": "当ファンド",
   "structure.cap.seller": "売り手",
-  "structure.cap.bonds": "転換社債の投資家"
+  "structure.cap.bonds": "転換社債の投資家",
+  "structure.lock.about": "融資条件を3か月固定する。会合や指標でスプレッドが広がっても、この案件は今の条件のまま。",
+  "structure.lock.buy": "条件固定 {fee}",
+  "structure.lock.held": "条件固定中: スプレッド {spread}、{until}まで",
+  "structure.lock.needsCommittee": "IC承認後に固定できる"
 }

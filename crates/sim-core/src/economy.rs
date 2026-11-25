@@ -1,16 +1,29 @@
 //! Rates, the business cycle, credit, and sector cycles.
 //!
-//! Nothing here is a price. The policy rate moves at most one step a quarter.
-//! The phase is a slow Markov chain. Every number is a placeholder.
+//! Nothing here is a price. The policy rate moves only at FOMC meetings, which
+//! `macro_events` runs. The phase is a slow Markov chain that the macro state
+//! leans on. Every number is a placeholder.
 
 use serde::{Deserialize, Serialize};
 
 use crate::content::Industry;
 use crate::rng::Rng;
 
-const RATE_STEP_BPS: i64 = 25;
-const RATE_FLOOR_BPS: i64 = 0;
-const RATE_CAP_BPS: i64 = 800;
+pub const RATE_FLOOR_BPS: i64 = 0;
+pub const RATE_CAP_BPS: i64 = 800;
+/// Monthly revenue growth a bloc's news can add or take, in basis points.
+pub const BLOC_GROWTH_CAP_BPS: i64 = 15;
+/// How far a bloc's news can move its multiples, in basis points.
+pub const BLOC_MULTIPLE_CAP_BPS: i64 = 800;
+/// How far laws can move a bloc's tax rate, in basis points.
+pub const TAX_DELTA_CAP_BPS: i64 = 600;
+/// The most a bloc's politics can add to the chance a regulator refuses a foreign buyer.
+pub const APPROVAL_DRAG_CAP_BPS: i64 = 1_500;
+/// Tariffs in force, as a drag on exporters' growth.
+pub const TRADE_DRAG_CAP_BPS: i64 = 600;
+/// Energy prices above normal, as a drag on energy-heavy companies.
+pub const ENERGY_SHOCK_CAP_BPS: i64 = 900;
+const BLOCS: usize = crate::macro_events::BLOC_COUNT;
 const HISTORY_MONTHS: usize = 240;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -53,6 +66,37 @@ pub struct Economy {
     /// One slow wave per sector, in basis points around zero.
     pub sector_cycle_bps: Vec<i64>,
     pub history: Vec<EconomyPoint>,
+    /// Monthly growth the news adds per bloc, in `macro_events::BLOCS` order.
+    #[serde(default)]
+    pub bloc_growth_bps: Vec<i64>,
+    /// Multiplier the news puts on each bloc's multiples, around zero.
+    #[serde(default)]
+    pub bloc_multiple_bps: Vec<i64>,
+    /// 0–100 per bloc. Owners wait and IPOs stall when it is high.
+    #[serde(default = "base_uncertainty")]
+    pub uncertainty: Vec<i64>,
+    /// Added to every company's tax rate in a bloc, by law.
+    #[serde(default)]
+    pub bloc_tax_delta_bps: Vec<i64>,
+    /// Added to the chance a regulator in the bloc refuses a foreign buyer.
+    #[serde(default)]
+    pub bloc_approval_drag_bps: Vec<i64>,
+    #[serde(default)]
+    pub trade_drag_bps: i64,
+    #[serde(default)]
+    pub energy_shock_bps: i64,
+    /// Each bloc's own policy rate, in `macro_events::BLOCS` order. The US slot
+    /// is `policy_rate_bps`. Companies borrow at their bloc's rate.
+    #[serde(default)]
+    pub bloc_policy_rate_bps: Vec<i64>,
+}
+
+/// Where each bloc's rate sits when it neither helps nor holds back, by bloc
+/// index. The US slot is replaced by the game's own neutral rate.
+const BLOC_NEUTRAL_BPS: [i64; BLOCS] = [0, 200, 320, 225, 25, 250];
+
+fn base_uncertainty() -> Vec<i64> {
+    vec![crate::macro_events::UNCERTAINTY_BASE; BLOCS]
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,20 +122,30 @@ impl Economy {
             credit_spread_bps,
             sector_cycle_bps: vec![0; sectors],
             history: Vec::new(),
+            bloc_growth_bps: vec![0; BLOCS],
+            bloc_multiple_bps: vec![0; BLOCS],
+            uncertainty: base_uncertainty(),
+            bloc_tax_delta_bps: vec![0; BLOCS],
+            bloc_approval_drag_bps: vec![0; BLOCS],
+            trade_drag_bps: 0,
+            energy_shock_bps: 0,
+            bloc_policy_rate_bps: Vec::new(),
         };
         economy.record();
         economy
     }
 
+    /// One month. `growth_signal_bps` is the macro state's read of output,
+    /// around zero; weak readings hasten a downturn and strong ones end it.
     pub fn step(
         &mut self,
         rng: &mut Rng,
         industries: &[Industry],
-        closes_quarter: bool,
+        growth_signal_bps: i64,
     ) -> Vec<EconomyNews> {
         let mut news = Vec::new();
         self.phase_months += 1;
-        if let Some(next) = self.next_phase(rng) {
+        if let Some(next) = self.next_phase(rng, growth_signal_bps) {
             news.push(EconomyNews::PhaseChanged {
                 from: self.phase,
                 to: next,
@@ -121,25 +175,22 @@ impl Economy {
             *cycle = (*cycle).clamp(-amplitude * 3 / 2, amplitude * 3 / 2);
         }
 
-        if closes_quarter {
-            if let Some(change) = self.step_policy_rate(rng) {
-                news.push(change);
-            }
-        }
         self.record();
         news
     }
 
-    fn next_phase(&self, rng: &mut Rng) -> Option<Phase> {
+    fn next_phase(&self, rng: &mut Rng, signal: i64) -> Option<Phase> {
         let tight = self.policy_rate_bps >= self.neutral_rate_bps + 200;
+        let weak = (-signal).clamp(0, 300) as u32;
+        let strong = signal.clamp(0, 300) as u32;
         match self.phase {
             Phase::Expansion if self.phase_months >= 24 => rng
-                .chance_bps(if tight { 450 } else { 220 })
+                .chance_bps(if tight { 450 } else { 220 } + weak * 2)
                 .then_some(Phase::Slowdown),
             Phase::Slowdown if self.phase_months >= 3 => {
-                if rng.chance_bps(if tight { 1_400 } else { 900 }) {
+                if rng.chance_bps(if tight { 1_400 } else { 900 } + weak * 3) {
                     Some(Phase::Recession)
-                } else if rng.chance_bps(700) {
+                } else if rng.chance_bps(700 + strong * 3) {
                     Some(Phase::Expansion)
                 } else {
                     None
@@ -155,45 +206,112 @@ impl Economy {
         }
     }
 
-    /// A slow path, not a ticker: at most one step a quarter, pulled toward a
-    /// target that sits below neutral in a recession and above it late in an
-    /// expansion.
-    fn step_policy_rate(&mut self, rng: &mut Rng) -> Option<EconomyNews> {
-        let target = self.neutral_rate_bps
-            + match self.phase {
-                Phase::Recession => -200,
-                Phase::Recovery => -100,
-                Phase::Slowdown => 0,
-                Phase::Expansion if self.phase_months > 36 => 150,
-                Phase::Expansion => 25,
-            };
-        let gap = target - self.policy_rate_bps;
-        let move_chance = if gap.abs() >= 150 { 6_000 } else { 3_000 };
-        if !rng.chance_bps(move_chance) {
-            return None;
+    /// Pads the per-bloc arrays of a save from before all six blocs.
+    pub fn ensure_blocs(&mut self) {
+        for (slot, fill) in [
+            (&mut self.bloc_growth_bps, 0),
+            (&mut self.bloc_multiple_bps, 0),
+            (&mut self.uncertainty, crate::macro_events::UNCERTAINTY_BASE),
+            (&mut self.bloc_tax_delta_bps, 0),
+            (&mut self.bloc_approval_drag_bps, 0),
+        ] {
+            slot.resize(BLOCS, fill);
         }
-        let toward = gap.signum();
-        let direction = if toward == 0 {
-            if rng.chance_bps(5_000) {
-                1
-            } else {
-                -1
-            }
-        } else if rng.chance_bps(8_000) {
-            toward
+    }
+
+    /// The news fades: growth by a fifth a month, multiples by a tenth,
+    /// energy by a tenth, tariffs and regulators slowly. Laws stay.
+    pub fn decay_tilts(&mut self) {
+        for slot in &mut self.bloc_growth_bps {
+            *slot = *slot * 80 / 100;
+        }
+        for slot in &mut self.bloc_multiple_bps {
+            *slot = *slot * 90 / 100;
+        }
+        for slot in &mut self.bloc_approval_drag_bps {
+            *slot = *slot * 98 / 100;
+        }
+        self.trade_drag_bps = self.trade_drag_bps * 97 / 100;
+        self.energy_shock_bps = self.energy_shock_bps * 90 / 100;
+    }
+
+    /// The bloc's neutral rate.
+    pub fn neutral_for_bloc(&self, index: usize) -> i64 {
+        if index == 0 {
+            self.neutral_rate_bps
         } else {
-            -toward
-        };
-        let from = self.policy_rate_bps;
-        let to = (from + direction * RATE_STEP_BPS).clamp(RATE_FLOOR_BPS, RATE_CAP_BPS);
-        if to == from {
-            return None;
+            BLOC_NEUTRAL_BPS.get(index).copied().unwrap_or(self.neutral_rate_bps)
         }
-        self.policy_rate_bps = to;
-        Some(EconomyNews::RateChanged {
-            from_bps: from,
-            to_bps: to,
-        })
+    }
+
+    fn bloc_slot(country: &str) -> Option<usize> {
+        crate::macro_events::Bloc::of_country(country).map(|bloc| bloc.index())
+    }
+
+    /// The policy rate a company in this country borrows over.
+    pub fn policy_rate_for(&self, country: &str) -> i64 {
+        match Self::bloc_slot(country) {
+            Some(0) | None => self.policy_rate_bps,
+            Some(index) => self.bloc_policy_rate_bps.get(index).copied().unwrap_or(self.policy_rate_bps),
+        }
+    }
+
+    /// The local neutral rate for this country.
+    pub fn neutral_for(&self, country: &str) -> i64 {
+        match Self::bloc_slot(country) {
+            Some(index) if !self.bloc_policy_rate_bps.is_empty() => self.neutral_for_bloc(index),
+            _ => self.neutral_rate_bps,
+        }
+    }
+
+    /// `rate_factor_millis` on the local rate and its own neutral.
+    pub fn rate_factor_for(&self, country: &str, rate_beta_millis: i64) -> i64 {
+        let gap = self.policy_rate_for(country) - self.neutral_for(country);
+        let drag = rate_beta_millis * gap / 10_000;
+        1_000_000 / (1_000 + drag).max(400)
+    }
+
+    /// Senior debt local lenders write: the global market, tighter where the
+    /// local rate stands further above its neutral than the Fed's does.
+    pub fn max_senior_for(&self, country: &str) -> i64 {
+        let global = self.max_senior_millis();
+        let local_gap = self.policy_rate_for(country) - self.neutral_for(country);
+        let us_gap = self.policy_rate_bps - self.neutral_rate_bps;
+        (global - (local_gap - us_gap) * 2).clamp(2_500, 5_000)
+    }
+
+    pub fn senior_rate_for(&self, country: &str) -> i64 {
+        self.policy_rate_for(country) + self.credit_spread_bps
+    }
+
+    pub fn tax_delta_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_tax_delta_bps[bloc.index()])
+            .unwrap_or(0)
+    }
+
+    pub fn approval_drag_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_approval_drag_bps[bloc.index()])
+            .unwrap_or(0)
+    }
+
+    pub fn bloc_growth_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_growth_bps[bloc.index()])
+            .unwrap_or(0)
+    }
+
+    pub fn bloc_multiple_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_multiple_bps[bloc.index()])
+            .unwrap_or(0)
+    }
+
+    pub fn uncertainty_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.uncertainty[bloc.index()])
+            .unwrap_or(crate::macro_events::UNCERTAINTY_BASE)
     }
 
     fn record(&mut self) {
@@ -226,6 +344,8 @@ impl Economy {
     /// 100 is a normal market. The screen's one-number read of valuations.
     pub fn valuation_index(&self) -> i64 {
         self.rate_factor_millis(7_000) * self.phase_multiple_bps() / 100_000
+            * (10_000 + self.bloc_multiple_bps[0])
+            / 10_000
     }
 
     /// Monthly revenue growth the phase and the sector wave add, in basis points.
@@ -290,20 +410,15 @@ mod tests {
     }
 
     #[test]
-    fn the_rate_moves_one_step_at_quarter_ends_and_stays_in_bounds() {
+    fn on_its_own_the_economy_leaves_the_rate_alone_and_keeps_spreads_in_bounds() {
         let industries = industries();
         for seed in 0..20 {
             let mut rng = Rng::new(seed);
             let mut economy = Economy::new(1, &mut rng, Era::HighRates);
-            for month in 1..=480 {
-                let before = economy.policy_rate_bps;
-                economy.step(&mut rng, &industries, month % 3 == 0);
-                let moved = (economy.policy_rate_bps - before).abs();
-                assert!(moved == 0 || moved == RATE_STEP_BPS);
-                if month % 3 != 0 {
-                    assert_eq!(moved, 0);
-                }
-                assert!((RATE_FLOOR_BPS..=RATE_CAP_BPS).contains(&economy.policy_rate_bps));
+            let rate = economy.policy_rate_bps;
+            for _ in 1..=480 {
+                economy.step(&mut rng, &industries, 0);
+                assert_eq!(economy.policy_rate_bps, rate);
                 assert!((250..=1_100).contains(&economy.credit_spread_bps));
             }
         }
@@ -315,8 +430,8 @@ mod tests {
         let mut rng = Rng::new(11);
         let mut economy = Economy::new(1, &mut rng, Era::HighRates);
         let mut seen = Vec::new();
-        for month in 1..=480 {
-            economy.step(&mut rng, &industries, month % 3 == 0);
+        for _ in 1..=480 {
+            economy.step(&mut rng, &industries, 0);
             if !seen.contains(&economy.phase) {
                 seen.push(economy.phase);
             }

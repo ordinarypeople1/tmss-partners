@@ -112,5 +112,7 @@
   "error.condition_open": "A report the IC asked for is not in yet.",
   "talk.title.think": "The owner's answer",
   "talk.think.1": "A good proposal. Let me talk it over with the family; you will hear from me in a month or two.",
-  "talk.think.2": "I see the numbers. I will hear the accountant and the bank first, then give you an answer."
+  "talk.think.2": "I see the numbers. I will hear the accountant and the bank first, then give you an answer.",
+  "error.unknown_event": "There is no such event.",
+  "error.not_this_month": "Only this month's releases and meetings can be called."
 }

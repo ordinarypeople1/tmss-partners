@@ -454,3 +454,9 @@
     flex: 1 1 100%;
   }
 }
+
+.hd-picks .btn[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--panel);
+}
