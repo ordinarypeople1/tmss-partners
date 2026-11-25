@@ -111,5 +111,22 @@
   "holding.lever.family_workforce": "장기 근속 인력 · 파업·평판 위험 ↑",
   "holding.lever.fragmented_market": "파편화된 시장 · 시너지 ↑",
   "holding.lever.aging_equipment": "노후 설비 · 유지 설비투자 ↑",
-  "holding.lever.single_plant": "단일 공장 · 가동 중단 위험"
+  "holding.lever.single_plant": "단일 공장 · 가동 중단 위험",
+  "holding.hedge.title": "금리 헤지",
+  "holding.hedge.none": "없음",
+  "holding.hedge.floating": "현지 기준금리 {rate}",
+  "holding.hedge.paying": "지금 내는 기준금리 {rate}",
+  "holding.hedge.held.swap": "부채의 {share}를 {rate} 고정으로 바꿨다. {months}개월 남음.",
+  "holding.hedge.held.cap": "부채 {share}의 기준금리가 {rate}를 넘지 않는다. {months}개월 남음.",
+  "holding.hedge.term": "계약 기간",
+  "holding.hedge.left": "{months}개월 남음",
+  "holding.hedge.hint": "부채는 현지 중앙은행 금리에 연동된다. 스왑은 기준금리를 고정하고, 캡은 수수료를 먼저 내고 상한을 건다. 가격이 아니라 계약 조건이다.",
+  "holding.hedge.kind.swap": "금리 스왑",
+  "holding.hedge.kind.cap": "금리 캡",
+  "holding.hedge.share": "부채의 {share}",
+  "holding.hedge.years": "{years}년",
+  "holding.hedge.strikeAbove": "지금 +{offset}",
+  "holding.hedge.swapTerms": "부채 {share}의 기준금리를 {rate}로 고정. 선불 없음. 중앙은행 기조가 매파면 고정금리가 높다.",
+  "holding.hedge.capTerms": "부채 {share}의 기준금리 상한 {strike}. 수수료 {premium}을 회사가 지금 낸다.",
+  "holding.hedge.submit": "계약"
 }

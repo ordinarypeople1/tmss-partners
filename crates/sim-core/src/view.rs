@@ -274,6 +274,7 @@ impl World {
                 "bloc_approval_drag_bps": self.economy.bloc_approval_drag_bps,
                 "trade_drag_bps": self.economy.trade_drag_bps,
                 "energy_shock_bps": self.economy.energy_shock_bps,
+                "bloc_policy_rate_bps": self.economy.bloc_policy_rate_bps,
             },
             "calendar": self.calendar_view(),
             "fund": {
@@ -417,6 +418,16 @@ impl World {
             } else {
                 Value::Null
             },
+        );
+        let country = company.country.as_str();
+        detail.insert(
+            "local_credit".into(),
+            json!({
+                "policy_rate_bps": self.economy.policy_rate_for(country),
+                "neutral_bps": self.economy.neutral_for(country),
+                "max_senior_millis": self.economy.max_senior_for(country),
+                "senior_rate_bps": self.economy.senior_rate_for(country),
+            }),
         );
         detail.insert(
             "exposure".into(),
@@ -601,6 +612,9 @@ impl World {
                     "irr_bps": crate::math::irr_bps(&flows),
                     "bridge": { "ebitda": from_ebitda, "multiple": from_multiple, "debt": from_debt },
                     "max_leverage_millis": holding.max_leverage_millis,
+                    "hedge": holding.hedge,
+                    "hedge_quote": self.hedge_quote(index),
+                    "base_rate_bps": company.base_rate_bps(&self.economy),
                     "min_cover_millis": holding.min_cover_millis,
                     "maturity": holding.maturity,
                     "breaches": holding.breaches,

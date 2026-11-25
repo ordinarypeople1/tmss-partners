@@ -281,7 +281,10 @@ export function Calendar() {
                 label={t("calendar.mood", { bloc: t(`bloc.${bloc}`) })}
                 value={f.integer(uncertainty)}
                 tone={uncertainty >= 50 ? "warn" : undefined}
-                hint={t("calendar.moodHint", { multiple: f.signedPct(view.economy.bloc_multiple_bps[index] ?? 0, 1) })}
+                hint={t("calendar.moodHint", {
+                  rate: f.pct(view.economy.bloc_policy_rate_bps[index] ?? view.economy.policy_rate_bps, 2),
+                  multiple: f.signedPct(view.economy.bloc_multiple_bps[index] ?? 0, 1),
+                })}
               />
             );
           })}

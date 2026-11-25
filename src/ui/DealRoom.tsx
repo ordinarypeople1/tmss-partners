@@ -231,9 +231,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const modelEv = deal?.valuation?.mid ?? company.ev?.[0] ?? 0;
   // A lock holds the lenders' terms the month it was bought.
   const lock = deal?.lock ?? null;
-  const maxSenior = lock?.max_senior_millis ?? view.economy.max_senior_millis;
+  // Local lenders: the company's own central bank sets the base rate.
+  const local = company.local_credit;
+  const maxSenior = lock?.max_senior_millis ?? local.max_senior_millis;
   const maxMezz = lock?.max_mezz_millis ?? view.economy.max_mezz_millis;
-  const seniorRate = lock ? view.economy.policy_rate_bps + lock.spread_bps : view.economy.senior_rate_bps;
+  const seniorRate = lock ? local.policy_rate_bps + lock.spread_bps : local.senior_rate_bps;
 
   const [draft, setDraft] = useState<Offer>(
     () =>

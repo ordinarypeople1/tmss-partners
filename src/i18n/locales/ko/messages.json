@@ -218,5 +218,7 @@
   "msg.macro_shock.geopolitics": "{bloc} 쪽 긴장. 에너지가 뛴다. 강도 {severity}.",
   "msg.macro_shock.bank_stress": "{bloc}의 은행이 흔들린다. 대주들이 몸을 사린다. 강도 {severity}.",
   "msg.macro_alert.title": "이번 달 보유 회사에 닿는 발표 {count}건",
-  "msg.macro_alert.body": "보유 {companies}개사가 노출돼 있다. 캘린더에서 확인한다."
+  "msg.macro_alert.body": "보유 {companies}개사가 노출돼 있다. 캘린더에서 확인한다.",
+  "msg.hedge_expired.title": "{kind} 만기",
+  "msg.hedge_expired.body": "부채가 다시 현지 기준금리를 그대로 따른다."
 }

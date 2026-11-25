@@ -139,6 +139,10 @@ pub enum MessageKind {
         target: Option<crate::macro_events::Bloc>,
         severity: i64,
     },
+    /// A swap or cap ran its term.
+    HedgeExpired {
+        kind: crate::portfolio::HedgeKind,
+    },
     /// This month's big releases that touch the fund's holdings.
     MacroAlert {
         events: Vec<u64>,
@@ -444,6 +448,16 @@ pub enum Command {
     LockFinancing {
         company: usize,
     },
+    /// One attention: a swap or a cap on part of a holding's debt.
+    Hedge {
+        company: usize,
+        kind: crate::portfolio::HedgeKind,
+        share_bps: i64,
+        months: u32,
+        /// For a cap: the strike above today's base rate.
+        #[serde(default)]
+        strike_offset_bps: i64,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -602,7 +616,11 @@ impl World {
         }
         let career = Career::new();
         let sectors = universe.industries.len();
-        let economy = Economy::new(universe.industries.len(), &mut rng, options.era);
+        let mut economy = Economy::new(universe.industries.len(), &mut rng, options.era);
+        // The calendar opens first: each country's rate prices its companies' history.
+        let macro_calendar =
+            crate::macro_events::MacroCalendar::open(seed, universe.opens, &economy, options.era);
+        macro_calendar.sync_rates(&mut economy);
         // Five years of statements behind each company, from a seed of its own
         // so the main stream of the game is untouched.
         for (index, company) in companies.iter_mut().enumerate() {
@@ -639,16 +657,10 @@ impl World {
             fund_started_month: 0,
             street: 0,
             banks: vec![0; crate::advisers::ADVISERS],
-            macro_calendar: crate::macro_events::MacroCalendar::default(),
+            macro_calendar,
             next_message_id: 0,
             rng,
         };
-        world.macro_calendar = crate::macro_events::MacroCalendar::open(
-            seed,
-            world.date,
-            &world.economy,
-            options.era,
-        );
         // What the rival houses already own is their opening book.
         for index in 0..world.companies.len() {
             if let crate::company::Owner::Sponsor { house, .. } = world.companies[index].owner {
@@ -689,6 +701,9 @@ impl World {
             );
         }
         world.macro_calendar.upgrade(world.date, &world.economy);
+        if world.economy.bloc_policy_rate_bps.len() != crate::macro_events::BLOC_COUNT {
+            world.macro_calendar.sync_rates(&mut world.economy);
+        }
         for company in &mut world.companies {
             if company.exposure.is_none() {
                 let sector = &world.industries[company.sector].sector_id;
@@ -749,6 +764,13 @@ impl World {
             }
             Command::CallEconomist { event } => self.call_economist(event),
             Command::LockFinancing { company } => self.lock_financing(company),
+            Command::Hedge {
+                company,
+                kind,
+                share_bps,
+                months,
+                strike_offset_bps,
+            } => self.hedge(company, kind, share_bps, months, strike_offset_bps),
             Command::MarkAllRead => {
                 for message in &mut self.messages {
                     message.read = true;
@@ -1166,7 +1188,7 @@ impl World {
                 continue;
             }
             let stretched =
-                self.companies[index].leverage_millis() > self.economy.max_senior_millis();
+                self.companies[index].leverage_millis() > self.economy.max_senior_for(&self.companies[index].country);
             let spread_bps = self.economy.credit_spread_bps + if stretched { 250 } else { 0 };
             let date = self.date;
             let target = &mut self.companies[index];
@@ -2024,6 +2046,92 @@ pub mod tests {
             world.apply(Command::ResearchSector { sector: 99 }),
             Err(CommandError::UnknownSector)
         );
+    }
+
+    #[test]
+    fn each_country_borrows_over_its_own_central_bank() {
+        let mut world = world(14);
+        run(&mut world, 6);
+        assert_eq!(world.economy.bloc_policy_rate_bps.len(), crate::macro_events::BLOC_COUNT);
+        let latent = &world.macro_calendar.latent;
+        for (country, rate) in [
+            ("US", world.economy.policy_rate_bps),
+            ("DE", latent.ecb_rate),
+            ("FR", latent.ecb_rate),
+            ("CN", latent.cn_lpr),
+            ("GB", latent.boe_rate),
+            ("JP", latent.boj_rate),
+            ("KR", latent.bok_rate),
+        ] {
+            let company = world.companies.iter().find(|company| company.country == country).unwrap();
+            assert_eq!(company.interest_rate_bps(&world.economy), rate + company.debt_spread_bps, "{country}");
+        }
+        // A bloc whose rate sits above its neutral gets less senior debt than the global market.
+        let mut economy = world.economy.clone();
+        economy.bloc_policy_rate_bps[4] = economy.neutral_for_bloc(4) + 300;
+        economy.policy_rate_bps = economy.neutral_rate_bps;
+        assert!(economy.max_senior_for("JP") < economy.max_senior_for("US") || economy.max_senior_for("JP") == 2_500);
+    }
+
+    #[test]
+    fn a_swap_fixes_the_base_rate_and_a_cap_bounds_it() {
+        let mut world = world(4);
+        let mut company = None;
+        for _ in 0..90 {
+            play_month(&mut world);
+            company = (0..world.companies.len()).find(|index| world.companies[*index].is_player_owned());
+            if company.is_some() {
+                break;
+            }
+        }
+        let company = company.expect("the bot buys something in 90 months");
+        let country = world.companies[company].country.clone();
+        assert_eq!(
+            world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Swap, share_bps: 3_000, months: 12, strike_offset_bps: 0 }),
+            Err(CommandError::InvalidAmount)
+        );
+        world.attention_left = 5;
+        world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Swap, share_bps: 10_000, months: 12, strike_offset_bps: 0 }).unwrap();
+        let fixed = world.companies[company].holding.as_ref().unwrap().hedge.unwrap().rate_bps;
+        // However the central bank moves, the base rate stays where the swap put it.
+        for shock in [-200, 300] {
+            let mut economy = world.economy.clone();
+            economy.policy_rate_bps = (economy.policy_rate_bps + shock).clamp(0, 800);
+            for slot in &mut economy.bloc_policy_rate_bps {
+                *slot = (*slot + shock).clamp(0, 800);
+            }
+            assert_eq!(world.companies[company].base_rate_bps(&economy), fixed);
+        }
+        assert_eq!(
+            world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Cap, share_bps: 10_000, months: 12, strike_offset_bps: 100 }),
+            Err(CommandError::AlreadyDone)
+        );
+        // Twelve months on, it has run out and the floating rate is back.
+        for _ in 0..12 {
+            world.advance_month();
+            if !world.companies[company].is_player_owned() {
+                return;
+            }
+            assert!(world.companies[company].books.balances());
+        }
+        assert!(world.companies[company].holding.as_ref().unwrap().hedge.is_none());
+        assert_eq!(world.companies[company].base_rate_bps(&world.economy), world.economy.policy_rate_for(&country));
+
+        // A cap: the premium comes out of the company, and the base rate never passes the strike.
+        world.attention_left = 5;
+        let equity = world.companies[company].books.total_equity();
+        world.apply(Command::Hedge { company, kind: crate::portfolio::HedgeKind::Cap, share_bps: 5_000, months: 24, strike_offset_bps: 50 }).unwrap();
+        let hedge = world.companies[company].holding.as_ref().unwrap().hedge.unwrap();
+        assert!(hedge.premium > 0);
+        assert_eq!(world.companies[company].books.total_equity(), equity - hedge.premium);
+        assert!(world.companies[company].books.balances());
+        let mut economy = world.economy.clone();
+        for slot in &mut economy.bloc_policy_rate_bps {
+            *slot = 800;
+        }
+        economy.policy_rate_bps = 800;
+        let base = world.companies[company].base_rate_bps(&economy);
+        assert_eq!(base, (800 + hedge.rate_bps.min(800)) / 2);
     }
 
     #[test]

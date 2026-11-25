@@ -9,7 +9,7 @@
   "calendar.strip.mine": "本月我们的日程",
   "calendar.strip.noneMine": "无截止事项",
   "calendar.mood": "{bloc}不确定性",
-  "calendar.moodHint": "倍数倾斜 {multiple}",
+  "calendar.moodHint": "利率 {rate}・倍数 {multiple}",
   "calendar.moodTip": "0–100。数值高时，业主推迟出售，IPO窗口收窄。达到70及以上时，上市退出被撤回。",
   "calendar.filters": "筛选",
   "calendar.layer.central_bank": "央行",
@@ -238,5 +238,6 @@
   "macro.event.bank_stress": "银行危机",
   "macro.short.bank_stress": "银行危机",
   "macro.about.bank_stress": "信用利差扩大，贷款标准收紧，随后出现降息压力。",
-  "calendar.noEffectsFailed": "被否决，没有变化。"
+  "calendar.noEffectsFailed": "被否决，没有变化。",
+  "calendar.effect.local_rate": "{bloc}基准利率"
 }

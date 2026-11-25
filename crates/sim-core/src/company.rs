@@ -655,8 +655,23 @@ impl Company {
             - economy.energy_shock_bps * exposure.energy_bps / 10_000 / 25
     }
 
+    /// The base rate on the debt: the local policy rate, with any hedge on part of it.
+    pub fn base_rate_bps(&self, economy: &Economy) -> i64 {
+        let floating = economy.policy_rate_for(&self.country);
+        let Some(hedge) = self
+            .holding
+            .as_ref()
+            .and_then(|holding| holding.hedge)
+            .filter(|hedge| hedge.months_left > 0)
+        else {
+            return floating;
+        };
+        let hedged = hedge.hedged_rate_bps(floating);
+        (floating * (10_000 - hedge.share_bps) + hedged * hedge.share_bps) / 10_000
+    }
+
     pub fn interest_rate_bps(&self, economy: &Economy) -> i64 {
-        economy.policy_rate_bps + self.debt_spread_bps
+        self.base_rate_bps(economy) + self.debt_spread_bps
     }
     /// Trailing EBITDA over a year of interest at today's rate, in thousandths.
     pub fn interest_cover_millis(&self, economy: &Economy) -> i64 {
@@ -700,7 +715,7 @@ impl Company {
         let mut multiple = self.base_multiple_millis;
         multiple = mul_millis(
             multiple,
-            economy.rate_factor_millis(industry.rate_beta_millis),
+            economy.rate_factor_for(&self.country, industry.rate_beta_millis),
         );
         multiple = mul_bps(multiple, 10_000 + economy.sector_cycle_bps[self.sector]);
         multiple = mul_bps(multiple, economy.phase_multiple_bps());

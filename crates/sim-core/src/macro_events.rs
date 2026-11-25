@@ -449,6 +449,8 @@ pub enum Effect {
     ApprovalDrag { bloc: Bloc, delta_bps: i64 },
     TradeDrag { delta_bps: i64 },
     EnergyCost { delta_bps: i64 },
+    /// Another central bank's own rate, which its bloc's companies borrow over.
+    LocalRate { bloc: Bloc, delta_bps: i64 },
 }
 
 /// A law put to a vote after an election: which axis, which way, whose.
@@ -1121,7 +1123,21 @@ impl MacroCalendar {
         self.draw_shocks(closing, economy, industries, &mut news);
         self.settle_uncertainty(closing, economy);
         economy.decay_tilts();
+        self.sync_rates(economy);
         news
+    }
+
+    /// Writes every bloc's policy rate into the economy, where companies borrow over it.
+    pub fn sync_rates(&self, economy: &mut Economy) {
+        let state = &self.latent;
+        economy.bloc_policy_rate_bps = vec![
+            economy.policy_rate_bps,
+            state.ecb_rate,
+            state.cn_lpr,
+            state.boe_rate,
+            state.boj_rate,
+            state.bok_rate,
+        ];
     }
 
     /// After the date has moved: lays out more of the schedule, drops old
@@ -1207,6 +1223,12 @@ impl MacroCalendar {
                     _ => &mut self.latent.bok_rate,
                 };
                 *slot = to;
+                if to != rate {
+                    effects.push(Effect::LocalRate {
+                        bloc: kind.bloc(),
+                        delta_bps: to - rate,
+                    });
+                }
                 to
             }
             MacroKind::CnNpc => {
@@ -1780,7 +1802,8 @@ fn effect_delta(effect: &Effect) -> i64 {
         | Effect::TaxRate { delta_bps, .. }
         | Effect::ApprovalDrag { delta_bps, .. }
         | Effect::TradeDrag { delta_bps }
-        | Effect::EnergyCost { delta_bps } => *delta_bps,
+        | Effect::EnergyCost { delta_bps }
+        | Effect::LocalRate { delta_bps, .. } => *delta_bps,
         Effect::Uncertainty { delta, .. } => *delta,
     }
 }

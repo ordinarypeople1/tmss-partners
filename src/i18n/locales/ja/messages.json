@@ -218,5 +218,7 @@
   "msg.macro_shock.geopolitics": "{bloc}周辺で緊張。エネルギーが跳ねる。強度{severity}。",
   "msg.macro_shock.bank_stress": "{bloc}の銀行が揺らぐ。貸し手が慎重になる。強度{severity}。",
   "msg.macro_alert.title": "今月、保有会社に関わる発表{count}件",
-  "msg.macro_alert.body": "保有{companies}社が影響を受ける。カレンダーで確認。"
+  "msg.macro_alert.body": "保有{companies}社が影響を受ける。カレンダーで確認。",
+  "msg.hedge_expired.title": "{kind}満期",
+  "msg.hedge_expired.body": "負債は再び現地政策金利に連動する。"
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { gate } from "./Gate";
 import "./HoldingTab.css";
 import { useT } from "../i18n/useT";
-import type { Budget, CompanyView, ExitRoute, Financials, HoldingView, InitiativeKind, Trait } from "../sim/types";
+import type { Budget, CompanyView, ExitRoute, Financials, HedgeKind, HoldingView, InitiativeKind, Trait } from "../sim/types";
 import { Bridge, Donut, Gauge, LineChart, Meter, Rating, Ring, SERIES, Stat, Tag } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
@@ -641,6 +641,98 @@ function AddOnCard({ company, holding }: SectionProps) {
   );
 }
 
+/** A swap or a cap on the base rate. Contract terms only: nothing is marked to market. */
+function HedgeCard({ company, holding, financials }: SectionProps) {
+  const t = useT();
+  const f = useFormat();
+  const { act } = useGame();
+  const [kind, setKind] = useState<HedgeKind>("swap");
+  const [share, setShare] = useState(10_000);
+  const [months, setMonths] = useState(24);
+  const [offset, setOffset] = useState(100);
+  const quote = holding.hedge_quote;
+  const hedge = holding.hedge;
+  const floating = quote?.floating_bps ?? company.local_credit.policy_rate_bps;
+  const swapRate = quote?.swaps.find(([m]) => m === months)?.[1] ?? floating;
+  const cap = quote?.caps.find(([o, m]) => o === offset && m === months) ?? null;
+  const premium = cap ? Math.round((cap[3] * share) / 10_000) : 0;
+  return (
+    <section className="card hd-card">
+      <h2>
+        <Icon name="lock" size={15} />
+        <span>{t("holding.hedge.title")}</span>
+        {hedge ? <Tag tone="good">{t(`holding.hedge.kind.${hedge.kind}`)}</Tag> : <Tag tone="muted">{t("holding.hedge.none")}</Tag>}
+      </h2>
+      <div className="row hd-tags">
+        <Tag>{t("holding.hedge.floating", { rate: f.pct(floating, 2) })}</Tag>
+        <Tag>{t("holding.hedge.paying", { rate: f.pct(holding.base_rate_bps, 2) })}</Tag>
+        <Tag>{t("holding.cov.rate", { rate: f.pct(financials.interest_rate_bps) })}</Tag>
+      </div>
+      {hedge ? (
+        <>
+          <p>
+            {t(`holding.hedge.held.${hedge.kind}`, {
+              share: f.pct(hedge.share_bps, 0),
+              rate: f.pct(hedge.rate_bps, 2),
+              months: hedge.months_left,
+            })}
+          </p>
+          <Meter value={hedge.months - hedge.months_left} max={hedge.months} label={t("holding.hedge.term")} text={t("holding.hedge.left", { months: hedge.months_left })} />
+        </>
+      ) : (
+        <>
+          <p className="muted">{t("holding.hedge.hint")}</p>
+          <div className="row hd-picks" role="radiogroup" aria-label={t("holding.hedge.title")}>
+            {(["swap", "cap"] as HedgeKind[]).map((item) => (
+              <button key={item} type="button" className="btn small" aria-pressed={kind === item} onClick={() => setKind(item)}>
+                {t(`holding.hedge.kind.${item}`)}
+              </button>
+            ))}
+          </div>
+          <div className="row hd-picks">
+            {[5_000, 10_000].map((item) => (
+              <button key={item} type="button" className="btn small" aria-pressed={share === item} onClick={() => setShare(item)}>
+                {t("holding.hedge.share", { share: f.pct(item, 0) })}
+              </button>
+            ))}
+            {[12, 24, 36].map((item) => (
+              <button key={item} type="button" className="btn small" aria-pressed={months === item} onClick={() => setMonths(item)}>
+                {t("holding.hedge.years", { years: item / 12 })}
+              </button>
+            ))}
+          </div>
+          {kind === "cap" ? (
+            <div className="row hd-picks">
+              {[50, 100, 200].map((item) => (
+                <button key={item} type="button" className="btn small" aria-pressed={offset === item} onClick={() => setOffset(item)}>
+                  {t("holding.hedge.strikeAbove", { offset: f.pct(item, 1) })}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <p className="hd-note">
+            {kind === "swap"
+              ? t("holding.hedge.swapTerms", { rate: f.pct(swapRate, 2), share: f.pct(share, 0) })
+              : t("holding.hedge.capTerms", { strike: f.pct(cap?.[2] ?? floating + offset, 2), premium: f.money(premium), share: f.pct(share, 0) })}
+          </p>
+          <div className="hd-action-row">
+            <ConfirmButton
+              label={t("holding.hedge.submit")}
+              confirmText={kind === "swap" ? f.pct(swapRate, 2) : f.money(premium)}
+              cost={1}
+              disabled={!quote}
+              why={t("gate.amount")}
+              onConfirm={() =>
+                act({ type: "hedge", company: company.i, kind, share_bps: share, months, strike_offset_bps: kind === "cap" ? offset : 0 })
+              }
+            />
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 function RecapCard({ company, holding, financials }: SectionProps) {
   const t = useT();
   const f = useFormat();
@@ -768,6 +860,7 @@ export function HoldingTab(props: { company: CompanyView }) {
       <PeopleCard {...section} />
       <ValueCard {...section} />
       <CovenantCard {...section} />
+      <HedgeCard {...section} />
       <BudgetCard {...section} />
       <InitiativesCard {...section} />
       <AddOnCard {...section} />

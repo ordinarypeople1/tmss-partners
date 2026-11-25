@@ -195,7 +195,7 @@ impl World {
     }
 
     /// One-off cost: out of cash, and borrowed if the cash is not there.
-    fn charge(&mut self, company: usize, amount: i64) {
+    pub(crate) fn charge(&mut self, company: usize, amount: i64) {
         let target = &mut self.companies[company];
         let from_cash = amount.min(target.books.cash).max(0);
         target.books.cash -= from_cash;

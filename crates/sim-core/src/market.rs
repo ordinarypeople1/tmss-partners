@@ -636,7 +636,7 @@ impl World {
 
     pub(crate) fn transfer_to_rival(&mut self, index: usize, bidder: Bidder, ev: i64) {
         self.record_house_exit(index, ev);
-        let senior = self.economy.max_senior_millis();
+        let senior = self.economy.max_senior_for(&self.companies[index].country);
         let spread = self.economy.credit_spread_bps;
         let industry = self.industries[self.companies[index].sector].clone();
         let ebitda = self.companies[index].ttm_ebitda().max(0);

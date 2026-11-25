@@ -9,7 +9,7 @@
   "calendar.strip.mine": "今月の自社予定",
   "calendar.strip.noneMine": "締切なし",
   "calendar.mood": "{bloc}の不確実性",
-  "calendar.moodHint": "倍率の傾き {multiple}",
+  "calendar.moodHint": "金利 {rate}・倍率 {multiple}",
   "calendar.moodTip": "0–100。高いとオーナーは売却を先送りし、IPOの窓が狭まる。70以上で上場エグジットは撤回される。",
   "calendar.filters": "フィルター",
   "calendar.layer.central_bank": "中央銀行",
@@ -238,5 +238,6 @@
   "macro.event.bank_stress": "銀行危機",
   "macro.short.bank_stress": "銀行危機",
   "macro.about.bank_stress": "信用スプレッドが拡大し融資基準が厳しくなる。利下げ圧力が続く。",
-  "calendar.noEffectsFailed": "否決され、何も変わらなかった。"
+  "calendar.noEffectsFailed": "否決され、何も変わらなかった。",
+  "calendar.effect.local_rate": "{bloc}政策金利"
 }

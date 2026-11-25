@@ -9,7 +9,7 @@
   "calendar.strip.mine": "Our deadlines this month",
   "calendar.strip.noneMine": "No deadlines",
   "calendar.mood": "{bloc} uncertainty",
-  "calendar.moodHint": "Multiple tilt {multiple}",
+  "calendar.moodHint": "Rate {rate} · multiples {multiple}",
   "calendar.moodTip": "0–100. When high, owners hold off on sales and the IPO window narrows. At 70 or more, listings are pulled.",
   "calendar.filters": "Filters",
   "calendar.layer.central_bank": "Central banks",
@@ -238,5 +238,6 @@
   "macro.event.bank_stress": "Bank stress",
   "macro.short.bank_stress": "Bank stress",
   "macro.about.bank_stress": "Credit spreads blow out and lending standards tighten. Pressure to cut rates follows.",
-  "calendar.noEffectsFailed": "It failed. Nothing changed."
+  "calendar.noEffectsFailed": "It failed. Nothing changed.",
+  "calendar.effect.local_rate": "{bloc} policy rate"
 }

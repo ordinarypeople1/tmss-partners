@@ -236,7 +236,10 @@ impl World {
     pub(crate) fn lender_caps(&self, company: usize) -> (i64, i64) {
         match self.active_lock(company) {
             Some(lock) => (lock.max_senior_millis, lock.max_mezz_millis),
-            None => (self.economy.max_senior_millis(), self.economy.max_mezz_millis()),
+            None => (
+                self.economy.max_senior_for(&self.companies[company].country),
+                self.economy.max_mezz_millis(),
+            ),
         }
     }
 
@@ -267,7 +270,7 @@ impl World {
         self.deals[deal].costs += fee;
         self.deals[deal].lock = Some(FinancingLock {
             spread_bps: self.economy.credit_spread_bps,
-            max_senior_millis: self.economy.max_senior_millis(),
+            max_senior_millis: self.economy.max_senior_for(&self.companies[company].country),
             max_mezz_millis: self.economy.max_mezz_millis(),
             expires: self.date.plus_months(LOCK_MONTHS - 1),
             fee,
@@ -463,7 +466,7 @@ impl World {
         } else {
             senior_spread
         };
-        let annual_interest = mul_bps(debt, self.economy.policy_rate_bps + spread_bps);
+        let annual_interest = mul_bps(debt, self.economy.policy_rate_for(&target.country) + spread_bps);
         Financing {
             ebitda,
             senior,
@@ -513,7 +516,7 @@ impl World {
                 _ => {}
             }
         }
-        let rate_bps = self.economy.policy_rate_bps + financing.spread_bps;
+        let rate_bps = self.economy.policy_rate_for(&target.country) + financing.spread_bps;
         let mut revenue = target.revenue;
         // New shares arrive as cash, which pays down debt from the first month.
         let mut debt = (financing.debt - financing.primary).max(0);

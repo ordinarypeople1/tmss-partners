@@ -111,5 +111,22 @@
   "holding.lever.family_workforce": "Long-tenured workforce · strike and reputation risk ↑",
   "holding.lever.fragmented_market": "Fragmented market · synergies ↑",
   "holding.lever.aging_equipment": "Aging equipment · maintenance capex ↑",
-  "holding.lever.single_plant": "Single plant · outage risk"
+  "holding.lever.single_plant": "Single plant · outage risk",
+  "holding.hedge.title": "Rate hedge",
+  "holding.hedge.none": "None",
+  "holding.hedge.floating": "Local policy rate {rate}",
+  "holding.hedge.paying": "Base rate paid now {rate}",
+  "holding.hedge.held.swap": "{share} of the debt pays a fixed {rate}. {months} months left.",
+  "holding.hedge.held.cap": "{share} of the debt never pays a base rate above {rate}. {months} months left.",
+  "holding.hedge.term": "Term",
+  "holding.hedge.left": "{months} months left",
+  "holding.hedge.hint": "The debt floats over the local central bank's rate. A swap fixes the base rate; a cap sets a ceiling for a premium paid up front. Contract terms, not a price.",
+  "holding.hedge.kind.swap": "Swap",
+  "holding.hedge.kind.cap": "Cap",
+  "holding.hedge.share": "{share} of debt",
+  "holding.hedge.years": "{years}y",
+  "holding.hedge.strikeAbove": "Today +{offset}",
+  "holding.hedge.swapTerms": "Fix the base rate on {share} of the debt at {rate}. Nothing up front. A hawkish central bank means a higher fixed rate.",
+  "holding.hedge.capTerms": "Cap the base rate on {share} of the debt at {strike}. The company pays {premium} now.",
+  "holding.hedge.submit": "Sign"
 }

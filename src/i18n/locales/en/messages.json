@@ -218,5 +218,7 @@
   "msg.macro_shock.geopolitics": "Tension around {bloc}. Energy jumps. Severity: {severity}.",
   "msg.macro_shock.bank_stress": "Banks in {bloc} wobble. Lenders pull back. Severity: {severity}.",
   "msg.macro_alert.title": "{count} releases this month touch our holdings",
-  "msg.macro_alert.body": "{companies} holdings are exposed. See the calendar."
+  "msg.macro_alert.body": "{companies} holdings are exposed. See the calendar.",
+  "msg.hedge_expired.title": "{kind} has run out",
+  "msg.hedge_expired.body": "The debt floats over the local policy rate again."
 }

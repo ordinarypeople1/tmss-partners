@@ -85,7 +85,15 @@ pub struct Economy {
     pub trade_drag_bps: i64,
     #[serde(default)]
     pub energy_shock_bps: i64,
+    /// Each bloc's own policy rate, in `macro_events::BLOCS` order. The US slot
+    /// is `policy_rate_bps`. Companies borrow at their bloc's rate.
+    #[serde(default)]
+    pub bloc_policy_rate_bps: Vec<i64>,
 }
+
+/// Where each bloc's rate sits when it neither helps nor holds back, by bloc
+/// index. The US slot is replaced by the game's own neutral rate.
+const BLOC_NEUTRAL_BPS: [i64; BLOCS] = [0, 200, 320, 225, 25, 250];
 
 fn base_uncertainty() -> Vec<i64> {
     vec![crate::macro_events::UNCERTAINTY_BASE; BLOCS]
@@ -121,6 +129,7 @@ impl Economy {
             bloc_approval_drag_bps: vec![0; BLOCS],
             trade_drag_bps: 0,
             energy_shock_bps: 0,
+            bloc_policy_rate_bps: Vec::new(),
         };
         economy.record();
         economy
@@ -224,6 +233,55 @@ impl Economy {
         }
         self.trade_drag_bps = self.trade_drag_bps * 97 / 100;
         self.energy_shock_bps = self.energy_shock_bps * 90 / 100;
+    }
+
+    /// The bloc's neutral rate.
+    pub fn neutral_for_bloc(&self, index: usize) -> i64 {
+        if index == 0 {
+            self.neutral_rate_bps
+        } else {
+            BLOC_NEUTRAL_BPS.get(index).copied().unwrap_or(self.neutral_rate_bps)
+        }
+    }
+
+    fn bloc_slot(country: &str) -> Option<usize> {
+        crate::macro_events::Bloc::of_country(country).map(|bloc| bloc.index())
+    }
+
+    /// The policy rate a company in this country borrows over.
+    pub fn policy_rate_for(&self, country: &str) -> i64 {
+        match Self::bloc_slot(country) {
+            Some(0) | None => self.policy_rate_bps,
+            Some(index) => self.bloc_policy_rate_bps.get(index).copied().unwrap_or(self.policy_rate_bps),
+        }
+    }
+
+    /// The local neutral rate for this country.
+    pub fn neutral_for(&self, country: &str) -> i64 {
+        match Self::bloc_slot(country) {
+            Some(index) if !self.bloc_policy_rate_bps.is_empty() => self.neutral_for_bloc(index),
+            _ => self.neutral_rate_bps,
+        }
+    }
+
+    /// `rate_factor_millis` on the local rate and its own neutral.
+    pub fn rate_factor_for(&self, country: &str, rate_beta_millis: i64) -> i64 {
+        let gap = self.policy_rate_for(country) - self.neutral_for(country);
+        let drag = rate_beta_millis * gap / 10_000;
+        1_000_000 / (1_000 + drag).max(400)
+    }
+
+    /// Senior debt local lenders write: the global market, tighter where the
+    /// local rate stands further above its neutral than the Fed's does.
+    pub fn max_senior_for(&self, country: &str) -> i64 {
+        let global = self.max_senior_millis();
+        let local_gap = self.policy_rate_for(country) - self.neutral_for(country);
+        let us_gap = self.policy_rate_bps - self.neutral_rate_bps;
+        (global - (local_gap - us_gap) * 2).clamp(2_500, 5_000)
+    }
+
+    pub fn senior_rate_for(&self, country: &str) -> i64 {
+        self.policy_rate_for(country) + self.credit_spread_bps
     }
 
     pub fn tax_delta_for(&self, country: &str) -> i64 {

@@ -218,5 +218,7 @@
   "msg.macro_shock.geopolitics": "{bloc}周边局势紧张，能源价格飙升。强度{severity}。",
   "msg.macro_shock.bank_stress": "{bloc}银行动荡，贷款方收缩。强度{severity}。",
   "msg.macro_alert.title": "本月{count}项发布涉及持有公司",
-  "msg.macro_alert.body": "{companies}家持有公司受影响。请查看日历。"
+  "msg.macro_alert.body": "{companies}家持有公司受影响。请查看日历。",
+  "msg.hedge_expired.title": "{kind}到期",
+  "msg.hedge_expired.body": "债务重新随当地基准利率浮动。"
 }

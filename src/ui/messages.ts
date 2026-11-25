@@ -23,6 +23,7 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   law_vote: ["gavel"],
   macro_shock: ["alert", "bad"],
   macro_alert: ["calendar", "warn"],
+  hedge_expired: ["clock", "warn"],
   sale_early_notice: ["handshake", "good"],
   owner_opened: ["handshake", "good"],
   owner_declined: ["close", "warn"],
@@ -120,6 +121,9 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
       values.target = message.target ? t(`bloc.${message.target}`) : "";
       values.severity = t(`calendar.severity.${message.severity}`);
       bodyId = `msg.macro_shock.${message.kind}`;
+      break;
+    case "hedge_expired":
+      values.kind = t(`holding.hedge.kind.${message.kind}`);
       break;
     case "macro_alert":
       values.count = String(message.events.length);

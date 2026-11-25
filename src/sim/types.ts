@@ -505,6 +505,12 @@ export interface HoldingView {
   /** Where the gain over entry equity comes from. */
   bridge: { ebitda: number; multiple: number; debt: number };
   max_leverage_millis: number;
+  /** A swap or a cap on part of the debt's base rate. */
+  hedge: Hedge | null;
+  /** What a bank offers today. */
+  hedge_quote: HedgeQuote | null;
+  /** The base rate the debt pays now, hedge included. */
+  base_rate_bps: number;
   min_cover_millis: number;
   maturity: GameDate;
   breaches: number;
@@ -542,6 +548,8 @@ export interface CompanyView extends CompanyRow {
   management: number | null;
   /** Null until commercial diligence. */
   customer_concentration_bps: number | null;
+  /** The local lenders' market: the company's own central bank. */
+  local_credit: { policy_rate_bps: number; neutral_bps: number; max_senior_millis: number; senior_rate_bps: number };
   /** Sales to China, sales abroad, energy in costs, in basis points. Null until commercial diligence. */
   exposure: { china_bps: number; export_bps: number; energy_bps: number } | null;
   /** `stream` is the diligence that finds this kind of issue. */
@@ -569,6 +577,7 @@ export type MessageBody =
   | { type: "law_vote"; event: number; kind: MacroKind; bloc: Bloc; direction: number; passed: boolean }
   | { type: "macro_shock"; event: number; kind: MacroKind; bloc: Bloc; target: Bloc | null; severity: number }
   | { type: "macro_alert"; events: number[]; companies: number }
+  | { type: "hedge_expired"; kind: HedgeKind }
   | { type: "sale_early_notice"; reason: SaleReason }
   | { type: "owner_opened"; reason: SaleReason }
   | { type: "owner_declined" }
@@ -750,6 +759,8 @@ export interface View {
     trade_drag_bps: number;
     /** Energy above normal, as a drag on energy-heavy companies. */
     energy_shock_bps: number;
+    /** Each bloc's policy rate, in `BLOCS` order. */
+    bloc_policy_rate_bps: number[];
   };
   calendar: CalendarView;
   fund: {
@@ -822,7 +833,9 @@ export type Command =
   /** One attention: the economist narrows one of this month's releases or meetings. */
   | { type: "call_economist"; event: number }
   /** Holds today's credit spread and leverage for a deal for three months, for `lock_fee`. */
-  | { type: "lock_financing"; company: number };
+  | { type: "lock_financing"; company: number }
+  /** One attention. `share_bps` 5000 or 10000, `months` 12/24/36, a cap's `strike_offset_bps` 50/100/200. */
+  | { type: "hedge"; company: number; kind: HedgeKind; share_bps: number; months: number; strike_offset_bps: number };
 
 /** `error` is a code from sim-core's CommandError, e.g. "no_attention". */
 export type CommandResult = { ok: true } | { ok: false; error: string };
@@ -1014,7 +1027,28 @@ export type MacroEffect =
   | { channel: "tax_rate"; bloc: Bloc; delta_bps: number }
   | { channel: "approval_drag"; bloc: Bloc; delta_bps: number }
   | { channel: "trade_drag"; delta_bps: number }
-  | { channel: "energy_cost"; delta_bps: number };
+  | { channel: "energy_cost"; delta_bps: number }
+  | { channel: "local_rate"; bloc: Bloc; delta_bps: number };
+
+export type HedgeKind = "swap" | "cap";
+
+export interface Hedge {
+  kind: HedgeKind;
+  share_bps: number;
+  /** The swap's fixed base rate, or the cap's strike. */
+  rate_bps: number;
+  months: number;
+  months_left: number;
+  premium: number;
+}
+
+export interface HedgeQuote {
+  floating_bps: number;
+  /** [months, fixed base rate]. */
+  swaps: [number, number][];
+  /** [strike above today, months, strike, premium for the whole debt]. */
+  caps: [number, number, number, number][];
+}
 
 /** A law after an election. `direction` +1 raises taxes, protects trade or tightens rules. */
 export interface Measure {

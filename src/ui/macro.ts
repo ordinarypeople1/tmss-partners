@@ -151,9 +151,13 @@ export function effectText(t: Translate, f: Format, effect: MacroEffect): { labe
     case "bloc_multiple":
     case "tax_rate":
     case "approval_drag":
+    case "local_rate":
       return {
         label: t(`calendar.effect.${effect.channel}`, { bloc: t(`bloc.${effect.bloc}`) }),
-        value: effect.channel === "bloc_multiple" ? f.signedPct(effect.delta_bps, 2) : `${f.signedPct(effect.delta_bps, 1)}p`,
+        value:
+          effect.channel === "bloc_multiple"
+            ? f.signedPct(effect.delta_bps, 2)
+            : `${f.signedPct(effect.delta_bps, effect.channel === "local_rate" ? 2 : 1)}p`,
         up: effect.delta_bps > 0,
       };
     case "sector_cycle":
@@ -176,6 +180,7 @@ export function effectTone(effect: MacroEffect): "good" | "bad" {
   const delta = effect.channel === "uncertainty" ? effect.delta : effect.delta_bps;
   const higherIsWorse =
     effect.channel === "policy_rate" ||
+    effect.channel === "local_rate" ||
     effect.channel === "credit_spread" ||
     effect.channel === "uncertainty" ||
     effect.channel === "tax_rate" ||

@@ -9,7 +9,7 @@
   "calendar.strip.mine": "이번 달 우리 일정",
   "calendar.strip.noneMine": "마감 없음",
   "calendar.mood": "{bloc} 불확실성",
-  "calendar.moodHint": "배수 기울기 {multiple}",
+  "calendar.moodHint": "금리 {rate} · 배수 {multiple}",
   "calendar.moodTip": "0–100. 높으면 오너가 매각을 미루고 IPO 창이 닫힌다. 70 이상이면 상장 엑시트가 철회된다.",
   "calendar.filters": "필터",
   "calendar.layer.central_bank": "중앙은행",
@@ -238,5 +238,6 @@
   "macro.event.bank_stress": "은행 위기",
   "macro.short.bank_stress": "은행 위기",
   "macro.about.bank_stress": "신용 스프레드가 벌어지고 대출 기준이 조여진다. 금리 인하 압력이 뒤따른다.",
-  "calendar.noEffectsFailed": "부결돼 아무것도 바뀌지 않았다."
+  "calendar.noEffectsFailed": "부결돼 아무것도 바뀌지 않았다.",
+  "calendar.effect.local_rate": "{bloc} 기준금리"
 }
