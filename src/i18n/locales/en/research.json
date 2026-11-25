@@ -1,0 +1,17 @@
+{
+  "research.market": "the market",
+  "research.outlook.positive": "positive",
+  "research.outlook.neutral": "neutral",
+  "research.outlook.negative": "negative",
+  "research.stat.multiple": "Sector median multiple",
+  "research.stat.forSale": "For sale now",
+  "research.stat.companies": "Companies in the sector",
+  "research.meet": "Talk it over with {banker}",
+  "research.study": "Start our own sector research",
+  "research.hint.market": "A meeting raises coverage, and the banker shares what they hear. Coverage now {coverage, number, ::integer}.",
+  "research.hint.sector": "A meeting on this sector raises coverage more; from 30 the banker mentions a sale being prepared here, from 60 by name. Coverage now {coverage, number, ::integer}.",
+  "research.forSale": "For sale in this sector",
+  "research.prospects": "Owners worth getting to know",
+  "research.none": "Nothing for sale you can see.",
+  "research.prospectsNone": "No owner shows an intent to sell yet. Meetings find out."
+}

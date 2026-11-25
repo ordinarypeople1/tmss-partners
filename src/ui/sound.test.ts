@@ -22,6 +22,7 @@ const EXPECTED: Record<Message["type"], SoundName | null> = {
   shortlisted: "good",
   not_shortlisted: "bad",
   bank_pitch: "good",
+  research_note: null,
   rival_approach: "bad",
   lost_to_rival: "bad",
   rival_rebuffed: "good",

@@ -202,5 +202,18 @@
   "msg.not_shortlisted.body": "意向报价不足或未提交。交易档案已关闭。",
   "msg.bank_pitch.title": "{adviser}：介绍 {company}",
   "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。",
-  "msg.owner_opened.minority": "用4个月敲定少数股权条款。原因：{reason}。不能低于已商定的价格，届时未完成则谈判结束。"
+  "msg.owner_opened.minority": "用4个月敲定少数股权条款。原因：{reason}。不能低于已商定的价格，届时未完成则谈判结束。",
+  "msg.research_note.title": "{adviser}研究 · {topic}展望{outlook}",
+  "msg.research_note.market.positive.1": "{phase}阶段交易正在回暖。卖方重新找顾问，贷方也积极提供新的并购融资。预计未来两个季度在售标的会增加。",
+  "msg.research_note.market.positive.2": "估值尚不算高，信贷市场也开放。我们认为这是对买方有利的窗口。",
+  "msg.research_note.market.neutral.1": "处于{phase}阶段。价格高企，经济信号却分化。好公司仍能卖出高价，但第二轮撤回的出售也在增加。",
+  "msg.research_note.market.neutral.2": "市场方向尚难判断。我们认为降低杠杆、以确定性竞争的买方更有优势。",
+  "msg.research_note.market.negative.1": "处于{phase}阶段。贷方收紧，常规标的枯竭。与此同时，濒临违约的公司正悄悄寻找买家。",
+  "msg.research_note.market.negative.2": "卖方期望与买方出价的差距短期内不会缩小。对手握现金的买方来说，这是为下一阶段做准备的时间。",
+  "msg.research_note.sector.positive.1": "{sector}处于周期上行段。需求强劲、利润率上升，所有者开始把现在视为出售时机。",
+  "msg.research_note.sector.positive.2": "战略买家对{sector}的兴趣在升温。我们认为该行业的退出倍数有支撑。",
+  "msg.research_note.sector.neutral.1": "{sector}处于常态水平。此时公司间差异大于行业整体，靠尽调甄别的买方会胜出。",
+  "msg.research_note.sector.neutral.2": "{sector}没有大动静。不过有几家家族企业在考虑传承。",
+  "msg.research_note.sector.negative.1": "{sector}正走向周期底部。业绩下滑的公司增多，贷方在削减对该行业的敞口。",
+  "msg.research_note.sector.negative.2": "{sector}的价格在回落。对不急的买方来说，未来一年可能是不错的入场时机。"
 }

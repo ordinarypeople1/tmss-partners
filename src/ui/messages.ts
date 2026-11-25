@@ -2,6 +2,7 @@ import type { Translate } from "../i18n/useT";
 import type { Bidder, Message, View } from "../sim/types";
 import type { Format } from "./format";
 import type { Page } from "./game";
+import { pick } from "./lines";
 
 export interface MessageText {
   title: string;
@@ -40,6 +41,7 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   shortlisted: ["check", "good"],
   not_shortlisted: ["close", "bad"],
   bank_pitch: ["handshake", "good"],
+  research_note: ["market"],
   rival_approach: ["flag", "warn"],
   lost_to_rival: ["flag", "bad"],
   rival_rebuffed: ["flag", "good"],
@@ -142,6 +144,15 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
       break;
     case "bank_pitch":
       values.adviser = view.advisers[message.adviser]?.name ?? "";
+      break;
+    case "research_note":
+      values.adviser = view.advisers[message.adviser]?.name ?? "";
+      values.topic = message.sector ? t(`sector.${message.sector}`) : t("research.market");
+      values.sector = values.topic;
+      values.outlook = t(`research.outlook.${message.outlook}`);
+      values.phase = t(`phase.${view.economy.phase}`);
+      // A few ways to write each kind of note; the message id picks one.
+      bodyId = pick(`msg.research_note.${message.sector ? "sector" : "market"}.${message.outlook}`, message.id);
       break;
     case "shortlisted":
       values.bidders = String(message.bidders);
@@ -275,6 +286,9 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     default:
       break;
   }
-  const [icon, tone] = LOOK[message.type];
+  const [icon, look] = LOOK[message.type];
+  // Research leans one way or the other; the inbox shows which.
+  const tone =
+    message.type === "research_note" ? (message.outlook === "positive" ? "good" : message.outlook === "negative" ? "bad" : undefined) : look;
   return { title: t(titleId, values), body: t(bodyId, values), icon, tone, titleId, bodyId, values, links };
 }

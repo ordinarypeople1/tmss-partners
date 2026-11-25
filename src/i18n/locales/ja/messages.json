@@ -202,5 +202,18 @@
   "msg.not_shortlisted.body": "意向表明の価格が不足したか、未提出でした。ディールファイルを閉じます。",
   "msg.bank_pitch.title": "{adviser}: {company}を紹介",
   "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。",
-  "msg.owner_opened.minority": "4か月間、少数持分の条件を交渉します。理由は{reason}。合意した価格より下げられず、期限内にまとまらなければ話は終わります。"
+  "msg.owner_opened.minority": "4か月間、少数持分の条件を交渉します。理由は{reason}。合意した価格より下げられず、期限内にまとまらなければ話は終わります。",
+  "msg.research_note.title": "{adviser}リサーチ · {topic}見通し{outlook}",
+  "msg.research_note.market.positive.1": "{phase}局面で取引が戻りつつあります。売り手が再びアドバイザーを探し、貸し手も新規の買収融資に積極的です。今後2四半期で案件は増えると見ます。",
+  "msg.research_note.market.positive.2": "バリュエーションはまだ割高ではなく、信用市場も開いています。今は買い手に有利な窓だと判断します。",
+  "msg.research_note.market.neutral.1": "{phase}局面です。価格は高いのに景気の信号はまちまちです。良い会社は今も高く売れますが、二次で取り下げられる案件も増えています。",
+  "msg.research_note.market.neutral.2": "方向を決めるには早い市場です。レバレッジを抑え、確実性で競う買い手が有利と見ます。",
+  "msg.research_note.market.negative.1": "{phase}局面です。貸し手は門を狭め、通常の案件は干上がりました。その代わり、コベナンツ違反寸前の会社が静かに買い手を探しています。",
+  "msg.research_note.market.negative.2": "しばらく売り手の期待価格と買い手の価格の差は縮まらないでしょう。現金のある買い手には、次の局面に備える時間です。",
+  "msg.research_note.sector.positive.1": "{sector}はサイクルの上側にあります。需要が強く利益率も上昇中で、オーナーたちが今を売り時と見始めました。",
+  "msg.research_note.sector.positive.2": "{sector}で戦略的買い手の関心が高まっています。エグジット倍率が支えられるセクターと見ます。",
+  "msg.research_note.sector.neutral.1": "{sector}は平年並みです。セクター全体より企業ごとの差が大きい時期で、デューデリジェンスで見極める買い手が勝ちます。",
+  "msg.research_note.sector.neutral.2": "{sector}に大きな動きはありません。ただ、承継を考える同族企業がいくつか見えます。",
+  "msg.research_note.sector.negative.1": "{sector}はサイクルの下側に向かっています。業績が落ちる会社が増え、貸し手はこのセクターへの与信を減らしています。",
+  "msg.research_note.sector.negative.2": "{sector}の価格は下がってきています。急がない買い手にとって、次の1年は良い参入時期かもしれません。"
 }

@@ -124,6 +124,12 @@ pub enum MessageKind {
     BankPitch {
         adviser: u8,
     },
+    /// A bank's research: the market as a whole (no sector) or one sector, and which way it leans.
+    ResearchNote {
+        adviser: u8,
+        sector: Option<String>,
+        outlook: crate::advisers::Outlook,
+    },
     /// A rival house has proposed to an owner the player knows.
     RivalApproach {
         house: u8,
@@ -339,6 +345,9 @@ pub enum Command {
     /// A coverage call on a sell-side bank.
     CoverBank {
         adviser: u8,
+        /// A sector to talk about, e.g. after the bank's research on it.
+        #[serde(default)]
+        sector: Option<String>,
     },
     OrderValuation {
         company: usize,
@@ -653,7 +662,7 @@ impl World {
             Command::SubmitBid { company } => self.submit_bid(company),
             Command::SubmitIndication { company, offer } => self.submit_indication(company, offer),
             Command::ProposeMinority { company, offer } => self.propose_minority(company, offer),
-            Command::CoverBank { adviser } => self.cover_bank(adviser),
+            Command::CoverBank { adviser, sector } => self.cover_bank(adviser, sector),
             Command::RaiseBid { company, ev } => self.raise_bid(company, ev),
             Command::ResearchSector { sector } => self.research_sector(sector),
             Command::HireAssociate => self.change_team(1),
@@ -923,6 +932,7 @@ impl World {
         self.market_step();
         self.rivals_step();
         self.advisers_step();
+        self.publish_research();
         if closes_quarter {
             self.close_quarter();
             self.update_lps();
@@ -1482,6 +1492,31 @@ pub mod tests {
     }
 
     #[test]
+    fn banks_publish_research_and_a_meeting_can_follow_it() {
+        let mut world = world(5);
+        run(&mut world, 6);
+        let notes: Vec<_> = world
+            .messages
+            .iter()
+            .filter_map(|message| match &message.kind {
+                MessageKind::ResearchNote { adviser, sector, .. } => Some((*adviser, sector.clone())),
+                _ => None,
+            })
+            .collect();
+        assert!(notes.len() >= 5, "one note a month");
+        assert!(notes.iter().any(|(_, sector)| sector.is_none()), "a market note each quarter");
+        let (adviser, sector) = notes.iter().find(|(_, sector)| sector.is_some()).cloned().unwrap();
+        world.attention_left = 4;
+        world.apply(Command::CoverBank { adviser, sector: sector.clone() }).unwrap();
+        let talk = world.cover_talk.clone().unwrap();
+        assert!(matches!(&talk.lines[0], crate::advisers::CoverLine::Outlook { sector: s, .. } if Some(s) == sector.as_ref()));
+        assert_eq!(
+            world.apply(Command::CoverBank { adviser, sector: Some("no_such_sector".into()) }),
+            Err(CommandError::UnknownSector)
+        );
+    }
+
+    #[test]
     fn an_owner_not_selling_still_has_a_price() {
         let world = world(3);
         let index = (0..world.companies.len())
@@ -1746,7 +1781,7 @@ pub mod tests {
     #[test]
     fn a_coverage_meeting_says_more_as_the_bank_gets_to_know_the_fund() {
         let mut world = world(5);
-        world.apply(Command::CoverBank { adviser: 2 }).unwrap();
+        world.apply(Command::CoverBank { adviser: 2, sector: None }).unwrap();
         let talk = world.cover_talk.clone().unwrap();
         assert_eq!(talk.adviser, 2);
         assert!(talk.after > talk.before);

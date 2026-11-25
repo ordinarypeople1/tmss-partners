@@ -202,5 +202,18 @@
   "msg.not_shortlisted.body": "Your indication fell short, or none was given. The deal file is closed.",
   "msg.bank_pitch.title": "{adviser} introduces {company}",
   "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20.",
-  "msg.owner_opened.minority": "Four months to settle the minority terms. Reason: {reason}. The agreed price is the floor; without a close by then, the talks end."
+  "msg.owner_opened.minority": "Four months to settle the minority terms. Reason: {reason}. The agreed price is the floor; without a close by then, the talks end.",
+  "msg.research_note.title": "{adviser} research · {topic}: {outlook}",
+  "msg.research_note.market.positive.1": "Deals are picking up in {phase}. Sellers are calling banks again and lenders are keen on new acquisition finance. We expect more sales over the next two quarters.",
+  "msg.research_note.market.positive.2": "Valuations are not yet stretched and credit is open. We see a window that favours buyers.",
+  "msg.research_note.market.neutral.1": "We are in {phase}. Prices are high and signals are mixed. Good companies still sell well, but more sales are pulled in round two.",
+  "msg.research_note.market.neutral.2": "Too early to call the direction. Buyers who keep leverage low and compete on certainty should do better.",
+  "msg.research_note.market.negative.1": "We are in {phase}. Lenders have narrowed the door and ordinary sales have dried up. Meanwhile companies near a covenant breach are quietly looking for buyers.",
+  "msg.research_note.market.negative.2": "The gap between what sellers want and buyers pay will stay wide for a while. For buyers with cash, it is time to prepare for the next phase.",
+  "msg.research_note.sector.positive.1": "{sector} is near the top of its cycle. Demand is strong and margins are rising, and owners are starting to see this as the time to sell.",
+  "msg.research_note.sector.positive.2": "Strategic buyers are warming to {sector}. We see exit multiples holding up here.",
+  "msg.research_note.sector.neutral.1": "{sector} is at an ordinary point. Company differences matter more than the sector now; buyers who diligence well will win.",
+  "msg.research_note.sector.neutral.2": "Little movement in {sector}, though a few family companies are weighing succession.",
+  "msg.research_note.sector.negative.1": "{sector} is heading into the bottom of its cycle. More companies are missing numbers and lenders are cutting their exposure.",
+  "msg.research_note.sector.negative.2": "Prices in {sector} are coming down. For a patient buyer, the next year could be a good time to get in."
 }

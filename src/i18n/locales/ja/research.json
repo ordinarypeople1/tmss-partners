@@ -1,0 +1,17 @@
+{
+  "research.market": "市場全体",
+  "research.outlook.positive": "強気",
+  "research.outlook.neutral": "中立",
+  "research.outlook.negative": "弱気",
+  "research.stat.multiple": "セクター中央倍率",
+  "research.stat.forSale": "現在の売り案件",
+  "research.stat.companies": "セクター企業数",
+  "research.meet": "{banker}とこのリサーチで面談",
+  "research.study": "当社もセクターリサーチ開始",
+  "research.hint.market": "面談するとカバレッジが上がり、担当MDが市場で聞いたことを話します。現在のカバレッジ{coverage, number, ::integer}。",
+  "research.hint.sector": "このセクターで面談するとカバレッジがより上がり、30以上で準備中の売却を、60以上で社名まで聞けます。現在のカバレッジ{coverage, number, ::integer}。",
+  "research.forSale": "このセクターの売り案件",
+  "research.prospects": "関係を築く価値のある企業",
+  "research.none": "今見える売り案件はありません。",
+  "research.prospectsNone": "売却意向が見えるオーナーはまだいません。面談で確かめてください。"
+}

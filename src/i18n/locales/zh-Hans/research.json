@@ -1,0 +1,17 @@
+{
+  "research.market": "整体市场",
+  "research.outlook.positive": "看好",
+  "research.outlook.neutral": "中性",
+  "research.outlook.negative": "看淡",
+  "research.stat.multiple": "行业中位倍数",
+  "research.stat.forSale": "当前在售",
+  "research.stat.companies": "行业公司数",
+  "research.meet": "就此报告约见{banker}",
+  "research.study": "我们也开展行业研究",
+  "research.hint.market": "会面会提升覆盖度，负责人会分享市场传闻。当前覆盖度{coverage, number, ::integer}。",
+  "research.hint.sector": "就此行业会面覆盖度提升更多；30以上会提到正在筹备的出售，60以上连名字都会说。当前覆盖度{coverage, number, ::integer}。",
+  "research.forSale": "该行业的在售标的",
+  "research.prospects": "值得建立关系的公司",
+  "research.none": "目前看不到在售标的。",
+  "research.prospectsNone": "还没有显露出售意向的所有者。去会面了解吧。"
+}

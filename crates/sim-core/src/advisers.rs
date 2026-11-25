@@ -113,6 +113,17 @@ pub enum CoverLine {
     Pipeline { company: String, months: u32 },
     /// What the street says about the fund.
     Reputation { good: bool },
+    /// The banker's view of one sector, when the player asks about it.
+    Outlook { sector: String, outlook: Outlook },
+}
+
+/// Which way a bank's research leans.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Outlook {
+    Positive,
+    Neutral,
+    Negative,
 }
 
 /// The last coverage meeting, for the screen to show.
@@ -246,22 +257,103 @@ impl World {
     }
 
     /// A coverage call on a bank: one attention point.
-    pub(crate) fn cover_bank(&mut self, adviser: u8) -> Result<(), CommandError> {
+    pub(crate) fn cover_bank(&mut self, adviser: u8, sector: Option<String>) -> Result<(), CommandError> {
         if adviser as usize >= ADVISERS {
             return Err(CommandError::InvalidChoice);
         }
+        let sector = match sector {
+            Some(id) => Some(self.industries.iter().position(|industry| industry.sector_id == id).ok_or(CommandError::UnknownSector)?),
+            None => None,
+        };
         self.spend_attention(1)?;
         let before = self.coverage(adviser);
-        let gain = 12 + self.career.reputation / 12 + self.rng.range(0, 5);
+        // Following up on the bank's own research reads as interest: a little more coverage.
+        let gain = 12 + self.career.reputation / 12 + self.rng.range(0, 5) + if sector.is_some() { 3 } else { 0 };
         self.add_coverage(adviser, gain);
         let after = self.coverage(adviser);
-        let mut lines = vec![self.cover_line(adviser, after)];
+        let mut lines = match sector {
+            Some(sector) => self.sector_lines(adviser, after, sector),
+            None => vec![self.cover_line(adviser, after)],
+        };
         let street = self.street_swing();
         if street.abs() >= 8 {
             lines.push(CoverLine::Reputation { good: street > 0 });
         }
         self.cover_talk = Some(CoverTalk { adviser, before, after, lines });
         Ok(())
+    }
+
+    /// How one sector looks: its cycle against how far it swings.
+    pub fn sector_outlook(&self, sector: usize) -> Outlook {
+        let cycle = self.economy.sector_cycle_bps.get(sector).copied().unwrap_or(0);
+        let amplitude = self.industries[sector].cycle_amplitude_bps.max(1);
+        if cycle * 4 > amplitude {
+            Outlook::Positive
+        } else if cycle * 4 < -amplitude {
+            Outlook::Negative
+        } else {
+            Outlook::Neutral
+        }
+    }
+
+    /// How the market as a whole looks: the phase, and whether prices have run ahead.
+    pub fn market_outlook(&self) -> Outlook {
+        use crate::economy::Phase;
+        match self.economy.phase {
+            Phase::Recovery => Outlook::Positive,
+            Phase::Expansion if self.economy.valuation_index() > 105 => Outlook::Neutral,
+            Phase::Expansion => Outlook::Positive,
+            Phase::Slowdown => Outlook::Neutral,
+            Phase::Recession => Outlook::Negative,
+        }
+    }
+
+    /// A meeting about one sector: the banker's view of it, and a sale in it if the bank knows of one.
+    fn sector_lines(&mut self, adviser: u8, coverage: i64, sector: usize) -> Vec<CoverLine> {
+        let id = self.industries[sector].sector_id.clone();
+        let mut lines = vec![CoverLine::Outlook { sector: id.clone(), outlook: self.sector_outlook(sector) }];
+        let preparing = |world: &World, index: usize| {
+            world.companies[index].is_active()
+                && !world.companies[index].is_player_owned()
+                && world.companies[index].sector == sector
+                && world.companies[index].process.as_ref().is_some_and(|process| process.stage == Stage::Preparing)
+                && !world.process_visible(index)
+        };
+        if coverage >= HEADS_UP_AT {
+            let mine = (0..self.companies.len()).find(|index| {
+                preparing(self, *index) && self.companies[*index].process.as_ref().is_some_and(|process| process.adviser == Some(adviser))
+            });
+            if let Some(index) = mine {
+                let months = self.companies[index].process.as_ref().map_or(1, |process| process.months_left.max(1));
+                lines.push(CoverLine::Pipeline { company: crate::view::short_name(&self.companies[index].legal_name).to_string(), months });
+                return lines;
+            }
+        }
+        if coverage >= LIST_AT {
+            if let Some(index) = (0..self.companies.len()).find(|index| preparing(self, *index)) {
+                let months = self.companies[index].process.as_ref().map_or(1, |process| process.months_left.max(1));
+                lines.push(CoverLine::Sector { sector: id, months });
+            }
+        }
+        lines
+    }
+
+    /// Month end: one bank publishes. The first month of a quarter is a market note; the others
+    /// cover a sector, the bank's own focus if it has one.
+    pub(crate) fn publish_research(&mut self) {
+        let month = self.months_elapsed as usize;
+        let adviser = (month % ADVISERS) as u8;
+        let (sector, outlook) = if month % 3 == 0 {
+            (None, self.market_outlook())
+        } else {
+            let book = &ADVISER_BOOK[adviser as usize];
+            let sector = book
+                .focus
+                .and_then(|focus| self.industries.iter().position(|industry| industry.sector_id == focus))
+                .unwrap_or((month / ADVISERS) % self.industries.len().max(1));
+            (Some(self.industries[sector].sector_id.clone()), self.sector_outlook(sector))
+        };
+        self.post_news(MessageKind::ResearchNote { adviser, sector, outlook }, None);
     }
 
     /// The banker who covers the fund at this adviser: the same person all game.

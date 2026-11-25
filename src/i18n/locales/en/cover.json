@@ -46,5 +46,11 @@
   "cover.line.reputation.good.3": "Owners ask about your house by name now. It makes our introductions easy.",
   "cover.line.reputation.bad.1": "Your house's name is not great right now. Sellers worry whether you close.",
   "cover.line.reputation.bad.2": "Sellers remember the price you cut in the binding round. Tread carefully for a while.",
-  "cover.line.reputation.bad.3": "Frankly, a couple of our MDs wanted you off the list. I talked them out of it."
+  "cover.line.reputation.bad.3": "Frankly, a couple of our MDs wanted you off the list. I talked them out of it.",
+  "cover.line.outlook.positive.1": "Saw our note? {sector} is as hot as it gets. Sellers are calling us first.",
+  "cover.line.outlook.positive.2": "In {sector} we only see prices going up. If you want in, move soon.",
+  "cover.line.outlook.neutral.1": "{sector} differs company by company. Look at each one rather than the sector.",
+  "cover.line.outlook.neutral.2": "{sector} is quiet. A good time to get to know the owners before it isn’t.",
+  "cover.line.outlook.negative.1": "Be careful in {sector} for now. Many companies are missing numbers; skip diligence and you’ll get hurt.",
+  "cover.line.outlook.negative.2": "A few owners in {sector} need to sell fast. The prices will be good — check the cash flow first."
 }

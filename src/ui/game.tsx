@@ -466,9 +466,10 @@ export function GameProvider({
       company: (index: number) => session.current?.company(index),
       select,
       open,
+      openMessage,
       go,
     };
-  }, [redraw, select, open, go]);
+  }, [redraw, select, open, openMessage, go]);
 
   const rows = useMemo(() => new Map((view?.companies ?? []).map((row) => [row.i, row])), [view]);
 

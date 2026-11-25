@@ -7,6 +7,7 @@ import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
 import { Icon } from "../icons";
 import { RichMessage } from "../Links";
+import { ResearchActions } from "../Research";
 import { describeMessage } from "../messages";
 import "./Inbox.css";
 
@@ -402,6 +403,8 @@ function Reading({ message }: { message: Message }) {
       )}
 
       <Facts message={message} sale={row?.sale ?? null} />
+
+      {message.type === "research_note" ? <ResearchActions message={message} /> : null}
 
       {message.type === "final_round" && row ? (
         <button type="button" className="btn primary inbox-go" onClick={() => game.select(row.i)}>

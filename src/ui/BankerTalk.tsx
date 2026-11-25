@@ -32,6 +32,8 @@ function lineText(t: Translate, rich: Rich, view: View, line: CoverLine, seed: n
         row ? { company: { kind: "company", id: row.i } } : {},
       );
     }
+    case "outlook":
+      return t(pick(`cover.line.outlook.${line.outlook}`, seed), { sector: t(`sector.${line.sector}`) });
     case "reputation":
       return t(pick(line.good ? "cover.line.reputation.good" : "cover.line.reputation.bad", seed));
   }

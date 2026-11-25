@@ -46,5 +46,11 @@
   "cover.line.reputation.good.3": "オーナーの方から御社のことを聞いてきます。紹介もしやすいです。",
   "cover.line.reputation.bad.1": "最近、そちらのハウスの評判はあまり良くありません。売り手がクロージングの確実性を気にしています。",
   "cover.line.reputation.bad.2": "本入札で値を下げた件、売り手は覚えています。しばらくは慎重に。",
-  "cover.line.reputation.bad.3": "正直に言うと、うちのMD何人かは御社をリストから外そうとしました。私が止めましたが。"
+  "cover.line.reputation.bad.3": "正直に言うと、うちのMD何人かは御社をリストから外そうとしました。私が止めましたが。",
+  "cover.line.outlook.positive.1": "うちのリサーチ見ました？{sector}は今が一番熱いです。売り手の方から連絡が来ています。",
+  "cover.line.outlook.positive.2": "{sector}は価格が上がるしかないと見ています。入るなら早めに動いてください。",
+  "cover.line.outlook.neutral.1": "{sector}は会社ごとに事情が違います。セクターよりも一社一社を見てください。",
+  "cover.line.outlook.neutral.2": "{sector}は静かです。こういう時にオーナーと親しくしておくと後で得をします。",
+  "cover.line.outlook.negative.1": "{sector}はしばらく慎重に。業績が落ちた会社が多く、デューデリジェンスなしで入ると痛い目に遭います。",
+  "cover.line.outlook.negative.2": "{sector}で急いで売りたいオーナーが何人かいます。価格は良いでしょうが、まずキャッシュフローを。"
 }

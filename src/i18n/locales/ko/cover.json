@@ -46,5 +46,11 @@
   "cover.line.reputation.good.3": "오너들이 먼저 그쪽 하우스를 묻습니다. 저희로서도 소개하기 편해요.",
   "cover.line.reputation.bad.1": "요즘 그쪽 하우스 평이 썩 좋지는 않습니다. 매도자들이 거래 확실성을 걱정해요.",
   "cover.line.reputation.bad.2": "본입찰에서 가격을 깎은 일, 매도자들이 기억합니다. 한동안은 조심하셔야 해요.",
-  "cover.line.reputation.bad.3": "솔직히 말씀드리면 저희 MD 몇은 그쪽을 리스트에서 빼자고 했습니다. 제가 막았죠."
+  "cover.line.reputation.bad.3": "솔직히 말씀드리면 저희 MD 몇은 그쪽을 리스트에서 빼자고 했습니다. 제가 막았죠.",
+  "cover.line.outlook.positive.1": "저희 리서치 보셨죠? {sector}는 지금이 제일 뜨겁습니다. 매도자들이 저희한테 먼저 연락하고 있어요.",
+  "cover.line.outlook.positive.2": "{sector}에서는 가격이 오를 일만 남았다고 봅니다. 들어가실 거면 빨리 움직이셔야 해요.",
+  "cover.line.outlook.neutral.1": "{sector}는 회사마다 사정이 다릅니다. 섹터 얘기보다 회사 하나하나를 보셔야 해요.",
+  "cover.line.outlook.neutral.2": "{sector}는 조용합니다. 이럴 때 오너들과 미리 친해 두시면 나중에 덕을 봅니다.",
+  "cover.line.outlook.negative.1": "{sector}는 당분간 조심하세요. 숫자가 꺾인 회사가 많아서, 실사 없이 들어가면 다칩니다.",
+  "cover.line.outlook.negative.2": "{sector}에서 급하게 팔려는 오너가 몇 있습니다. 가격은 좋겠지만 현금 흐름부터 보세요."
 }

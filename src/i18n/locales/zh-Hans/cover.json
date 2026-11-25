@@ -46,5 +46,11 @@
   "cover.line.reputation.good.3": "现在所有者会主动问起你们，我们介绍起来也方便。",
   "cover.line.reputation.bad.1": "最近贵机构的口碑不太好，卖方担心交割的确定性。",
   "cover.line.reputation.bad.2": "你们在正式竞标中压价的事，卖方都记得。近期要小心。",
-  "cover.line.reputation.bad.3": "说实话，我们有几位MD想把你们从名单里去掉，是我拦下了。"
+  "cover.line.reputation.bad.3": "说实话，我们有几位MD想把你们从名单里去掉，是我拦下了。",
+  "cover.line.outlook.positive.1": "看了我们的报告吧？{sector}现在最热，卖方都先联系我们。",
+  "cover.line.outlook.positive.2": "{sector}我们只看到价格上涨。想进场就要快。",
+  "cover.line.outlook.neutral.1": "{sector}各家情况不同，要逐家看而不是看行业。",
+  "cover.line.outlook.neutral.2": "{sector}很平静。这时候先和所有者搞好关系，日后会受益。",
+  "cover.line.outlook.negative.1": "{sector}近期要谨慎。很多公司业绩下滑，不做尽调就进去会受伤。",
+  "cover.line.outlook.negative.2": "{sector}有几位所有者急着卖。价格会不错，但先看现金流。"
 }

@@ -612,6 +612,8 @@ export type MessageBody =
   | { type: "shortlisted"; bidders: number }
   | { type: "not_shortlisted" }
   | { type: "bank_pitch"; adviser: number }
+  /** A bank's research: the market (sector null) or one sector, and which way it leans. */
+  | { type: "research_note"; adviser: number; sector: string | null; outlook: Outlook }
   | { type: "rival_approach"; house: number }
   | { type: "lost_to_rival"; house: number; ev: number }
   | { type: "rival_rebuffed"; house: number }
@@ -821,7 +823,7 @@ export type Command =
   | { type: "approach_owner"; company: number }
   | { type: "submit_indication"; company: number; offer: Offer }
   | { type: "propose_minority"; company: number; offer: Offer }
-  | { type: "cover_bank"; adviser: number }
+  | { type: "cover_bank"; adviser: number; sector?: string | null }
   | { type: "sign_nda"; company: number }
   | { type: "run_diligence"; company: number; stream: DdStream }
   | { type: "order_valuation"; company: number; kind: ValuationKind }
@@ -937,7 +939,10 @@ export type CoverLine =
   | { kind: "sector"; sector: string; months: number }
   | { kind: "rival"; house: number; sector: string }
   | { kind: "pipeline"; company: string; months: number }
-  | { kind: "reputation"; good: boolean };
+  | { kind: "reputation"; good: boolean }
+  | { kind: "outlook"; sector: string; outlook: Outlook };
+
+export type Outlook = "positive" | "neutral" | "negative";
 
 export interface CoverTalk {
   adviser: number;

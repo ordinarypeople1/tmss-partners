@@ -1,0 +1,49 @@
+/* A bank's research in the inbox: the figures it is about, what to do next, the companies. */
+.research {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+.research-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 10px;
+}
+.research-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.research-hint {
+  margin: 0;
+}
+.research-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 12px;
+}
+.research-lists h4 {
+  margin: 0 0 4px;
+  font-size: 0.933rem;
+}
+.research-lists ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.research-lists li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  justify-content: space-between;
+  padding: 5px 2px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.research-lists p {
+  margin: 0;
+}

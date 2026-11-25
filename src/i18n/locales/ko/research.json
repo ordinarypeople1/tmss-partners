@@ -1,0 +1,17 @@
+{
+  "research.market": "시장 전반",
+  "research.outlook.positive": "긍정",
+  "research.outlook.neutral": "중립",
+  "research.outlook.negative": "부정",
+  "research.stat.multiple": "섹터 중간 배수",
+  "research.stat.forSale": "지금 매물",
+  "research.stat.companies": "섹터 회사 수",
+  "research.meet": "{banker}와 이 리서치로 미팅",
+  "research.study": "우리도 섹터 리서치 시작",
+  "research.hint.market": "미팅하면 커버리지가 오르고, 담당 MD가 시장에서 들은 것을 들려줍니다. 지금 커버리지 {coverage, number, ::integer}.",
+  "research.hint.sector": "이 섹터로 미팅하면 커버리지가 더 오르고, 커버리지 30 이상이면 이 섹터에서 준비 중인 매각을, 60 이상이면 이름까지 들을 수 있습니다. 지금 커버리지 {coverage, number, ::integer}.",
+  "research.forSale": "이 섹터의 매물",
+  "research.prospects": "관계를 쌓을 만한 회사",
+  "research.none": "지금 보이는 매물이 없습니다.",
+  "research.prospectsNone": "매각 의향이 보이는 오너가 아직 없습니다. 미팅으로 의향을 알아보세요."
+}

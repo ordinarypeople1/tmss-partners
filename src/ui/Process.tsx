@@ -168,7 +168,7 @@ export function Banks() {
   const [list, favour, headsUp] = view.coverage_marks;
   const [talking, setTalking] = useState(false);
   const cover = (adviser: number) => {
-    if (game.act({ type: "cover_bank", adviser })) {
+    if (game.act({ type: "cover_bank", adviser, sector: null })) {
       setTalking(true);
     }
   };
@@ -198,7 +198,9 @@ export function Banks() {
         {view.advisers.map((adviser, index) => (
           <div key={adviser.name} className="bank">
             <div className="bank-head">
-              <strong className="clip">{adviser.name}</strong>
+              <strong className="clip">
+                <AdviserLink adviser={index} />
+              </strong>
               <Tag tone="muted">{t(`tier.${adviser.tier}`)}</Tag>
               {adviser.focus ? (
                 <span className="bank-focus" title={t(`sector.${adviser.focus}`)}>
