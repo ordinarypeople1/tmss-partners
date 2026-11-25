@@ -15,7 +15,7 @@ async function open(port = 5173, viewport = { width: 1440, height: 900 }) {
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error)));
   page.on("console", (message) => message.type() === "error" && errors.push(message.text()));
-  await page.goto(`http://127.0.0.1:${port}/`);
+  await page.goto(`http://127.0.0.1:${port}/?nostudio`);
   // A fresh game in Korean, whatever the headless browser's language is.
   await page.evaluate(() => {
     window.localStorage.clear();

@@ -11,7 +11,7 @@ const drive = require("./drive.cjs");
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error)));
   page.on("console", (message) => message.type() === "error" && errors.push(message.text()));
-  await page.goto(`http://127.0.0.1:${port}/`);
+  await page.goto(`http://127.0.0.1:${port}/?nostudio`);
   await page.evaluate(() => {
     window.localStorage.clear();
     window.localStorage.setItem("deal-atlas.locale", "ko");
