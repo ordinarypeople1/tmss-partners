@@ -14,6 +14,7 @@ pub mod economy;
 pub mod fund;
 pub mod ic;
 pub mod ledger;
+pub mod macro_events;
 pub mod market;
 pub mod math;
 pub mod people;

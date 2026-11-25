@@ -640,6 +640,7 @@ impl Company {
         );
         multiple = mul_bps(multiple, 10_000 + economy.sector_cycle_bps[self.sector]);
         multiple = mul_bps(multiple, economy.phase_multiple_bps());
+        multiple = mul_bps(multiple, 10_000 + economy.bloc_multiple_for(&self.country));
         multiple = mul_bps(multiple, self.quality_bps(industry));
         multiple.clamp(
             industry.multiple_floor_millis * 85 / 100,
@@ -693,6 +694,7 @@ impl Company {
         };
         let mut growth = self.growth_bps
             + economy.growth_bps(self.sector, industry) * cycle_pct / 100
+            + economy.bloc_growth_for(&self.country) * cycle_pct / 100
             + rng.noise(industry.monthly_growth_std_bps * noise_pct / 100)
             + (self.management - 10) * 2;
         growth +=
@@ -1003,7 +1005,13 @@ pub mod tests {
             let mut company = company(rng_seed);
             let industries = [industry.clone()];
             for month in 1..=360 {
-                economy.step(&mut rng, &industries, month % 3 == 0);
+                economy.step(&mut rng, &industries, 0);
+                // News tilts and rate moves, as the macro calendar would make them.
+                economy.bloc_growth_bps[0] = rng.noise(10).clamp(-15, 15);
+                economy.bloc_multiple_bps[0] = rng.noise(500).clamp(-800, 800);
+                if month % 2 == 0 {
+                    economy.policy_rate_bps = (economy.policy_rate_bps + rng.noise(25)).clamp(0, 800);
+                }
                 let equity_before = company.books.total_equity();
                 let debt_before = company.books.debt;
                 company.step(&industry, &economy, &mut rng);

@@ -4,6 +4,7 @@ import { CompanyPanel } from "./CompanyPanel";
 import { GameProvider, useGame } from "./game";
 import { MapHub } from "./MapHub";
 import { Shell } from "./Shell";
+import { Calendar } from "./screens/Calendar";
 import { Career } from "./screens/Career";
 import { Deals } from "./screens/Deals";
 import { FundScreen } from "./screens/FundScreen";
@@ -19,6 +20,8 @@ function Screens() {
       return <MapHub />;
     case "inbox":
       return <Inbox />;
+    case "calendar":
+      return <Calendar />;
     case "deals":
       return <Deals />;
     case "portfolio":

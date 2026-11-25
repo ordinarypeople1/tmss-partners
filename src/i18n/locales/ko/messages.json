@@ -201,5 +201,11 @@
   "msg.not_shortlisted.title": "{company}: 숏리스트 탈락",
   "msg.not_shortlisted.body": "예비입찰가가 부족했거나 내지 않았습니다. 딜 파일을 닫습니다.",
   "msg.bank_pitch.title": "{adviser}: {company}를 소개합니다",
-  "msg.bank_pitch.body": "오너가 매각에 열려 있다고 합니다. 소개를 받아 관계 20에서 시작합니다."
+  "msg.bank_pitch.body": "오너가 매각에 열려 있다고 합니다. 소개를 받아 관계 20에서 시작합니다.",
+  "msg.macro_surprise.titleAbove": "{event}: 예상 웃돎",
+  "msg.macro_surprise.titleBelow": "{event}: 예상 밑돎",
+  "msg.macro_surprise.body": "실제 {actual}, 컨센서스 {consensus}. 서프라이즈 {z}.",
+  "msg.election.title": "{event}: {winner} 승리",
+  "msg.election.body": "여론대로 나왔다. 불확실성이 걷힌다.",
+  "msg.election.upsetBody": "여론과 반대로 나왔다. 불확실성이 한동안 남는다."
 }

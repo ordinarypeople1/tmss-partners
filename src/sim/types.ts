@@ -558,6 +558,8 @@ export type MessageBody =
   | { type: "welcome" }
   | { type: "rate_changed"; from_bps: number; to_bps: number }
   | { type: "phase_changed"; from: Phase; to: Phase }
+  | { type: "macro_surprise"; event: number; kind: MacroKind; actual: number; consensus: number; surprise_centi: number }
+  | { type: "election"; event: number; kind: MacroKind; winner: number; upset: boolean }
   | { type: "sale_early_notice"; reason: SaleReason }
   | { type: "owner_opened"; reason: SaleReason }
   | { type: "owner_declined" }
@@ -725,7 +727,14 @@ export interface View {
     mezz_rate_bps: number;
     history: { policy_rate_bps: number; credit_spread_bps: number; valuation_index: number }[];
     sectors: SectorView[];
+    /** Monthly growth the news adds, per bloc in `BLOCS` order. */
+    bloc_growth_bps: [number, number, number];
+    /** What the news does to multiples, per bloc, around zero. */
+    bloc_multiple_bps: [number, number, number];
+    /** 0–100 per bloc. Owners wait and IPOs stall when it is high. */
+    uncertainty: [number, number, number];
   };
+  calendar: CalendarView;
   fund: {
     name: string;
     committed: number;
@@ -914,4 +923,76 @@ export interface DdReport {
   date: GameDate;
   findings: DdFinding[];
   outlook: DdOutlook | null;
+}
+
+// ---------------------------------------------------------------------------
+// Macro calendar (crates/sim-core/src/macro_events.rs)
+// ---------------------------------------------------------------------------
+
+/** United States, euro area (Germany and France), China. Index order of the per-bloc arrays. */
+export type Bloc = "us" | "ez" | "cn";
+export const BLOCS: Bloc[] = ["us", "ez", "cn"];
+
+export type MacroKind =
+  | "fomc"
+  | "us_payrolls"
+  | "us_cpi"
+  | "us_gdp"
+  | "us_ism"
+  | "sloos"
+  | "us_election"
+  | "us_midterm"
+  | "ecb"
+  | "ez_hicp"
+  | "ifo"
+  | "cn_activity"
+  | "cn_trade"
+  | "cn_lpr"
+  | "cn_npc";
+
+export type MacroCategory = "central_bank" | "data" | "politics";
+
+/** `party`: party 0's poll share in basis points before the vote, the winner's index after. */
+export type MacroUnit = "rate_bps" | "pct_bps" | "jobs_k" | "index_tenths" | "party";
+
+export type MacroEffect =
+  | { channel: "policy_rate"; delta_bps: number }
+  | { channel: "credit_spread"; delta_bps: number }
+  | { channel: "bloc_growth"; bloc: Bloc; delta_bps: number }
+  | { channel: "bloc_multiple"; bloc: Bloc; delta_bps: number }
+  | { channel: "sector_cycle"; sector: string; delta_bps: number }
+  | { channel: "uncertainty"; bloc: Bloc; delta: number };
+
+export interface MacroEventView {
+  id: number;
+  kind: MacroKind;
+  bloc: Bloc;
+  category: MacroCategory;
+  unit: MacroUnit;
+  /** 1–3. */
+  importance: number;
+  /** Sector ids whose cycle the release pushes. */
+  sectors: string[];
+  date: GameDate;
+  day: number;
+  /** The open month's releases, and the polls for every election ahead. Null otherwise. */
+  consensus: number | null;
+  range: [number, number] | null;
+  previous: number | null;
+  /** Only once the month has closed. */
+  actual: number | null;
+  /** (actual − consensus) / usual miss, in hundredths. */
+  surprise_centi: number | null;
+  /** Central banks: −2 dovish … +2 hawkish. */
+  stance: number | null;
+  upset: boolean;
+  effects: MacroEffect[];
+}
+
+export interface CalendarView {
+  events: MacroEventView[];
+  /** Two fictional parties. `lean` +1 reads business-friendly, −1 the other way. */
+  parties: { lean: number }[];
+  poll_bps: number;
+  incumbent: number | null;
 }

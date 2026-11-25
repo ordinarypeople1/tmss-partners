@@ -1,6 +1,7 @@
 import type { Translate } from "../i18n/useT";
 import type { Bidder, Message, View } from "../sim/types";
 import type { Format } from "./format";
+import { formatMacroValue, formatSurprise, macroUnit } from "./macro";
 
 export interface MessageText {
   title: string;
@@ -17,6 +18,8 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   welcome: ["flag"],
   rate_changed: ["market"],
   phase_changed: ["clock"],
+  macro_surprise: ["calendar", "warn"],
+  election: ["calendar"],
   sale_early_notice: ["handshake", "good"],
   owner_opened: ["handshake", "good"],
   owner_declined: ["close", "warn"],
@@ -85,6 +88,20 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     case "phase_changed":
       values.from = t(`phase.${message.from}`);
       values.to = t(`phase.${message.to}`);
+      break;
+    case "macro_surprise": {
+      const unit = macroUnit(message.kind);
+      values.event = t(`macro.event.${message.kind}`);
+      values.actual = formatMacroValue(t, f, unit, message.actual);
+      values.consensus = formatMacroValue(t, f, unit, message.consensus);
+      values.z = formatSurprise(f, message.surprise_centi);
+      titleId = message.surprise_centi > 0 ? "msg.macro_surprise.titleAbove" : "msg.macro_surprise.titleBelow";
+      break;
+    }
+    case "election":
+      values.event = t(`macro.event.${message.kind}`);
+      values.winner = t(`party.${message.winner}`);
+      bodyId = message.upset ? "msg.election.upsetBody" : "msg.election.body";
       break;
     case "sale_early_notice":
     case "owner_opened":

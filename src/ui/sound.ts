@@ -367,6 +367,8 @@ export const MESSAGE_SOUNDS: Record<Message["type"], SoundName | null> = {
   welcome: null,
   rate_changed: null,
   phase_changed: null,
+  macro_surprise: null,
+  election: null,
   owner_opened: "good",
   owner_declined: "bad",
   sale_early_notice: null,

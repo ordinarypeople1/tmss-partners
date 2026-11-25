@@ -267,7 +267,11 @@ impl World {
                 "mezz_rate_bps": self.economy.mezz_rate_bps(),
                 "history": self.economy.history,
                 "sectors": sectors,
+                "bloc_growth_bps": self.economy.bloc_growth_bps,
+                "bloc_multiple_bps": self.economy.bloc_multiple_bps,
+                "uncertainty": self.economy.uncertainty,
             },
+            "calendar": self.calendar_view(),
             "fund": {
                 "name": self.fund.name,
                 "committed": self.fund.committed,
@@ -816,5 +820,47 @@ impl World {
         let (name, feminine) = crate::people::name(&mut rng, &self.companies[company].country);
         let role = [ExecutiveRole::Cfo, ExecutiveRole::Coo, ExecutiveRole::Strategy][rng.below(3) as usize];
         json!({ "name": name, "feminine": feminine, "role": role })
+    }
+}
+
+impl World {
+    /// The macro calendar as the player may see it: every scheduled release,
+    /// a consensus only for the open month (and the polls for elections), and
+    /// results only once a month has closed.
+    fn calendar_view(&self) -> Value {
+        use crate::macro_events::MacroKind;
+        let calendar = &self.macro_calendar;
+        let events: Vec<Value> = calendar
+            .events
+            .iter()
+            .map(|event| {
+                let kind: MacroKind = event.kind;
+                json!({
+                    "id": event.id,
+                    "kind": kind,
+                    "bloc": kind.bloc(),
+                    "category": kind.category(),
+                    "unit": kind.unit(),
+                    "importance": kind.importance(),
+                    "sectors": kind.sectors(),
+                    "date": event.date,
+                    "day": event.day,
+                    "consensus": event.consensus,
+                    "range": event.range,
+                    "previous": event.previous,
+                    "actual": event.actual,
+                    "surprise_centi": event.surprise_centi,
+                    "stance": event.stance,
+                    "upset": event.upset,
+                    "effects": event.effects,
+                })
+            })
+            .collect();
+        json!({
+            "events": events,
+            "parties": calendar.parties,
+            "poll_bps": calendar.poll_bps,
+            "incumbent": calendar.incumbent,
+        })
     }
 }

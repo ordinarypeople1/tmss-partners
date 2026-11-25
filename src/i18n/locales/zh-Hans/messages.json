@@ -201,5 +201,11 @@
   "msg.not_shortlisted.title": "{company}：未入围",
   "msg.not_shortlisted.body": "意向报价不足或未提交。交易档案已关闭。",
   "msg.bank_pitch.title": "{adviser}：介绍 {company}",
-  "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。"
+  "msg.bank_pitch.body": "所有者对出售持开放态度。经介绍，关系从20起步。",
+  "msg.macro_surprise.titleAbove": "{event}：高于预期",
+  "msg.macro_surprise.titleBelow": "{event}：低于预期",
+  "msg.macro_surprise.body": "实际 {actual}，共识 {consensus}。意外幅度 {z}。",
+  "msg.election.title": "{event}：{winner}获胜",
+  "msg.election.body": "与民调一致。不确定性消退。",
+  "msg.election.upsetBody": "与民调相反。不确定性将持续一段时间。"
 }

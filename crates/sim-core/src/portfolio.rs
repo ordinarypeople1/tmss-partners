@@ -891,7 +891,8 @@ impl World {
         }
         let route = exit.route;
         let phase = self.economy.phase;
-        if route == ExitRoute::Ipo && phase == Phase::Recession {
+        let shut = self.economy.uncertainty_for(&self.companies[company].country) >= 70;
+        if route == ExitRoute::Ipo && (phase == Phase::Recession || shut) {
             self.holding_mut(company).exit = None;
             self.post(MessageKind::ExitPulled { route }, Some(company));
             return;
@@ -910,7 +911,9 @@ impl World {
                 10_000 + self.rng.noise(400) - (self.economy.credit_spread_bps - 400) * 3
             }
             ExitRoute::Ipo => {
+                let country = &self.companies[company].country;
                 11_200 + self.rng.noise(700) + (self.economy.valuation_index() - 100) * 40
+                    - (self.economy.uncertainty_for(country) - crate::macro_events::UNCERTAINTY_BASE).max(0) * 20
             }
         };
         let ev = mul_bps(self.model_ev(company), factor.clamp(6_000, 14_000));

@@ -201,5 +201,11 @@
   "msg.not_shortlisted.title": "{company}: ショートリスト落選",
   "msg.not_shortlisted.body": "意向表明の価格が不足したか、未提出でした。ディールファイルを閉じます。",
   "msg.bank_pitch.title": "{adviser}: {company}を紹介",
-  "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。"
+  "msg.bank_pitch.body": "オーナーは売却に前向きとのこと。紹介により関係20から始まります。",
+  "msg.macro_surprise.titleAbove": "{event}:予想上振れ",
+  "msg.macro_surprise.titleBelow": "{event}:予想下振れ",
+  "msg.macro_surprise.body": "実績 {actual}、コンセンサス {consensus}。サプライズ {z}。",
+  "msg.election.title": "{event}:{winner}が勝利",
+  "msg.election.body": "世論調査通り。不確実性が晴れる。",
+  "msg.election.upsetBody": "世論調査と逆の結果。不確実性がしばらく残る。"
 }

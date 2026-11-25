@@ -258,7 +258,9 @@ impl World {
                 _ if self.economy.valuation_index() >= 100 => 130,
                 _ => 100,
             };
-            (base * market / 100, reason)
+            // Owners wait out an election or a shock.
+            let waiting = (130 - self.economy.uncertainty_for(&company.country)).clamp(40, 120);
+            (base * market / 100 * waiting / 110, reason)
         };
         Some((chance.clamp(0, 10_000), reason))
     }

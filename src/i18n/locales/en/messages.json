@@ -201,5 +201,11 @@
   "msg.not_shortlisted.title": "{company}: not shortlisted",
   "msg.not_shortlisted.body": "Your indication fell short, or none was given. The deal file is closed.",
   "msg.bank_pitch.title": "{adviser} introduces {company}",
-  "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20."
+  "msg.bank_pitch.body": "The owner is open to a sale. With the introduction you start at relationship 20.",
+  "msg.macro_surprise.titleAbove": "{event}: above consensus",
+  "msg.macro_surprise.titleBelow": "{event}: below consensus",
+  "msg.macro_surprise.body": "Actual {actual} against a consensus of {consensus}. Surprise {z}.",
+  "msg.election.title": "{event}: {winner} wins",
+  "msg.election.body": "As the polls said. Uncertainty lifts.",
+  "msg.election.upsetBody": "Against the polls. Uncertainty lingers for a while."
 }

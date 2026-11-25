@@ -4,8 +4,8 @@ import type { Command, CompanyRow, CompanyView, GameDate, Message, Offer, OfferP
 import { joinBase } from "./publicPath";
 import { playSound, soundFor } from "./sound";
 
-export type Screen = "map" | "inbox" | "deals" | "portfolio" | "market" | "league" | "fund" | "career";
-export const SCREENS: Screen[] = ["map", "inbox", "deals", "portfolio", "market", "league", "fund", "career"];
+export type Screen = "map" | "inbox" | "calendar" | "deals" | "portfolio" | "market" | "league" | "fund" | "career";
+export const SCREENS: Screen[] = ["map", "inbox", "calendar", "deals", "portfolio", "market", "league", "fund", "career"];
 /** The most months "skip ahead" will close in one go. */
 const SKIP_LIMIT = 12;
 
@@ -33,6 +33,10 @@ export interface Game {
   rows: Map<number, CompanyRow>;
   screen: Screen;
   go(screen: Screen): void;
+  /** The macro event the calendar opens on, if a link asked for one. */
+  calendarEvent: number | null;
+  /** Opens the calendar on one event. */
+  showEvent(event: number | null): void;
   /** The company open in the side panel, if any. */
   selected: number | null;
   company: CompanyView | null;
@@ -118,6 +122,7 @@ export function GameProvider({
   const [view, setView] = useState<View | null>(null);
   const [error, setError] = useState(false);
   const [screen, setScreen] = useState<Screen>("map");
+  const [calendarEvent, setCalendarEvent] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [company, setCompany] = useState<CompanyView | null>(null);
   const [turn, setTurn] = useState<TurnReport | null>(null);
@@ -273,6 +278,13 @@ export function GameProvider({
       rows,
       screen,
       go: setScreen,
+      calendarEvent,
+      showEvent: (event) => {
+        setCalendarEvent(event);
+        if (event !== null) {
+          setScreen("calendar");
+        }
+      },
       selected,
       company,
       select,
@@ -287,7 +299,7 @@ export function GameProvider({
       toasts,
       dismissToast: (id) => setToasts((list) => list.filter((item) => item.id !== id)),
     };
-  }, [view, rows, screen, selected, company, select, act, nextMonth, skipAhead, turn, start, toasts]);
+  }, [view, rows, screen, calendarEvent, selected, company, select, act, nextMonth, skipAhead, turn, start, toasts]);
 
   if (error) {
     return <>{failed}</>;

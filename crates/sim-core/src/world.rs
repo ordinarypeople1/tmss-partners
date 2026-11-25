@@ -104,6 +104,21 @@ pub enum MessageKind {
         from: Phase,
         to: Phase,
     },
+    /// A release that missed its consensus by a wide margin.
+    MacroSurprise {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        actual: i64,
+        consensus: i64,
+        surprise_centi: i64,
+    },
+    /// An election result. `winner` indexes the two fictional parties.
+    Election {
+        event: u64,
+        kind: crate::macro_events::MacroKind,
+        winner: u8,
+        upset: bool,
+    },
     SaleEarlyNotice {
         reason: SaleReason,
     },
@@ -516,6 +531,9 @@ pub struct World {
     /// Coverage of each sell-side bank, 0 to 100.
     #[serde(default)]
     pub banks: Vec<i64>,
+    /// Central banks, releases and elections, scheduled ahead.
+    #[serde(default)]
+    pub macro_calendar: crate::macro_events::MacroCalendar,
     next_message_id: u64,
     pub(crate) rng: Rng,
 }
@@ -584,9 +602,16 @@ impl World {
             fund_started_month: 0,
             street: 0,
             banks: vec![0; crate::advisers::ADVISERS],
+            macro_calendar: crate::macro_events::MacroCalendar::default(),
             next_message_id: 0,
             rng,
         };
+        world.macro_calendar = crate::macro_events::MacroCalendar::open(
+            seed,
+            world.date,
+            &world.economy,
+            options.era,
+        );
         // What the rival houses already own is their opening book.
         for index in 0..world.companies.len() {
             if let crate::company::Owner::Sponsor { house, .. } = world.companies[index].owner {
@@ -613,7 +638,18 @@ impl World {
         if header.schema_version != SAVE_SCHEMA_VERSION {
             return Err(SaveError::UnsupportedVersion(header.schema_version));
         }
-        serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))
+        let mut world: World =
+            serde_json::from_str(save).map_err(|err| SaveError::Malformed(err.to_string()))?;
+        // Saves from before the calendar open one on the month they stand in.
+        if !world.macro_calendar.is_open() {
+            world.macro_calendar = crate::macro_events::MacroCalendar::open(
+                world.seed,
+                world.date,
+                &world.economy,
+                world.options.era,
+            );
+        }
+        Ok(world)
     }
 
     pub fn apply(&mut self, command: Command) -> Result<(), CommandError> {
@@ -877,9 +913,41 @@ impl World {
         let closes_quarter = closing.closes_a_quarter();
 
         for news in self
-            .economy
-            .step(&mut self.rng, &self.industries, closes_quarter)
+            .macro_calendar
+            .close_month(closing, &mut self.economy, &self.industries)
         {
+            use crate::macro_events::MacroNews;
+            match news {
+                MacroNews::RateChanged { from_bps, to_bps } => {
+                    self.post_news(MessageKind::RateChanged { from_bps, to_bps }, None)
+                }
+                MacroNews::Surprise { event } => {
+                    if let Some(item) = self.macro_calendar.event(event) {
+                        let kind = MessageKind::MacroSurprise {
+                            event,
+                            kind: item.kind,
+                            actual: item.actual.unwrap_or(0),
+                            consensus: item.consensus.unwrap_or(0),
+                            surprise_centi: item.surprise_centi.unwrap_or(0),
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+                MacroNews::Election { event } => {
+                    if let Some(item) = self.macro_calendar.event(event) {
+                        let kind = MessageKind::Election {
+                            event,
+                            kind: item.kind,
+                            winner: item.actual.unwrap_or(0) as u8,
+                            upset: item.upset,
+                        };
+                        self.post_news(kind, None);
+                    }
+                }
+            }
+        }
+        let signal = self.macro_calendar.growth_signal_bps();
+        for news in self.economy.step(&mut self.rng, &self.industries, signal) {
             match news {
                 EconomyNews::RateChanged { from_bps, to_bps } => {
                     self.post_news(MessageKind::RateChanged { from_bps, to_bps }, None)
@@ -924,6 +992,7 @@ impl World {
         self.expire_decisions();
 
         self.date = closing.next();
+        self.macro_calendar.open_month(self.date, &self.economy);
         self.months_elapsed += 1;
         self.convene_committees();
         self.career_step();
@@ -1603,6 +1672,48 @@ pub mod tests {
         let view = world.view();
         assert_eq!(view["league"].as_array().unwrap().len(), RIVAL_HOUSES + 1);
         assert_eq!(view["objectives"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn the_calendar_shows_the_schedule_ahead_and_results_only_behind() {
+        let mut world = world(6);
+        run(&mut world, 14);
+        let view = world.view();
+        let open = (world.date.year, world.date.month as i64);
+        let events = view["calendar"]["events"].as_array().unwrap();
+        assert!(events.iter().any(|event| event["kind"] == "fomc"));
+        for event in events {
+            let date = (event["date"]["year"].as_i64().unwrap() as i32, event["date"]["month"].as_i64().unwrap());
+            let behind = date < open;
+            assert_eq!(!event["actual"].is_null(), behind, "{event}");
+            let election = event["kind"] == "us_election" || event["kind"] == "us_midterm";
+            if date > open && !election {
+                assert!(event["consensus"].is_null());
+            }
+        }
+        assert!(events.iter().any(|event| event["date"]["year"].as_i64() == Some(open.0 as i64 + 1)));
+    }
+
+    #[test]
+    fn a_save_from_before_the_calendar_opens_one() {
+        let mut world = world(8);
+        run(&mut world, 3);
+        let mut save: serde_json::Value = serde_json::from_str(&world.to_save()).unwrap();
+        save.as_object_mut().unwrap().remove("macro_calendar");
+        let loaded = World::from_save(&save.to_string()).unwrap();
+        assert!(loaded.macro_calendar.is_open());
+        assert!(loaded.macro_calendar.events.iter().all(|event| event.date >= loaded.date));
+    }
+
+    #[test]
+    fn a_saved_game_continues_with_the_same_calendar() {
+        let mut world = world(9);
+        run(&mut world, 5);
+        let mut loaded = World::from_save(&world.to_save()).unwrap();
+        run(&mut world, 8);
+        run(&mut loaded, 8);
+        assert_eq!(world.macro_calendar, loaded.macro_calendar);
+        assert_eq!(world.economy, loaded.economy);
     }
 
     #[test]
