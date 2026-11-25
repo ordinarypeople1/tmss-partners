@@ -8,6 +8,7 @@ Deal Atlas의 디자인 골격이다. 숫자와 고유명사 가운데 “제안
 | [범위와 로드맵](scope.md) | v1과 그 뒤 |
 | [개발 로드맵](roadmap.md) | 잠근 결정, 지역, 화면, 마일스톤 |
 | [구현된 시스템](systems.md) | 지금 코드에 있는 규칙과 숫자 |
+| [거시 이벤트와 캘린더](macro-calendar.md) | 계획. 중앙은행, 지표, 선거와 월간 캘린더 화면 |
 | [인물](../personas/poiesis-investment.md) | 플레이어, 하우스, 파트너 6인 |
 | [시나리오](../scenarios/catalog.md) | 이벤트 36개의 목록, v1은 12개 |
 | [재무 모델](../finance/model-spec.md) | 3제표, 배수, LBO, 변제 순위 |
