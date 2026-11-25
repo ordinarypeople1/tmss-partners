@@ -913,8 +913,8 @@ def parse_args() -> argparse.Namespace:
     root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description="Generate fictional companies and three-statement history.")
     parser.add_argument("--seed", type=int, default=2024)
-    parser.add_argument("--count", type=int, default=250, help="Companies in the United States.")
-    parser.add_argument("--foreign-count", type=int, default=250, help="Companies in the other six countries.")
+    parser.add_argument("--count", type=int, default=400, help="Companies in the United States.")
+    parser.add_argument("--foreign-count", type=int, default=600, help="Companies in the other six countries.")
     parser.add_argument("--fixture-count", type=int, default=4)
     parser.add_argument("--quarters", type=int, default=8)
     parser.add_argument("--start-year", type=int, default=2025)

@@ -229,7 +229,7 @@ pub fn pick_house(country: &str, rng: &mut crate::rng::Rng) -> u8 {
     let abroad: Vec<usize> = (0..RIVAL_HOUSES)
         .filter(|house| HOUSE_STYLES[*house].cross_border && HOUSE_STYLES[*house].country != country)
         .collect();
-    let pool = if home.is_empty() || (!abroad.is_empty() && rng.chance_bps(2_000)) { &abroad } else { &home };
+    let pool = if home.is_empty() || (!abroad.is_empty() && rng.chance_bps(1_200)) { &abroad } else { &home };
     pool[rng.below(pool.len() as u64) as usize] as u8
 }
 

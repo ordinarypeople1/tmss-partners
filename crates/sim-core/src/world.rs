@@ -20,7 +20,8 @@ use crate::story::{
     opening_lps, Achievement, EventKind, Lp, Objective, Records, Unlocked, YearStats,
 };
 
-pub const SAVE_SCHEMA_VERSION: u32 = 4;
+/// 5: a thousand companies and nineteen rival houses.
+pub const SAVE_SCHEMA_VERSION: u32 = 5;
 const FUND_COMMITTED: i64 = 750_000;
 const MAX_MESSAGES: usize = 300;
 
@@ -1258,14 +1259,14 @@ pub mod tests {
         assert_eq!(world.date, GameDate::new(2027, 1));
         assert_eq!(world.fund.called, 0);
         assert_eq!(world.fund.uncalled(), 750_000);
-        assert_eq!(world.companies.len(), 500);
+        assert_eq!(world.companies.len(), 1_000);
         assert_eq!(
             world
                 .companies
                 .iter()
                 .filter(|company| company.is_abroad())
                 .count(),
-            250
+            600
         );
         assert!(world
             .companies
@@ -1320,7 +1321,7 @@ pub mod tests {
     fn rejects_a_save_from_another_schema() {
         let save = world(1)
             .to_save()
-            .replacen("\"schema_version\":4", "\"schema_version\":99", 1);
+            .replacen(&format!("\"schema_version\":{SAVE_SCHEMA_VERSION}"), "\"schema_version\":99", 1);
         assert!(matches!(
             World::from_save(&save),
             Err(SaveError::UnsupportedVersion(99))

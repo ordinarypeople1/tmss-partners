@@ -365,15 +365,16 @@ impl Company {
         let sga_fixed = sga_total * 45 / 100;
         let sga_variable_bps = seed.sga_ratio_bps * 55 / 100;
         // Who owns companies differs by country: family firms in Germany,
-        // group subsidiaries in Korea and Japan, sponsors at home.
+        // group subsidiaries in Korea and Japan, sponsors in the US and Britain.
+        // Every country's own houses need enough companies to hold (about eight each).
         let (founders, sponsors) = match seed.country.as_str() {
             "US" => (52, 30),
             "GB" => (45, 35),
-            "DE" => (70, 12),
+            "DE" => (64, 18),
             "FR" => (55, 22),
-            "KR" => (50, 10),
-            "JP" => (55, 8),
-            _ => (65, 10),
+            "KR" => (46, 16),
+            "JP" => (50, 14),
+            _ => (60, 15),
         };
         let draw = rng.below(100) as i64;
         let owner = if draw < founders {

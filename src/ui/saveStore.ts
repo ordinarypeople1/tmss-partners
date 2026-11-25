@@ -1,6 +1,6 @@
 /**
- * The one save slot on this device. A save is several megabytes of JSON, past the
- * 5 MB that localStorage allows, so it lives in IndexedDB. Every call fails soft:
+ * The one save slot on this device. A save is over ten megabytes of JSON, past the
+ * 5 MB that localStorage allows, so it lives in IndexedDB, gzipped where the runtime can. Every call fails soft:
  * without storage (a private window) the game still runs for this visit.
  *
  * This is the seam a packaged build replaces: a file in the app's data folder,
@@ -48,21 +48,42 @@ function legacy(): string | null {
   }
 }
 
+/** Gzip, where the runtime has it (WebView2, WKWebView, every current browser); plain text otherwise. */
+async function pack(text: string): Promise<Blob | string> {
+  if (typeof CompressionStream === "undefined") {
+    return text;
+  }
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Response(stream).blob();
+}
+
+async function unpack(value: unknown): Promise<string | null> {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Blob && typeof DecompressionStream !== "undefined") {
+    const stream = value.stream().pipeThrough(new DecompressionStream("gzip"));
+    return new Response(stream).text();
+  }
+  return null;
+}
+
 export async function readSave(): Promise<string | null> {
   try {
-    const value = await run("readonly", (store) => store.get(SLOT));
-    if (typeof value === "string") {
+    const value = await unpack(await run("readonly", (store) => store.get(SLOT)));
+    if (value !== null) {
       return value;
     }
   } catch {
-    // No IndexedDB: fall through.
+    // No IndexedDB, or a save that will not unpack: fall through.
   }
   return legacy();
 }
 
 export async function writeSave(save: string): Promise<void> {
   try {
-    await run("readwrite", (store) => store.put(save, SLOT));
+    const packed = await pack(save);
+    await run("readwrite", (store) => store.put(packed, SLOT));
     window.localStorage.removeItem(LEGACY_KEY);
   } catch {
     // Private windows refuse storage. The game still runs for this visit.
