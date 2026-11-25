@@ -7,20 +7,27 @@ import { isMuted, setMuted } from "./sound";
 import { applyTheme, currentTheme, type Theme } from "./theme";
 
 /** Language, theme and sound. Kept on this device; the same on the title screen and in the game. */
-export function Preferences() {
+export function Preferences({ language = true }: { language?: boolean }) {
   const t = useT();
   const [muted, setMutedState] = useState(isMuted);
   const { locale, setLocale } = useLocale();
   const [theme, setTheme] = useState<Theme>(currentTheme);
   return (
     <>
-      <select className="language" value={locale} aria-label={t("language.label")} onChange={(event) => setLocale(event.target.value as Locale)}>
-        {LOCALES.map((code) => (
-          <option key={code} value={code}>
-            {t(`language.${code}`)}
-          </option>
-        ))}
-      </select>
+      {language ? (
+        <select
+          className="language"
+          value={locale}
+          aria-label={t("language.label")}
+          onChange={(event) => setLocale(event.target.value as Locale)}
+        >
+          {LOCALES.map((code) => (
+            <option key={code} value={code}>
+              {t(`language.${code}`)}
+            </option>
+          ))}
+        </select>
+      ) : null}
       <button
         type="button"
         className="icon-btn"

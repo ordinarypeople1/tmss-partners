@@ -4,6 +4,7 @@ import { useFormat } from "./format";
 import type { TitleControls } from "./game";
 import { Icon } from "./icons";
 import { NewGame } from "./NewGame";
+import { LanguageFlags } from "./Flags";
 import { Preferences } from "./Preferences";
 import "./Title.css";
 
@@ -67,8 +68,9 @@ export function Title({ saved, resume, newGame }: TitleControls) {
         </nav>
 
         <footer className="title-footer">
+          <LanguageFlags />
           <div className="settings">
-            <Preferences />
+            <Preferences language={false} />
           </div>
           <small className="muted">{t("title.storage")}</small>
         </footer>
