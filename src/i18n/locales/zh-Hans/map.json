@@ -42,5 +42,22 @@
   "map.ping": "本月动态",
   "map.legend.fogShort": "NDA 前",
   "map.tools.show": "地图工具",
-  "map.tools.hide": "隐藏工具"
+  "map.tools.hide": "隐藏工具",
+  "map.layer.macro": "宏观",
+  "map.macro.measure.uncertainty": "不确定性",
+  "map.macro.measure.rate": "基准利率",
+  "map.macro.measure.multiple": "倍数倾斜",
+  "map.macro.low.uncertainty": "低",
+  "map.macro.high.uncertainty": "高",
+  "map.macro.low.rate": "低于中性",
+  "map.macro.high.rate": "高于中性",
+  "map.macro.low.multiple": "上升",
+  "map.macro.high.multiple": "下降",
+  "map.macro.value.uncertainty": "不确定性 {value}",
+  "map.macro.value.rate": "利率 {value}",
+  "map.macro.value.multiple": "倍数 {value}",
+  "map.macro.next": "下一项: {event} {month}/{day}",
+  "map.macro.none": "无主要事件",
+  "map.macro.touched": "本月主要发布涉及的公司",
+  "map.macro.nextYear": "下一项: {event} {year, number, ::group-off}/{month}/{day}"
 }

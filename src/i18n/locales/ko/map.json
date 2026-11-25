@@ -42,5 +42,22 @@
   "map.ping": "이번 달 소식",
   "map.legend.fogShort": "NDA 전",
   "map.tools.show": "지도 도구",
-  "map.tools.hide": "도구 숨기기"
+  "map.tools.hide": "도구 숨기기",
+  "map.layer.macro": "거시",
+  "map.macro.measure.uncertainty": "불확실성",
+  "map.macro.measure.rate": "기준금리",
+  "map.macro.measure.multiple": "배수 기울기",
+  "map.macro.low.uncertainty": "낮음",
+  "map.macro.high.uncertainty": "높음",
+  "map.macro.low.rate": "중립 아래",
+  "map.macro.high.rate": "중립 위",
+  "map.macro.low.multiple": "오름",
+  "map.macro.high.multiple": "내림",
+  "map.macro.value.uncertainty": "불확실성 {value}",
+  "map.macro.value.rate": "금리 {value}",
+  "map.macro.value.multiple": "배수 {value}",
+  "map.macro.next": "다음: {event} {month}/{day}",
+  "map.macro.none": "주요 일정 없음",
+  "map.macro.touched": "이번 달 주요 발표가 닿는 회사",
+  "map.macro.nextYear": "다음: {event} {year, number, ::group-off}/{month}/{day}"
 }

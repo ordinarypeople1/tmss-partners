@@ -761,6 +761,8 @@ export interface View {
     energy_shock_bps: number;
     /** Each bloc's policy rate, in `BLOCS` order. */
     bloc_policy_rate_bps: number[];
+    /** Where each bloc's rate neither helps nor holds back. */
+    bloc_neutral_bps: number[];
   };
   calendar: CalendarView;
   fund: {

@@ -5,7 +5,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection, Geometry, Position } from "geojson";
 import { useT } from "../i18n/useT";
-import type { CompanyRow, Owner, Stage } from "../sim/types";
+import { BLOC_ORDER, type Bloc, type CompanyRow, type MacroEventView, type Owner, type Stage, type View } from "../sim/types";
+import { blocIndex, blocOf, sameMonth } from "./macro";
 import { Ring, Tag } from "./charts";
 import { mid, useFormat } from "./format";
 import { useGame } from "./game";
@@ -15,14 +16,78 @@ import { Icon } from "./icons";
 import { publicUrl } from "./publicPath";
 import "./MapHub.css";
 
-type Layer = "deals" | "portfolio" | "sectors" | "owners" | "economy";
+type Layer = "deals" | "portfolio" | "sectors" | "owners" | "economy" | "macro";
 const LAYERS: { id: Layer; icon: string }[] = [
   { id: "deals", icon: "deals" },
   { id: "portfolio", icon: "portfolio" },
   { id: "sectors", icon: "layers" },
   { id: "owners", icon: "flag" },
   { id: "economy", icon: "market" },
+  { id: "macro", icon: "calendar" },
 ];
+
+/** What the macro layer shades each country by. */
+type Measure = "uncertainty" | "rate" | "multiple";
+const MEASURES: Measure[] = ["uncertainty", "rate", "multiple"];
+/** Countries of each bloc, and where its card sits. Germany and France share the euro area. */
+/** `anchor` pushes neighbours' cards apart: the UK's sits up and left of the euro area's, Korea's left of Japan's. */
+const BLOC_PLACES: Record<Bloc, { countries: string[]; at: [number, number]; anchor: maplibregl.PositionAnchor }> = {
+  us: { countries: ["US"], at: [-98, 39], anchor: "center" },
+  ez: { countries: ["DE", "FR"], at: [6.5, 48.5], anchor: "top-left" },
+  gb: { countries: ["GB"], at: [-2.5, 54.5], anchor: "bottom-right" },
+  jp: { countries: ["JP"], at: [139.5, 36.5], anchor: "left" },
+  kr: { countries: ["KR"], at: [127.5, 36.3], anchor: "right" },
+  cn: { countries: ["CN"], at: [92, 35], anchor: "right" },
+};
+/** From the American West to Japan: every bloc's card in one frame. */
+const MACRO_BOUNDS: [[number, number], [number, number]] = [
+  [-125, 12],
+  [148, 60],
+];
+/** Loose to tight: blue, pale, neutral, pale red, red. */
+const DIVERGE: string[] = [];
+const DIVERGE_BY_THEME: Record<Theme, string[]> = {
+  light: ["#2f5f82", "#9dbad1", "#e8eaee", "#e6b9c2", "#a3122f"],
+  dark: ["#74a7cf", "#3c5a72", "#2a313c", "#7f2a42", "#e2526f"],
+};
+
+/** A bloc's reading on the chosen measure, its colour, and the number to print. */
+function macroReading(view: View, bloc: Bloc, measure: Measure): { color: string; value: number } {
+  const index = blocIndex(bloc);
+  const economy = view.economy;
+  switch (measure) {
+    case "uncertainty": {
+      const value = economy.uncertainty[index] ?? 20;
+      return { value, color: HEAT[Math.min(Math.floor((value / 100) * HEAT.length), HEAT.length - 1)] };
+    }
+    case "rate": {
+      const rate = economy.bloc_policy_rate_bps[index] ?? economy.policy_rate_bps;
+      const gap = rate - (economy.bloc_neutral_bps[index] ?? economy.neutral_rate_bps);
+      const step = gap <= -150 ? 0 : gap <= -50 ? 1 : gap < 50 ? 2 : gap < 150 ? 3 : 4;
+      return { value: rate, color: DIVERGE[step] };
+    }
+    case "multiple": {
+      const value = economy.bloc_multiple_bps[index] ?? 0;
+      // Higher multiples read as loose (blue), lower as tight (red).
+      const step = value >= 300 ? 0 : value >= 100 ? 1 : value > -100 ? 2 : value > -300 ? 3 : 4;
+      return { value, color: DIVERGE[step] };
+    }
+  }
+}
+
+/** This month's major events, by bloc, soonest first. */
+function nextMajor(view: View): Map<Bloc, MacroEventView> {
+  const byBloc = new Map<Bloc, MacroEventView>();
+  const ahead = view.calendar.events
+    .filter((event) => event.actual === null && event.importance >= 3 && !event.breaking)
+    .sort((a, b) => a.date.year * 12 + a.date.month - (b.date.year * 12 + b.date.month) || a.day - b.day);
+  for (const event of ahead) {
+    if (!byBloc.has(event.bloc)) {
+      byBloc.set(event.bloc, event);
+    }
+  }
+  return byBloc;
+}
 
 /** MapLibre paint cannot read CSS variables, so the tokens are copied here each time the theme changes. */
 const C = { sea: "", land: "", home: "", locked: "", border: "", ink: "", muted: "", accent: "", good: "", bad: "", warn: "", held: "" };
@@ -52,6 +117,7 @@ function readPalette(theme: Theme) {
   });
   SERIES.splice(0, SERIES.length, ...["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"].map(token));
   HEAT.splice(0, HEAT.length, ...HEAT_BY_THEME[theme]);
+  DIVERGE.splice(0, DIVERGE.length, ...DIVERGE_BY_THEME[theme]);
   Object.assign(STAGE_COLOR, { preparing: C.good, marketing: C.warn, bidding: C.accent, exclusive: C.good });
 }
 
@@ -181,6 +247,15 @@ function MapHubView() {
   const stateBounds = useRef(new Map<string, [[number, number], [number, number]]>());
   const [ready, setReady] = useState(false);
   const [layer, setLayer] = useState<Layer>("deals");
+  const [measure, setMeasure] = useState<Measure>("uncertainty");
+  const macroMarkers = useRef(new Map<string, maplibregl.Marker>());
+  const showEventRef = useRef(game.showEvent);
+  showEventRef.current = game.showEvent;
+  /** This month's major releases: the companies they reach light up on the macro layer. */
+  const majorNow = useMemo(
+    () => game.view.calendar.events.filter((event) => sameMonth(event.date, game.view.date) && event.importance >= 3 && event.actual === null),
+    [game.view],
+  );
   const [region, setRegion] = useState<string | null>(null);
   const [sector, setSector] = useState("");
   const [country, setCountry] = useState("");
@@ -241,6 +316,7 @@ function MapHubView() {
               "fill-outline-color": C.border,
             },
           },
+          { id: "macro-fill", type: "fill", source: "world", paint: { "fill-color": C.land, "fill-opacity": 0 } },
           { id: "state-fill", type: "fill", source: "states", paint: { "fill-color": C.home, "fill-opacity": 0.92 } },
           { id: "state-line", type: "line", source: "states", paint: { "line-color": C.border, "line-width": 0.8 } },
           {
@@ -466,6 +542,14 @@ function MapHubView() {
           fill = ownerColor(row.owner);
           emphasis = true;
           break;
+        case "macro": {
+          const touched = majorNow.some(
+            (event) => blocOf(row.country) === event.bloc && (event.sectors.length === 0 || event.sectors.includes(row.sector)),
+          );
+          fill = row.held ? C.accent : touched ? C.warn : C.muted;
+          emphasis = row.held || touched;
+          break;
+        }
       }
       const size = Math.min(Math.max(Math.sqrt(mid(row.revenue)) / 55, 3), 9);
       const selected = row.i === game.selected;
@@ -509,11 +593,80 @@ function MapHubView() {
       }
       match.push(HEAT[0]);
       map.setPaintProperty("state-fill", "fill-color", match as maplibregl.ExpressionSpecification);
+    } else if (layer === "macro") {
+      map.setPaintProperty("state-fill", "fill-color", macroReading(view, "us", measure).color);
     } else {
       map.setPaintProperty("state-fill", "fill-color", C.home);
     }
+    if (layer === "macro") {
+      const match: unknown[] = ["match", ["get", "country"]];
+      for (const bloc of BLOC_ORDER) {
+        const { color } = macroReading(view, bloc, measure);
+        for (const country of BLOC_PLACES[bloc].countries) {
+          match.push(country, color);
+        }
+      }
+      match.push(C.land);
+      map.setPaintProperty("macro-fill", "fill-color", match as maplibregl.ExpressionSpecification);
+      map.setPaintProperty("macro-fill", "fill-opacity", ["case", ["has", "country"], 0.9, 0]);
+    } else {
+      map.setPaintProperty("macro-fill", "fill-opacity", 0);
+    }
     map.setFilter("state-on", ["==", ["get", "code"], region ?? ""]);
-  }, [ready, view.companies, visible, layer, sectorIds, game.selected, addOnLinks, perState, region]);
+  }, [ready, view, visible, layer, sectorIds, game.selected, addOnLinks, perState, region, measure, majorNow]);
+
+  // The macro layer: one card per bloc with its reading and the next major event.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) {
+      return;
+    }
+    for (const marker of macroMarkers.current.values()) {
+      marker.remove();
+    }
+    macroMarkers.current.clear();
+    if (layer !== "macro") {
+      return;
+    }
+    const next = nextMajor(view);
+    for (const bloc of BLOC_ORDER) {
+      const reading = macroReading(view, bloc, measure);
+      const event = next.get(bloc) ?? null;
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "map-macro";
+      card.style.setProperty("--swatch", reading.color);
+      const name = document.createElement("b");
+      name.textContent = t(`bloc.${bloc}`);
+      const value = document.createElement("span");
+      value.textContent =
+        measure === "uncertainty"
+          ? t("map.macro.value.uncertainty", { value: f.integer(reading.value) })
+          : measure === "rate"
+            ? t("map.macro.value.rate", { value: f.pct(reading.value, 2) })
+            : t("map.macro.value.multiple", { value: f.signedPct(reading.value, 1) });
+      const upcoming = document.createElement("small");
+      upcoming.textContent = event
+        ? event.date.year === view.date.year
+          ? t("map.macro.next", { event: t(`macro.short.${event.kind}`), month: event.date.month, day: event.day })
+          : t("map.macro.nextYear", { event: t(`macro.short.${event.kind}`), year: event.date.year, month: event.date.month, day: event.day })
+        : t("map.macro.none");
+      card.append(name, value, upcoming);
+      card.setAttribute("aria-label", `${t(`bloc.${bloc}`)} · ${upcoming.textContent}`);
+      if (event) {
+        card.addEventListener("click", (click) => {
+          click.stopPropagation();
+          showEventRef.current(event.id);
+        });
+      } else {
+        card.disabled = true;
+      }
+      const host = document.createElement("div");
+      host.append(card);
+      macroMarkers.current.set(bloc, new maplibregl.Marker({ element: host, anchor: BLOC_PLACES[bloc].anchor }).setLngLat(BLOC_PLACES[bloc].at).addTo(map),
+      );
+    }
+  }, [ready, layer, measure, view, t, f]);
 
   // Sales, the fund's companies, and this month's news get real pins.
   useEffect(() => {
@@ -708,7 +861,20 @@ function MapHubView() {
               aria-pressed={layer === item.id}
               aria-label={t(`map.layer.${item.id}`)}
               title={t(`map.layer.${item.id}`)}
-              onClick={() => setLayer(item.id)}
+              onClick={() => {
+                setLayer(item.id);
+                // The macro layer reads across six blocs: show them all.
+                if (item.id === "macro") {
+                  const map = mapRef.current;
+                  if (map) {
+                    // Wide enough for the American West through Japan, centred on the Atlantic-to-Asia span.
+                    const width = map.getContainer().clientWidth;
+                    const span = MACRO_BOUNDS[1][0] - MACRO_BOUNDS[0][0];
+                    const zoom = Math.max(map.getMinZoom(), Math.log2((width * 360) / (span * 1.15 * TILE_SIZE)));
+                    map.easeTo({ center: [(MACRO_BOUNDS[0][0] + MACRO_BOUNDS[1][0]) / 2, 38], zoom, duration: 600 });
+                  }
+                }
+              }}
             >
               <Icon name={item.icon} size={16} />
             </button>
@@ -807,6 +973,26 @@ function MapHubView() {
               <span>
                 <i style={{ background: C.accent }} />
                 {t("owner.player")}
+              </span>
+            </>
+          ) : null}
+          {layer === "macro" ? (
+            <>
+              {MEASURES.map((item) => (
+                <button key={item} type="button" aria-pressed={measure === item} onClick={() => setMeasure(item)}>
+                  {t(`map.macro.measure.${item}`)}
+                </button>
+              ))}
+              <span className="heat">
+                <em>{t(`map.macro.low.${measure}`)}</em>
+                {(measure === "uncertainty" ? HEAT : DIVERGE).map((color) => (
+                  <i key={color} style={{ background: color }} />
+                ))}
+                <em>{t(`map.macro.high.${measure}`)}</em>
+              </span>
+              <span>
+                <i style={{ background: C.warn }} />
+                {t("map.macro.touched")}
               </span>
             </>
           ) : null}

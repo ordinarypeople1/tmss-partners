@@ -275,6 +275,7 @@ impl World {
                 "trade_drag_bps": self.economy.trade_drag_bps,
                 "energy_shock_bps": self.economy.energy_shock_bps,
                 "bloc_policy_rate_bps": self.economy.bloc_policy_rate_bps,
+                "bloc_neutral_bps": (0..crate::macro_events::BLOC_COUNT).map(|index| self.economy.neutral_for_bloc(index)).collect::<Vec<_>>(),
             },
             "calendar": self.calendar_view(),
             "fund": {
