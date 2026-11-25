@@ -8,6 +8,7 @@ import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
 import { StepRange } from "./DealRoom";
+import { PersonLink } from "./Links";
 import { describeMessage } from "./messages";
 import { Portrait } from "./Portrait";
 
@@ -180,7 +181,11 @@ function PeopleCard({ company }: SectionProps) {
           <Portrait seed={ceo.name} feminine={ceo.feminine} country={company.country} size={48} />
         </span>
         <div className="hd-ceo-main">
-          <b>{ceo.name}</b>
+          <b>
+            <PersonLink role="ceo" id={company.i}>
+              {ceo.name}
+            </PersonLink>
+          </b>
           <span className="row hd-ceo-tags">
             <Tag tone="accent">{ceo.style ? t(`ceo_style.${ceo.style}`) : t("term.unknown")}</Tag>
             {ceo.founder ? <Tag>{t("owner.founder")}</Tag> : null}

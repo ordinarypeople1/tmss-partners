@@ -8,7 +8,7 @@ import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
 import { pick } from "./lines";
-import { FollowContext, useRich } from "./Links";
+import { FollowContext, PersonLink, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 import "./Journey.css";
 
@@ -332,7 +332,11 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
             {gatekeeper ? (
               <>
                 <Portrait seed={executive.name} feminine={executive.feminine} country={company.country} size={104} />
-                <b>{executive.name}</b>
+                <b>
+                  <PersonLink role="executive" id={company.i}>
+                    {executive.name}
+                  </PersonLink>
+                </b>
                 <small className="muted">{t(`talk.exec.role.${executive.role}`)}</small>
               </>
             ) : (
@@ -340,7 +344,7 @@ function OwnerTalk({ company, talk, onClose }: { company: CompanyView; talk: Tal
             <Portrait seed={founder ? company.ceo.name : `${company.owner.kind}-${company.i}`} feminine={founder ? company.ceo.feminine : company.i % 2 === 0} country={company.country} size={104} />
             <b>
               {founder
-                ? company.ceo.name
+                ? <PersonLink role="ceo" id={company.i}>{company.ceo.name}</PersonLink>
                 : company.owner.kind === "sponsor"
                   ? rich("talk.role.sponsor", { house }, { house: { kind: "house", id: company.owner.house } })
                   : t(`talk.role.${company.owner.kind}`, { house })}

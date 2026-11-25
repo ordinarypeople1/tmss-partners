@@ -6,7 +6,7 @@ import { Meter, Tag } from "./charts";
 import { useGame } from "./game";
 import { Icon } from "./icons";
 import { pick } from "./lines";
-import { AdviserLink, FollowContext, useRich } from "./Links";
+import { AdviserLink, FollowContext, PersonLink, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 
 /** One of the banker's lines, with its figures filled in. */
@@ -76,7 +76,11 @@ export function BankerTalk({ talk, onClose }: { talk: CoverTalk; onClose: () => 
         <div className="talk-body">
           <div className="talk-who">
             <Portrait seed={adviser.banker.name} feminine={adviser.banker.feminine} country="US" size={96} />
-            <b>{adviser.banker.name}</b>
+            <b>
+              <PersonLink role="banker" id={talk.adviser}>
+                {adviser.banker.name}
+              </PersonLink>
+            </b>
             <small className="muted">{t("cover.role", { bank: adviser.name })}</small>
           </div>
           <div className="talk-lines">

@@ -103,8 +103,12 @@ function summarize(view: View): SaveSummary {
   };
 }
 
-/** A page opened over a screen: a company, a rival house or a sell-side bank. */
-export type Page = { kind: "company" | "house" | "adviser"; id: number };
+/** Someone with a name: a company's chief or the executive who meets first (id: the company),
+ * a bank's banker (id: the bank), or a partner on the committee (id: the seat). */
+export type PersonRole = "ceo" | "executive" | "banker" | "partner";
+
+/** A page opened over a screen: a company, a rival house, a sell-side bank or a person. */
+export type Page = { kind: "company" | "house" | "adviser"; id: number } | { kind: "person"; role: PersonRole; id: number };
 
 /** Where the player is: a screen, and a page opened over it. */
 interface Route {
@@ -112,7 +116,13 @@ interface Route {
   page: Page | null;
 }
 const HOME: Route = { screen: "map", page: null };
-const samePage = (a: Page | null, b: Page | null) => a === b || (a !== null && b !== null && a.kind === b.kind && a.id === b.id);
+const samePage = (a: Page | null, b: Page | null) =>
+  a === b ||
+  (a !== null &&
+    b !== null &&
+    a.kind === b.kind &&
+    a.id === b.id &&
+    (a.kind !== "person" || b.kind !== "person" || a.role === b.role));
 /** How many moves back the history keeps. */
 const HISTORY_LIMIT = 50;
 

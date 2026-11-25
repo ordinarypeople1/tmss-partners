@@ -5,7 +5,7 @@ import { monthsBetween, useFormat } from "./format";
 import { SCREENS, useGame, type Screen } from "./game";
 import { Icon } from "./icons";
 import { describeMessage } from "./messages";
-import { AdviserPage, HousePage } from "./EntityPages";
+import { AdviserPage, HousePage, PersonPage } from "./EntityPages";
 import { Moments } from "./Moments";
 import { NewGame } from "./NewGame";
 import { Objectives } from "./Objectives";
@@ -430,7 +430,15 @@ export function Shell({ children, panel }: { children: ReactNode; panel: ReactNo
         </main>
         {game.page ? (
           <main className="screen company-screen" data-screen={game.page.kind}>
-            {game.page.kind === "company" ? panel : game.page.kind === "house" ? <HousePage house={game.page.id} /> : <AdviserPage adviser={game.page.id} />}
+            {game.page.kind === "company" ? (
+              panel
+            ) : game.page.kind === "house" ? (
+              <HousePage house={game.page.id} />
+            ) : game.page.kind === "adviser" ? (
+              <AdviserPage adviser={game.page.id} />
+            ) : (
+              game.page.kind === "person" && <PersonPage role={game.page.role} id={game.page.id} />
+            )}
           </main>
         ) : null}
       </div>

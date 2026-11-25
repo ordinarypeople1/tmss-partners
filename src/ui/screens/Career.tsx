@@ -5,6 +5,7 @@ import { ACHIEVEMENTS, type Achievement, type Difficulty, type GameDate, type Pe
 import { Gauge, Meter, Stat, StackBar, Tag } from "../charts";
 import { monthsBetween, useFormat } from "../format";
 import { useGame } from "../game";
+import { PersonLink } from "../Links";
 import { Icon } from "../icons";
 import { Portrait } from "../Portrait";
 import "./Career.css";
@@ -684,7 +685,11 @@ export function Career() {
                   <Portrait partner={seat} size={52} />
                 </span>
               </span>
-              <strong>{t(`partner.${seat}.name`)}</strong>
+              <strong>
+                <PersonLink role="partner" id={seat}>
+                  {t(`partner.${seat}.name`)}
+                </PersonLink>
+              </strong>
               <Tag>{t(`partner.${seat}.role`)}</Tag>
               <small>{t(`career.partner.${seat}.trait`)}</small>
               {trustMeter(view.partners[seat]?.trust ?? 50)}

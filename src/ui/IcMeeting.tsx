@@ -4,6 +4,7 @@ import { useT, type Translate } from "../i18n/useT";
 import type { CompanyView, IcAnswer, IcFacts, IcMeeting as Meeting, IcQuestion, IcTopic } from "../sim/types";
 import { Tag } from "./charts";
 import { pick } from "./lines";
+import { FollowContext, PersonLink } from "./Links";
 import { useFormat, type Format } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
@@ -72,6 +73,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
 
   return (
     <Overlay>
+    <FollowContext.Provider value={onClose}>
     <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={t("ic.title")} onClick={finished ? onClose : undefined}>
       <div className="talk ic" onClick={(event) => event.stopPropagation()}>
         <header>
@@ -96,7 +98,11 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
             <div className="talk-body">
               <div className="talk-who">
                 <Portrait partner={question.partner} mood={question.landed === true ? "for" : question.landed === false ? "against" : "hold"} size={96} />
-                <b>{t(`partner.${question.partner}.name`)}</b>
+                <b>
+                  <PersonLink role="partner" id={question.partner}>
+                    {t(`partner.${question.partner}.name`)}
+                  </PersonLink>
+                </b>
                 <small className="muted">{t(`partner.${question.partner}.role`)}</small>
               </div>
               <div className="talk-lines">
@@ -146,6 +152,7 @@ export function IcMeetingDialog({ company, onClose }: { company: CompanyView; on
         ) : null}
       </div>
     </div>
+    </FollowContext.Provider>
     </Overlay>
   );
 }

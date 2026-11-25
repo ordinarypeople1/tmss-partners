@@ -119,3 +119,21 @@
     flex-direction: column;
   }
 }
+
+.ep-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+.ep-fact dt {
+  color: var(--muted);
+  font-size: 0.867rem;
+}
+.ep-fact dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+.ep-banker p {
+  margin: 0;
+}

@@ -108,6 +108,14 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
   if ("winner" in message && message.winner) {
     link("winner", bidderPage(message.winner));
   }
+  // A chief named in the news, when it is the one now running the company.
+  const chief = message.company === null ? undefined : view.companies.find((row) => row.i === message.company);
+  if (message.type === "owner_succeeded" && message.company !== null) {
+    link("to", { kind: "person", role: "ceo", id: message.company });
+  }
+  if (message.type === "ceo_moved" && message.company !== null && chief) {
+    link("name", { kind: "person", role: "ceo", id: message.company });
+  }
   let bodyId = `msg.${message.type}.body`;
   let titleId = `msg.${message.type}.title`;
   switch (message.type) {

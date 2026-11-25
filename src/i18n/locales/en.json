@@ -701,5 +701,11 @@
   "talk.no.3": "My son wants to give it a try. I have to let him.",
   "talk.warm.1": "You don’t feel like a visitor anymore. Let’s have dinner sometime.",
   "talk.warm.2": "If I ever let the company go, you’ll probably get the first call.",
-  "talk.warm.3": "You’re the one I talk to about this now. The bankers only see numbers."
+  "talk.warm.3": "You’re the one I talk to about this now. The bankers only see numbers.",
+  "partner.0.bio": "Built the house on buyouts. Looks at the downside, the cash and the covenants first. Sends back memos where the multiple speaks before the rate, and minds late bad news more than the deal itself.",
+  "partner.1.bio": "Plants and working capital. Hunts the memo for inventory days and equipment age, and votes against deals that skipped the site visit. Likes add-ons; rates theses built on head-office cost cuts low.",
+  "partner.2.bio": "Looks at the quality of revenue and the growth case. Turns down deals explained by multiple expansion alone, and asks a buyout memo where its growth comes from.",
+  "partner.3.bio": "Restructuring and credit. Works out the collateral and the downside case first and distrusts rosy normalisation. Won’t raise a hand for a deal without legal diligence.",
+  "partner.4.bio": "Came up running factories. Translates a memo’s synergy paragraph into people, shifts, tooling and capex. Votes no on closing without a hundred-day plan, or on hiding the size of a restructuring.",
+  "partner.5.bio": "Investors, fundraising, reputation and the press. Puts explainability next to every return figure. If a deal could become a one-line story about the house, she holds even at a high expected IRR."
 }

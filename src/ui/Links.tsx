@@ -1,7 +1,7 @@
 import { Children, createContext, useCallback, useContext, type ReactNode } from "react";
 import { useIntl } from "react-intl";
 import type { Bidder, View } from "../sim/types";
-import { useGame, type Page } from "./game";
+import { useGame, type Page, type PersonRole } from "./game";
 import { bidderName, bidderPage, type MessageText } from "./messages";
 import "./Links.css";
 
@@ -29,6 +29,11 @@ export function EntityLink({ page, children }: { page: Page; children: ReactNode
       {children}
     </button>
   );
+}
+
+/** A person's name, opening their page. */
+export function PersonLink({ role, id, children }: { role: PersonRole; id: number; children: ReactNode }) {
+  return <EntityLink page={{ kind: "person", role, id }}>{children}</EntityLink>;
 }
 
 export function HouseLink({ house }: { house: number }) {

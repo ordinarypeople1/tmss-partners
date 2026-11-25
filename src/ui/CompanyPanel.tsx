@@ -20,7 +20,7 @@ import { HoldingTab } from "./HoldingTab";
 import { Icon } from "./icons";
 import { ActionBar, Journey } from "./Journey";
 import { MinorityCard } from "./Minority";
-import { BidderName, useRich } from "./Links";
+import { BidderName, PersonLink, useRich } from "./Links";
 import { Portrait } from "./Portrait";
 import "./CompanyPanel.css";
 import { FiveYearChart, StatementTables } from "./Statements";
@@ -370,7 +370,11 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
           </span>
           <div className="cp-ceo-main">
             <div className="cp-ceo-name">
-              <b>{company.ceo.name}</b>
+              <b>
+                <PersonLink role="ceo" id={company.i}>
+                  {company.ceo.name}
+                </PersonLink>
+              </b>
               <small className="muted">{t("company.ceo")}</small>
             </div>
             <div className="cp-tags">

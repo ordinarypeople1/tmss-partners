@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useT } from "../i18n/useT";
-import type { CompanyRow, Message } from "../sim/types";
+import type { CompanyRow, CompanyView, Concern, Message } from "../sim/types";
 import { BankerTalk } from "./BankerTalk";
 import { Meter, Stat, Tag } from "./charts";
 import { useFormat } from "./format";
-import { useGame } from "./game";
+import { useGame, type PersonRole } from "./game";
 import { gate } from "./Gate";
 import { Icon } from "./icons";
 import { EntityLink, RichMessage } from "./Links";
@@ -206,7 +206,9 @@ export function AdviserPage({ adviser }: { adviser: number }) {
           <Portrait seed={bank.banker.name} feminine={bank.banker.feminine} country="US" size={88} />
           <div className="stack">
             <div>
-              <b>{bank.banker.name}</b>
+              <b>
+                <EntityLink page={{ kind: "person", role: "banker", id: adviser }}>{bank.banker.name}</EntityLink>
+              </b>
               <small className="muted"> {t("cover.role", { bank: bank.name })}</small>
             </div>
             <Meter
@@ -261,6 +263,206 @@ export function AdviserPage({ adviser }: { adviser: number }) {
             {t("entity.news")}
           </h3>
           <News messages={view.messages.filter((message) => "adviser" in message && message.adviser === adviser)} />
+        </section>
+      </div>
+    </article>
+  );
+}
+
+/** What each seat on the committee asks about, as in deal.rs `committee_votes`. */
+const SEAT_CONCERNS: Concern[][] = [
+  ["leverage", "price", "interest_cover", "no_financial_dd", "no_protection"],
+  ["no_operational_dd", "inventory_days"],
+  ["thin_returns", "multiple_reliance", "no_commercial_dd"],
+  ["downside", "no_legal_dd", "open_issue"],
+  ["no_plan", "no_operational_dd", "layoffs_in_union_shop"],
+  ["fund_concentration", "layoffs_in_union_shop", "open_issue"],
+];
+const TRUST_HIGH = 70;
+const TRUST_LOW = 30;
+
+/** One fact about a person: a label and its value. */
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="ep-fact">
+      <dt>{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+/** A person's page: who they are, where they sit, and what they mean to the fund. */
+export function PersonPage({ role, id }: { role: PersonRole; id: number }) {
+  if (role === "partner") {
+    return <PartnerPerson seat={id} />;
+  }
+  if (role === "banker") {
+    return <BankerPerson adviser={id} />;
+  }
+  return <CompanyPerson role={role} company={id} />;
+}
+
+function CompanyPerson({ role, company }: { role: "ceo" | "executive"; company: number }) {
+  const t = useT();
+  const game = useGame();
+  const detail: CompanyView | null = game.peek(company);
+  if (!detail) {
+    return null;
+  }
+  const link = <EntityLink page={{ kind: "company", id: company }}>{detail.short}</EntityLink>;
+  if (role === "executive") {
+    const executive = detail.executive;
+    return (
+      <article className="ep">
+        <PageHead kicker={t("entity.person")} name={executive.name}>
+          <Tag>{t(`talk.exec.role.${executive.role}`)}</Tag>
+        </PageHead>
+        <div className="ep-body">
+          <section className="card ep-banker">
+            <Portrait seed={executive.name} feminine={executive.feminine} country={detail.country} size={88} />
+            <dl className="ep-facts">
+              <Fact label={t("entity.person.at")}>{link}</Fact>
+              <Fact label={t("entity.person.title")}>{t(`talk.exec.role.${executive.role}`)}</Fact>
+            </dl>
+          </section>
+          <p className="muted">{t("entity.person.executive.note", { at: detail.approach.known_at })}</p>
+        </div>
+      </article>
+    );
+  }
+  const ceo = detail.ceo;
+  const founderOwned = detail.owner.kind === "founder";
+  return (
+    <article className="ep">
+      <PageHead kicker={t("entity.person")} name={ceo.name}>
+        <Tag>{t(ceo.founder ? "entity.person.founder" : "entity.person.ceo")}</Tag>
+        {ceo.style ? <Tag tone="accent">{t(`ceo_style.${ceo.style}`)}</Tag> : null}
+        {founderOwned && detail.stance ? <Tag>{t(`seller_stance.${detail.stance}`)}</Tag> : null}
+      </PageHead>
+      <div className="ep-body">
+        <section className="card ep-banker">
+          <Portrait seed={ceo.name} feminine={ceo.feminine} country={detail.country} size={88} />
+          <div className="stack">
+            <dl className="ep-facts">
+              <Fact label={t("entity.person.at")}>{link}</Fact>
+              <Fact label={t("entity.person.age")}>{t("entity.person.ageValue", { age: ceo.age })}</Fact>
+              <Fact label={t("entity.person.tenure")}>{t("entity.person.years", { years: ceo.tenure })}</Fact>
+            </dl>
+            {ceo.style ? <p>{t(`story.style.${ceo.style}`, { name: ceo.name })}</p> : <p className="muted">{t("entity.person.styleUnknown")}</p>}
+          </div>
+        </section>
+        <section className="card">
+          <h3>
+            <Icon name="handshake" size={14} />
+            {t("entity.person.relationship")}
+          </h3>
+          <Meter
+            value={detail.relationship}
+            max={100}
+            markers={[detail.approach.known_at, detail.approach.early_notice_at, detail.approach.proposal_at]}
+            tone={detail.relationship >= detail.approach.proposal_at ? "good" : "accent"}
+            text={String(detail.relationship)}
+            label={t(`access.${detail.access}`)}
+          />
+          <p className="muted">{t("entity.person.meetHint")}</p>
+        </section>
+      </div>
+    </article>
+  );
+}
+
+function BankerPerson({ adviser }: { adviser: number }) {
+  const t = useT();
+  const { view } = useGame();
+  const bank = view.advisers[adviser];
+  if (!bank) {
+    return null;
+  }
+  const [list, favour, headsUp] = view.coverage_marks;
+  return (
+    <article className="ep">
+      <PageHead kicker={t("entity.person")} name={bank.banker.name}>
+        <Tag>{t("cover.role", { bank: bank.name })}</Tag>
+      </PageHead>
+      <div className="ep-body">
+        <section className="card ep-banker">
+          <Portrait seed={bank.banker.name} feminine={bank.banker.feminine} country="US" size={88} />
+          <div className="stack">
+            <dl className="ep-facts">
+              <Fact label={t("entity.person.at")}>
+                <EntityLink page={{ kind: "adviser", id: adviser }}>{bank.name}</EntityLink>
+              </Fact>
+              <Fact label={t("entity.person.title")}>{t("cover.role", { bank: bank.name })}</Fact>
+            </dl>
+            <Meter value={bank.coverage} max={100} markers={[list, favour, headsUp]} tone={bank.coverage >= headsUp ? "good" : "accent"} text={String(bank.coverage)} label={t("banks.coverage")} />
+            <p className="muted">{t("entity.person.banker.note")}</p>
+          </div>
+        </section>
+      </div>
+    </article>
+  );
+}
+
+function PartnerPerson({ seat }: { seat: number }) {
+  const t = useT();
+  const game = useGame();
+  const { view } = game;
+  const trust = view.partners[seat]?.trust ?? 50;
+  // Live committees: how this partner voted on each deal the fund is working.
+  const votes = view.companies
+    .filter((row) => row.in_deal)
+    .map((row) => ({ row, vote: game.peek(row.i)?.deal?.committee?.votes.find((item) => item.partner === seat) ?? null }))
+    .filter((item) => item.vote !== null);
+  return (
+    <article className="ep">
+      <PageHead kicker={t("entity.partner")} name={t(`partner.${seat}.name`)}>
+        <Tag tone="accent">{t(`partner.${seat}.role`)}</Tag>
+      </PageHead>
+      <div className="ep-body">
+        <section className="card ep-banker">
+          <Portrait partner={seat} size={88} />
+          <div className="stack">
+            <p>{t(`partner.${seat}.bio`)}</p>
+            <Meter
+              value={trust}
+              max={100}
+              markers={[TRUST_LOW, TRUST_HIGH]}
+              tone={trust >= TRUST_HIGH ? "good" : trust <= TRUST_LOW ? "bad" : "ink"}
+              text={String(trust)}
+              label={t("dealroom.trust")}
+            />
+            <small className="muted">{t("dealroom.trustRule")}</small>
+          </div>
+        </section>
+        <section className="card">
+          <h3>
+            <Icon name="gavel" size={14} />
+            {t("entity.partner.asks")}
+          </h3>
+          <div className="ep-tags">
+            {SEAT_CONCERNS[seat]?.map((concern) => (
+              <Tag key={concern}>{t(`concern.${concern}`)}</Tag>
+            ))}
+          </div>
+        </section>
+        <section className="card">
+          <h3>
+            <Icon name="deals" size={14} />
+            {t("entity.partner.votes")}
+          </h3>
+          {votes.length === 0 ? (
+            <p className="muted">{t("entity.partner.votesNone")}</p>
+          ) : (
+            <ul className="ep-list">
+              {votes.map(({ row, vote }) => (
+                <li key={row.i}>
+                  <EntityLink page={{ kind: "company", id: row.i }}>{row.short}</EntityLink>
+                  <Tag tone={vote!.stance === "for" ? "good" : vote!.stance === "against" ? "bad" : "warn"}>{t(`stance.${vote!.stance}`)}</Tag>
+                  <span className="ep-note">{vote!.concerns.map((concern) => t(`concern.${concern}`)).join(", ")}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </article>

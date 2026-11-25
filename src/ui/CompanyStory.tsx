@@ -18,6 +18,7 @@ const TRAIT_LINES = 3;
 export function CompanyStory({ company, full }: { company: CompanyView; full: boolean }) {
   const t = useT();
   const rich = useRich();
+  const person = { name: { kind: "person" as const, role: "ceo" as const, id: company.i } };
   const f = useFormat();
   const { view } = useGame();
   const [open, setOpen] = useState(false);
@@ -44,23 +45,23 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
   switch (owner.kind) {
     case "founder":
       ownerLine = !ceo.founder
-        ? t("story.owner.professional", { name: ceo.name, tenure: ceo.tenure })
+        ? rich("story.owner.professional", { name: ceo.name, tenure: ceo.tenure }, person)
         : age > ceo.tenure + 8
-          ? t("story.owner.heir", { name: ceo.name, tenure: ceo.tenure })
-          : t("story.owner.founder", { name: ceo.name, age: ceo.age, tenure: ceo.tenure });
+          ? rich("story.owner.heir", { name: ceo.name, tenure: ceo.tenure }, person)
+          : rich("story.owner.founder", { name: ceo.name, age: ceo.age, tenure: ceo.tenure }, person);
       break;
     case "sponsor":
       ownerLine = rich(
         "story.owner.sponsor",
         { house: view.rivals[owner.house] ?? "", years: Math.max(Math.round(owner.months_held / 12), 1), name: ceo.name },
-        { house: { kind: "house", id: owner.house } },
+        { house: { kind: "house", id: owner.house }, ...person },
       );
       break;
     case "corporate":
-      ownerLine = t("story.owner.corporate", { name: ceo.name });
+      ownerLine = rich("story.owner.corporate", { name: ceo.name }, person);
       break;
     case "public":
-      ownerLine = t("story.owner.public", { name: ceo.name });
+      ownerLine = rich("story.owner.public", { name: ceo.name }, person);
       break;
     default:
       break;
@@ -82,9 +83,9 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
   }
 
   // The people: the chief's style once met, the shop floor.
-  const people: string[] = [];
+  const people: ReactNode[] = [];
   if (ceo.style) {
-    people.push(t(`story.style.${ceo.style}`, { name: ceo.name }));
+    people.push(rich(`story.style.${ceo.style}`, { name: ceo.name }, person));
   }
   if (company.union_strength_bps >= 6_000) {
     people.push(t("story.union.strong", { union: f.pct(company.union_strength_bps, 0) }));
@@ -92,7 +93,16 @@ export function CompanyStory({ company, full }: { company: CompanyView; full: bo
     people.push(t("story.union.weak"));
   }
   if (people.length) {
-    paragraphs.push(people.join(" "));
+    paragraphs.push(
+      <>
+        {people.map((line, index) => (
+          <span key={index}>
+            {index > 0 ? " " : null}
+            {line}
+          </span>
+        ))}
+      </>,
+    );
   }
 
   // The numbers: a trend from the statements after the NDA, the teaser before.

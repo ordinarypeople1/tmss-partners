@@ -23,7 +23,7 @@ import { Bridge, Meter, Ring, StackBar, Stat, Tag, Tower } from "./charts";
 import { useFormat } from "./format";
 import { useGame } from "./game";
 import { Icon } from "./icons";
-import { BidderName } from "./Links";
+import { BidderName, PersonLink } from "./Links";
 import { Portrait } from "./Portrait";
 import "./DealRoom.css";
 
@@ -1241,7 +1241,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
                     <div className="dr-seat-main">
                       <div className="dr-seat-head">
                         <span>
-                          <b>{name}</b>
+                          <b>
+                            <PersonLink role="partner" id={vote.partner}>
+                              {name}
+                            </PersonLink>
+                          </b>
                           <small>{t(`partner.${vote.partner}.role`)}</small>
                         </span>
                         <Tag tone={STANCE_TONE[vote.stance]}>

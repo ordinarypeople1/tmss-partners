@@ -420,15 +420,15 @@ function Reading({ message }: { message: Message }) {
       {/* The houses and banks the message names, each a way to its page. */}
       {Object.entries(text.links)
         .filter(([, page]) => page.kind !== "company")
-        .filter(([, page], index, list) => list.findIndex(([, other]) => other.kind === page.kind && other.id === page.id) === index)
+        .filter(([, page], index, list) => list.findIndex(([, other]) => other.kind === page.kind && other.id === page.id && (other.kind !== "person" || (page.kind === "person" && other.role === page.role))) === index)
         .map(([key, page]) => (
           <button key={key} type="button" className="inbox-company" onClick={() => game.open(page)}>
             <span className="inbox-icon">
-              <Icon name={page.kind === "house" ? "flag" : "career"} size={16} />
+              <Icon name={page.kind === "house" ? "flag" : page.kind === "person" ? "meet" : "career"} size={16} />
             </span>
             <span className="inbox-item-text">
-              <b>{page.kind === "house" ? view.rivals[page.id] : view.advisers[page.id]?.name}</b>
-              <span className="inbox-item-sub">{t(page.kind === "house" ? "entity.house" : "entity.adviser")}</span>
+              <b>{page.kind === "house" ? view.rivals[page.id] : page.kind === "adviser" ? view.advisers[page.id]?.name : text.values[key]}</b>
+              <span className="inbox-item-sub">{t(page.kind === "house" ? "entity.house" : page.kind === "adviser" ? "entity.adviser" : "entity.person")}</span>
             </span>
             <span className="inbox-open">
               {t("action.open")}
