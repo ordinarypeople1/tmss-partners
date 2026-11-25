@@ -229,8 +229,11 @@ export function DealRoom({ company }: { company: CompanyView }) {
   const deal = company.deal;
   // The fund prices off its own valuation; the model stays inside the sim.
   const modelEv = deal?.valuation?.mid ?? company.ev?.[0] ?? 0;
-  const maxSenior = view.economy.max_senior_millis;
-  const maxMezz = view.economy.max_mezz_millis;
+  // A lock holds the lenders' terms the month it was bought.
+  const lock = deal?.lock ?? null;
+  const maxSenior = lock?.max_senior_millis ?? view.economy.max_senior_millis;
+  const maxMezz = lock?.max_mezz_millis ?? view.economy.max_mezz_millis;
+  const seniorRate = lock ? view.economy.policy_rate_bps + lock.spread_bps : view.economy.senior_rate_bps;
 
   const [draft, setDraft] = useState<Offer>(
     () =>
@@ -656,6 +659,28 @@ export function DealRoom({ company }: { company: CompanyView }) {
           </div>
           {/* ---------- how it is paid for ---------- */}
           <h4 className="dr-group">{t("structure.funding")}</h4>
+          <div className="dr-lock" data-locked={lock !== null}>
+            {lock ? (
+              <span>
+                <Icon name="lock" size={14} />
+                {t("structure.lock.held", { spread: f.pct(lock.spread_bps, 2), until: f.date(lock.expires) })}
+              </span>
+            ) : (
+              <>
+                <span className="muted">{t("structure.lock.about")}</span>
+                <button
+                  type="button"
+                  className="btn small"
+                  disabled={!deal || deal.lock_fee === null || deal.approved_ev <= 0}
+                  title={deal && deal.approved_ev <= 0 ? t("structure.lock.needsCommittee") : undefined}
+                  onClick={() => game.act({ type: "lock_financing", company: company.i })}
+                >
+                  <Icon name="lock" size={14} />
+                  {t("structure.lock.buy", { fee: f.money(deal?.lock_fee ?? 0) })}
+                </button>
+              </>
+            )}
+          </div>
           <div className="slider">
             <label htmlFor="dr-senior" className="tip" tabIndex={0} data-tip={t("structure.senior.tip")}>
               {t("structure.senior")}
@@ -673,7 +698,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             <small>
               {t("structure.debtTerms", {
                 turns: f.multiple(offer.senior_millis),
-                rate: f.pct(view.economy.senior_rate_bps, 1),
+                rate: f.pct(seniorRate, 1),
                 max: f.multiple(maxSenior),
               })}
             </small>
@@ -709,7 +734,7 @@ export function DealRoom({ company }: { company: CompanyView }) {
             <small>
               {offer.mezz_kind === "convertible"
                 ? t("structure.mezz.convertible.terms", {
-                    rate: f.pct(view.economy.senior_rate_bps + 100, 1),
+                    rate: f.pct(seniorRate + 100, 1),
                     pct: f.pct(financing?.converted_bps ?? 0, 1),
                   })
                 : t("structure.mezz.notes.terms", { rate: f.pct(view.economy.mezz_rate_bps, 1) })}

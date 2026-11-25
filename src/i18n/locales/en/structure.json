@@ -23,5 +23,9 @@
   "structure.cap": "Shares after closing (fully diluted)",
   "structure.cap.fund": "Our fund",
   "structure.cap.seller": "Seller",
-  "structure.cap.bonds": "Bondholders"
+  "structure.cap.bonds": "Bondholders",
+  "structure.lock.about": "Hold the lenders' terms for three months. If a meeting or a release widens spreads, this deal keeps today's.",
+  "structure.lock.buy": "Lock terms for {fee}",
+  "structure.lock.held": "Terms held: spread {spread}, until {until}",
+  "structure.lock.needsCommittee": "Needs the committee's approval first"
 }

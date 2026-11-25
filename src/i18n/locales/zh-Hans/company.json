@@ -69,5 +69,10 @@
   "company.ownerStance": "所有者态度",
   "company.stanceHint": "关系 {need, number, ::integer} 或签署 NDA 后可见",
   "company.founderLeaves": "创始人退休",
-  "company.founderLeavesNote": "交割时创始人离开，管理层评分下降。可在百日计划中加入更换管理层以作准备。"
+  "company.founderLeavesNote": "交割时创始人离开，管理层评分下降。可在百日计划中加入更换管理层以作准备。",
+  "company.exposure": "敞口",
+  "company.exposureUnknown": "中国、出口和能源敞口需商业尽调揭示。",
+  "company.exposure.china_bps": "对华销售",
+  "company.exposure.export_bps": "出口",
+  "company.exposure.energy_bps": "能源成本"
 }

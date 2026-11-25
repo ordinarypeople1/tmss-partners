@@ -270,6 +270,10 @@ impl World {
                 "bloc_growth_bps": self.economy.bloc_growth_bps,
                 "bloc_multiple_bps": self.economy.bloc_multiple_bps,
                 "uncertainty": self.economy.uncertainty,
+                "bloc_tax_delta_bps": self.economy.bloc_tax_delta_bps,
+                "bloc_approval_drag_bps": self.economy.bloc_approval_drag_bps,
+                "trade_drag_bps": self.economy.trade_drag_bps,
+                "energy_shock_bps": self.economy.energy_shock_bps,
             },
             "calendar": self.calendar_view(),
             "fund": {
@@ -415,6 +419,14 @@ impl World {
             },
         );
         detail.insert(
+            "exposure".into(),
+            if self.knows(index, DdStream::Commercial) {
+                json!(company.exposure)
+            } else {
+                Value::Null
+            },
+        );
+        detail.insert(
             "customer_concentration_bps".into(),
             if self.knows(index, DdStream::Commercial) {
                 json!(company.customer_concentration_bps)
@@ -520,6 +532,8 @@ impl World {
                     "coinvest": deal.coinvest,
                     "approved_ev": deal.approved_ev,
                     "indication": deal.indication,
+                    "lock": self.active_lock(index),
+                    "lock_fee": self.lock_fee(index),
                     "open_streams": crate::company::DD_STREAMS.iter().filter(|stream| self.stream_open(index, **stream)).collect::<Vec<_>>(),
                 }),
             );
@@ -838,7 +852,13 @@ impl World {
                 json!({
                     "id": event.id,
                     "kind": kind,
-                    "bloc": kind.bloc(),
+                    "bloc": event.bloc(),
+                    "target": event.target,
+                    "breaking": event.breaking,
+                    "measure": event.measure,
+                    "race": kind.race(),
+                    "call": event.call,
+                    "exposed": self.holdings_exposed_to(event),
                     "category": kind.category(),
                     "unit": kind.unit(),
                     "importance": kind.importance(),
@@ -858,9 +878,7 @@ impl World {
             .collect();
         json!({
             "events": events,
-            "parties": calendar.parties,
-            "poll_bps": calendar.poll_bps,
-            "incumbent": calendar.incumbent,
+            "races": calendar.races,
         })
     }
 }

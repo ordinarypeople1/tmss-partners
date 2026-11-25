@@ -69,5 +69,10 @@
   "company.ownerStance": "オーナーの姿勢",
   "company.stanceHint": "関係{need, number, ::integer}またはNDAで判明",
   "company.founderLeaves": "創業者の引退",
-  "company.founderLeavesNote": "クロージング時に創業者が去り、経営陣スコアが下がります。100日プランに経営陣交代を入れて備えてください。"
+  "company.founderLeavesNote": "クロージング時に創業者が去り、経営陣スコアが下がります。100日プランに経営陣交代を入れて備えてください。",
+  "company.exposure": "エクスポージャー",
+  "company.exposureUnknown": "中国・輸出・エネルギーへのエクスポージャーは商業DDで分かる。",
+  "company.exposure.china_bps": "中国向け売上",
+  "company.exposure.export_bps": "輸出",
+  "company.exposure.energy_bps": "エネルギーコスト"
 }

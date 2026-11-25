@@ -69,5 +69,10 @@
   "company.ownerStance": "Owner's stance",
   "company.stanceHint": "Shown at relationship {need, number, ::integer} or after NDA",
   "company.founderLeaves": "Founder retiring",
-  "company.founderLeavesNote": "The founder leaves at closing and the management score drops. Put a management change in the 100-day plan to prepare."
+  "company.founderLeavesNote": "The founder leaves at closing and the management score drops. Put a management change in the 100-day plan to prepare.",
+  "company.exposure": "Exposure",
+  "company.exposureUnknown": "China, export and energy exposure: commercial diligence opens it.",
+  "company.exposure.china_bps": "Sales to China",
+  "company.exposure.export_bps": "Exports",
+  "company.exposure.energy_bps": "Energy in costs"
 }

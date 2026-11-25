@@ -1,5 +1,5 @@
 import type { Translate } from "../i18n/useT";
-import type { Bloc, CompanyRow, GameDate, MacroEffect, MacroEventView, MacroKind, MacroUnit } from "../sim/types";
+import { BLOCS, type Bloc, type CompanyRow, type GameDate, type MacroEffect, type MacroEventView, type MacroKind, type MacroUnit, type Race } from "../sim/types";
 import type { Format } from "./format";
 
 /**
@@ -7,7 +7,7 @@ import type { Format } from "./format";
  * values, surprises and effects all come from sim-core's view.
  */
 
-/** Germany and France read the euro area. Other countries have no bloc yet. */
+/** Germany and France read the euro area. */
 export function blocOf(country: string): Bloc | null {
   switch (country) {
     case "US":
@@ -17,9 +17,20 @@ export function blocOf(country: string): Bloc | null {
       return "ez";
     case "CN":
       return "cn";
+    case "GB":
+      return "gb";
+    case "JP":
+      return "jp";
+    case "KR":
+      return "kr";
     default:
       return null;
   }
+}
+
+/** Slot of a bloc in the economy's per-bloc arrays. */
+export function blocIndex(bloc: Bloc): number {
+  return BLOCS.indexOf(bloc);
 }
 
 /** The unit each kind reports in. Mirrors `MacroKind::unit` for messages, which carry no unit. */
@@ -27,11 +38,27 @@ const UNITS: Record<MacroKind, MacroUnit> = {
   fomc: "rate_bps",
   ecb: "rate_bps",
   cn_lpr: "rate_bps",
+  boe: "rate_bps",
+  boj: "rate_bps",
+  bok: "rate_bps",
   us_payrolls: "jobs_k",
   us_ism: "index_tenths",
   ifo: "index_tenths",
+  tankan: "points",
   us_election: "party",
   us_midterm: "party",
+  uk_election: "party",
+  de_election: "party",
+  fr_election: "party",
+  jp_election: "party",
+  kr_election: "party",
+  kr_general: "party",
+  tax_bill: "vote",
+  trade_act: "vote",
+  regulation_rule: "vote",
+  tariff_shock: "severity",
+  geopolitics: "severity",
+  bank_stress: "severity",
   us_cpi: "pct_bps",
   us_gdp: "pct_bps",
   sloos: "pct_bps",
@@ -39,14 +66,41 @@ const UNITS: Record<MacroKind, MacroUnit> = {
   cn_activity: "pct_bps",
   cn_trade: "pct_bps",
   cn_npc: "pct_bps",
+  uk_cpi: "pct_bps",
+  uk_budget: "pct_bps",
+  shunto: "pct_bps",
+  kr_exports: "pct_bps",
+};
+
+/** The race an election kind belongs to. Mirrors `MacroKind::race`. */
+const RACE: Partial<Record<MacroKind, Race>> = {
+  us_election: "us",
+  us_midterm: "us",
+  uk_election: "gb",
+  de_election: "de",
+  fr_election: "fr",
+  jp_election: "jp",
+  kr_election: "kr",
+  kr_general: "kr",
 };
 
 export function macroUnit(kind: MacroKind): MacroUnit {
   return UNITS[kind];
 }
 
-/** A value in its unit. `resolved` says whether a party value is a winner or a poll share. */
-export function formatMacroValue(t: Translate, f: Format, unit: MacroUnit, value: number, resolved = true): string {
+export function raceOf(kind: MacroKind): Race | null {
+  return RACE[kind] ?? null;
+}
+
+export function partyName(t: Translate, race: Race | null, party: number): string {
+  return t(`party.${race ?? "us"}.${party}`);
+}
+
+/**
+ * A value in its unit. `resolved` says whether a party or vote value is an
+ * outcome or still a poll or the odds. `race` names the parties.
+ */
+export function formatMacroValue(t: Translate, f: Format, unit: MacroUnit, value: number, resolved = true, race: Race | null = null): string {
   switch (unit) {
     case "rate_bps":
       return f.pct(value, 2);
@@ -56,8 +110,18 @@ export function formatMacroValue(t: Translate, f: Format, unit: MacroUnit, value
       return t("calendar.unit.jobs", { value: f.integer(value) });
     case "index_tenths":
       return f.decimal(value / 10, 1);
+    case "points":
+      return `${value > 0 ? "+" : ""}${f.integer(value)}`;
     case "party":
-      return resolved ? t(`party.${value}`) : t("calendar.unit.poll", { party: t("party.0"), share: f.pct(value, 0) });
+      return resolved
+        ? partyName(t, race, value)
+        : t("calendar.unit.poll", { party: partyName(t, race, 0), share: f.pct(value, 0) });
+    case "vote":
+      return resolved ? t(value === 1 ? "calendar.vote.passed" : "calendar.vote.failed") : t("calendar.vote.odds", { chance: f.pct(value, 0) });
+    case "severity":
+      return t(`calendar.severity.${Math.min(Math.max(value, 1), 3)}`);
+    default:
+      return f.integer(value);
   }
 }
 
@@ -71,9 +135,11 @@ export function effectText(t: Translate, f: Format, effect: MacroEffect): { labe
   switch (effect.channel) {
     case "policy_rate":
     case "credit_spread":
+    case "trade_drag":
+    case "energy_cost":
       return {
         label: t(`calendar.effect.${effect.channel}`),
-        value: `${f.signedPct(effect.delta_bps, 2)}p`,
+        value: effect.channel === "policy_rate" || effect.channel === "credit_spread" ? `${f.signedPct(effect.delta_bps, 2)}p` : f.signedPct(effect.delta_bps, 2),
         up: effect.delta_bps > 0,
       };
     case "bloc_growth":
@@ -83,9 +149,11 @@ export function effectText(t: Translate, f: Format, effect: MacroEffect): { labe
         up: effect.delta_bps > 0,
       };
     case "bloc_multiple":
+    case "tax_rate":
+    case "approval_drag":
       return {
-        label: t("calendar.effect.bloc_multiple", { bloc: t(`bloc.${effect.bloc}`) }),
-        value: f.signedPct(effect.delta_bps, 2),
+        label: t(`calendar.effect.${effect.channel}`, { bloc: t(`bloc.${effect.bloc}`) }),
+        value: effect.channel === "bloc_multiple" ? f.signedPct(effect.delta_bps, 2) : `${f.signedPct(effect.delta_bps, 1)}p`,
         up: effect.delta_bps > 0,
       };
     case "sector_cycle":
@@ -106,17 +174,29 @@ export function effectText(t: Translate, f: Format, effect: MacroEffect): { labe
 /** Is a move in this channel good news for a buyer who holds companies? */
 export function effectTone(effect: MacroEffect): "good" | "bad" {
   const delta = effect.channel === "uncertainty" ? effect.delta : effect.delta_bps;
-  const higherIsWorse = effect.channel === "policy_rate" || effect.channel === "credit_spread" || effect.channel === "uncertainty";
+  const higherIsWorse =
+    effect.channel === "policy_rate" ||
+    effect.channel === "credit_spread" ||
+    effect.channel === "uncertainty" ||
+    effect.channel === "tax_rate" ||
+    effect.channel === "approval_drag" ||
+    effect.channel === "trade_drag" ||
+    effect.channel === "energy_cost";
   return (delta > 0) !== higherIsWorse ? "good" : "bad";
 }
 
-/** Companies the player owns, is in a deal for, or watches that a release touches. */
+/**
+ * Companies an event touches: the holdings sim-core names, and deals or
+ * watched companies in the same bloc and sector.
+ */
 export function exposedTo(event: MacroEventView, rows: CompanyRow[]): CompanyRow[] {
   return rows.filter(
     (row) =>
-      (row.owner.kind === "player" || row.in_deal || row.watched) &&
-      blocOf(row.country) === event.bloc &&
-      (event.sectors.length === 0 || event.sectors.includes(row.sector)),
+      event.exposed.includes(row.i) ||
+      ((row.in_deal || row.watched) &&
+        row.owner.kind !== "player" &&
+        blocOf(row.country) === event.bloc &&
+        (event.sectors.length === 0 || event.sectors.includes(row.sector))),
   );
 }
 

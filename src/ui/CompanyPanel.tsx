@@ -475,6 +475,23 @@ function Overview({ game, company }: { game: Game; company: CompanyView }) {
                   }
                 />
               )}
+              {company.exposure === null ? (
+                <small className="muted">{t("company.exposureUnknown")}</small>
+              ) : (
+                <div className="cp-exposure">
+                  <span className="muted">{t("company.exposure")}</span>
+                  {(["china_bps", "export_bps", "energy_bps"] as const).map((key) => (
+                    <Meter
+                      key={key}
+                      label={t(`company.exposure.${key}`)}
+                      text={f.pct(company.exposure?.[key] ?? 0, 0)}
+                      value={company.exposure?.[key] ?? 0}
+                      max={10000}
+                      tone={(company.exposure?.[key] ?? 0) >= 4000 ? "warn" : undefined}
+                    />
+                  ))}
+                </div>
+              )}
               <dl className="kv cp-mini">
                 <dt>{t("term.margin")}</dt>
                 <dd>{f.pct(fin.margin_bps)}</dd>

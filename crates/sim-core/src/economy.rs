@@ -15,6 +15,15 @@ pub const RATE_CAP_BPS: i64 = 800;
 pub const BLOC_GROWTH_CAP_BPS: i64 = 15;
 /// How far a bloc's news can move its multiples, in basis points.
 pub const BLOC_MULTIPLE_CAP_BPS: i64 = 800;
+/// How far laws can move a bloc's tax rate, in basis points.
+pub const TAX_DELTA_CAP_BPS: i64 = 600;
+/// The most a bloc's politics can add to the chance a regulator refuses a foreign buyer.
+pub const APPROVAL_DRAG_CAP_BPS: i64 = 1_500;
+/// Tariffs in force, as a drag on exporters' growth.
+pub const TRADE_DRAG_CAP_BPS: i64 = 600;
+/// Energy prices above normal, as a drag on energy-heavy companies.
+pub const ENERGY_SHOCK_CAP_BPS: i64 = 900;
+const BLOCS: usize = crate::macro_events::BLOC_COUNT;
 const HISTORY_MONTHS: usize = 240;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,19 +66,29 @@ pub struct Economy {
     /// One slow wave per sector, in basis points around zero.
     pub sector_cycle_bps: Vec<i64>,
     pub history: Vec<EconomyPoint>,
-    /// Monthly growth the news adds per bloc (US, euro area, China).
+    /// Monthly growth the news adds per bloc, in `macro_events::BLOCS` order.
     #[serde(default)]
-    pub bloc_growth_bps: [i64; 3],
+    pub bloc_growth_bps: Vec<i64>,
     /// Multiplier the news puts on each bloc's multiples, around zero.
     #[serde(default)]
-    pub bloc_multiple_bps: [i64; 3],
+    pub bloc_multiple_bps: Vec<i64>,
     /// 0–100 per bloc. Owners wait and IPOs stall when it is high.
     #[serde(default = "base_uncertainty")]
-    pub uncertainty: [i64; 3],
+    pub uncertainty: Vec<i64>,
+    /// Added to every company's tax rate in a bloc, by law.
+    #[serde(default)]
+    pub bloc_tax_delta_bps: Vec<i64>,
+    /// Added to the chance a regulator in the bloc refuses a foreign buyer.
+    #[serde(default)]
+    pub bloc_approval_drag_bps: Vec<i64>,
+    #[serde(default)]
+    pub trade_drag_bps: i64,
+    #[serde(default)]
+    pub energy_shock_bps: i64,
 }
 
-fn base_uncertainty() -> [i64; 3] {
-    [crate::macro_events::UNCERTAINTY_BASE; 3]
+fn base_uncertainty() -> Vec<i64> {
+    vec![crate::macro_events::UNCERTAINTY_BASE; BLOCS]
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,9 +114,13 @@ impl Economy {
             credit_spread_bps,
             sector_cycle_bps: vec![0; sectors],
             history: Vec::new(),
-            bloc_growth_bps: [0; 3],
-            bloc_multiple_bps: [0; 3],
+            bloc_growth_bps: vec![0; BLOCS],
+            bloc_multiple_bps: vec![0; BLOCS],
             uncertainty: base_uncertainty(),
+            bloc_tax_delta_bps: vec![0; BLOCS],
+            bloc_approval_drag_bps: vec![0; BLOCS],
+            trade_drag_bps: 0,
+            energy_shock_bps: 0,
         };
         economy.record();
         economy
@@ -174,7 +197,21 @@ impl Economy {
         }
     }
 
-    /// The news fades: growth by a fifth a month, multiples by a tenth.
+    /// Pads the per-bloc arrays of a save from before all six blocs.
+    pub fn ensure_blocs(&mut self) {
+        for (slot, fill) in [
+            (&mut self.bloc_growth_bps, 0),
+            (&mut self.bloc_multiple_bps, 0),
+            (&mut self.uncertainty, crate::macro_events::UNCERTAINTY_BASE),
+            (&mut self.bloc_tax_delta_bps, 0),
+            (&mut self.bloc_approval_drag_bps, 0),
+        ] {
+            slot.resize(BLOCS, fill);
+        }
+    }
+
+    /// The news fades: growth by a fifth a month, multiples by a tenth,
+    /// energy by a tenth, tariffs and regulators slowly. Laws stay.
     pub fn decay_tilts(&mut self) {
         for slot in &mut self.bloc_growth_bps {
             *slot = *slot * 80 / 100;
@@ -182,6 +219,23 @@ impl Economy {
         for slot in &mut self.bloc_multiple_bps {
             *slot = *slot * 90 / 100;
         }
+        for slot in &mut self.bloc_approval_drag_bps {
+            *slot = *slot * 98 / 100;
+        }
+        self.trade_drag_bps = self.trade_drag_bps * 97 / 100;
+        self.energy_shock_bps = self.energy_shock_bps * 90 / 100;
+    }
+
+    pub fn tax_delta_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_tax_delta_bps[bloc.index()])
+            .unwrap_or(0)
+    }
+
+    pub fn approval_drag_for(&self, country: &str) -> i64 {
+        crate::macro_events::Bloc::of_country(country)
+            .map(|bloc| self.bloc_approval_drag_bps[bloc.index()])
+            .unwrap_or(0)
     }
 
     pub fn bloc_growth_for(&self, country: &str) -> i64 {

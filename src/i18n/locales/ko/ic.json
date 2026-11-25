@@ -112,5 +112,7 @@
   "error.condition_open": "IC가 요구한 실사가 아직 끝나지 않았습니다.",
   "talk.title.think": "오너의 답",
   "talk.think.1": "좋은 제안이네요. 가족들과 상의해 보고 한두 달 안에 연락드리겠습니다.",
-  "talk.think.2": "숫자는 알겠습니다. 회계사와 은행 이야기도 들어 보고 답을 드리죠."
+  "talk.think.2": "숫자는 알겠습니다. 회계사와 은행 이야기도 들어 보고 답을 드리죠.",
+  "error.unknown_event": "그런 일정이 없습니다.",
+  "error.not_this_month": "이번 달의 발표와 회의만 물을 수 있습니다."
 }

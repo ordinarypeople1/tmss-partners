@@ -1,7 +1,7 @@
 import type { Translate } from "../i18n/useT";
 import type { Bidder, Message, View } from "../sim/types";
 import type { Format } from "./format";
-import { formatMacroValue, formatSurprise, macroUnit } from "./macro";
+import { formatMacroValue, formatSurprise, macroUnit, partyName, raceOf } from "./macro";
 
 export interface MessageText {
   title: string;
@@ -20,6 +20,9 @@ const LOOK: Record<Message["type"], [string, MessageText["tone"]?]> = {
   phase_changed: ["clock"],
   macro_surprise: ["calendar", "warn"],
   election: ["calendar"],
+  law_vote: ["gavel"],
+  macro_shock: ["alert", "bad"],
+  macro_alert: ["calendar", "warn"],
   sale_early_notice: ["handshake", "good"],
   owner_opened: ["handshake", "good"],
   owner_declined: ["close", "warn"],
@@ -100,8 +103,27 @@ export function describeMessage(t: Translate, f: Format, view: View, message: Me
     }
     case "election":
       values.event = t(`macro.event.${message.kind}`);
-      values.winner = t(`party.${message.winner}`);
+      values.winner = partyName(t, raceOf(message.kind), message.winner);
       bodyId = message.upset ? "msg.election.upsetBody" : "msg.election.body";
+      titleId = message.snap ? "msg.election.snapTitle" : "msg.election.title";
+      break;
+    case "law_vote":
+      values.law = t(`macro.event.${message.kind}`);
+      values.bloc = t(`bloc.${message.bloc}`);
+      values.what = t(`calendar.measure.${message.kind}.${message.direction > 0 ? "up" : "down"}`);
+      titleId = message.passed ? "msg.law_vote.passedTitle" : "msg.law_vote.failedTitle";
+      bodyId = message.passed ? "msg.law_vote.passedBody" : "msg.law_vote.failedBody";
+      break;
+    case "macro_shock":
+      values.event = t(`macro.event.${message.kind}`);
+      values.bloc = t(`bloc.${message.bloc}`);
+      values.target = message.target ? t(`bloc.${message.target}`) : "";
+      values.severity = t(`calendar.severity.${message.severity}`);
+      bodyId = `msg.macro_shock.${message.kind}`;
+      break;
+    case "macro_alert":
+      values.count = String(message.events.length);
+      values.companies = String(message.companies);
       break;
     case "sale_early_notice":
     case "owner_opened":

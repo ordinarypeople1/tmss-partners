@@ -207,5 +207,16 @@
   "msg.macro_surprise.body": "실제 {actual}, 컨센서스 {consensus}. 서프라이즈 {z}.",
   "msg.election.title": "{event}: {winner} 승리",
   "msg.election.body": "여론대로 나왔다. 불확실성이 걷힌다.",
-  "msg.election.upsetBody": "여론과 반대로 나왔다. 불확실성이 한동안 남는다."
+  "msg.election.upsetBody": "여론과 반대로 나왔다. 불확실성이 한동안 남는다.",
+  "msg.election.snapTitle": "조기 {event}: {winner} 승리",
+  "msg.law_vote.passedTitle": "{bloc} {law} 통과",
+  "msg.law_vote.failedTitle": "{bloc} {law} 부결",
+  "msg.law_vote.passedBody": "{what}. 시행된다.",
+  "msg.law_vote.failedBody": "{what} 시도가 무산됐다.",
+  "msg.macro_shock.title": "속보: {bloc} {event}",
+  "msg.macro_shock.tariff_shock": "{bloc}가 {target}에 관세를 매긴다. 강도 {severity}.",
+  "msg.macro_shock.geopolitics": "{bloc} 쪽 긴장. 에너지가 뛴다. 강도 {severity}.",
+  "msg.macro_shock.bank_stress": "{bloc}의 은행이 흔들린다. 대주들이 몸을 사린다. 강도 {severity}.",
+  "msg.macro_alert.title": "이번 달 보유 회사에 닿는 발표 {count}건",
+  "msg.macro_alert.body": "보유 {companies}개사가 노출돼 있다. 캘린더에서 확인한다."
 }

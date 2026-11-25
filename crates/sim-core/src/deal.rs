@@ -194,7 +194,26 @@ pub struct Deal {
     /// The diligence reports in, one per stream.
     #[serde(default)]
     pub reports: Vec<crate::diligence::Report>,
+    /// Lenders' terms held for the deal, bought before a meeting or a release could move them.
+    #[serde(default)]
+    pub lock: Option<FinancingLock>,
 }
+
+/// The credit market as it stood the month the lock was bought.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FinancingLock {
+    pub spread_bps: i64,
+    pub max_senior_millis: i64,
+    pub max_mezz_millis: i64,
+    /// The last month the terms hold.
+    pub expires: GameDate,
+    pub fee: i64,
+}
+
+/// Lenders charge this share of the debt to hold their terms.
+pub const LOCK_FEE_BPS: i64 = 25;
+/// Months the terms hold, the month of purchase included.
+pub const LOCK_MONTHS: u32 = 3;
 
 impl Deal {
     pub fn has(&self, stream: DdStream) -> bool {
@@ -205,6 +224,55 @@ impl Deal {
 impl World {
     pub(crate) fn deal_index(&self, company: usize) -> Option<usize> {
         self.deals.iter().position(|deal| deal.company == company)
+    }
+
+    /// The lock on a deal's terms, while it holds.
+    pub fn active_lock(&self, company: usize) -> Option<FinancingLock> {
+        let deal = self.deal_index(company)?;
+        self.deals[deal].lock.filter(|lock| lock.expires >= self.date)
+    }
+
+    /// Senior and mezzanine turns lenders will write for this deal: the lock if it holds.
+    pub(crate) fn lender_caps(&self, company: usize) -> (i64, i64) {
+        match self.active_lock(company) {
+            Some(lock) => (lock.max_senior_millis, lock.max_mezz_millis),
+            None => (self.economy.max_senior_millis(), self.economy.max_mezz_millis()),
+        }
+    }
+
+    /// What holding today's terms would cost for the offer on the table.
+    pub fn lock_fee(&self, company: usize) -> Option<i64> {
+        let deal = self.deal_index(company)?;
+        let offer = self.deals[deal].offer.as_ref()?;
+        let financing = self.financing(company, offer);
+        Some(mul_bps(financing.debt, LOCK_FEE_BPS).max(50))
+    }
+
+    pub(crate) fn lock_financing(&mut self, company: usize) -> Result<(), CommandError> {
+        let deal = self.deal_index(company).ok_or(CommandError::NoDeal)?;
+        if self.deals[deal].offer.is_none() {
+            return Err(CommandError::NoOffer);
+        }
+        if self.deals[deal].approved_ev <= 0 {
+            return Err(CommandError::NeedsCommittee);
+        }
+        if self.active_lock(company).is_some() {
+            return Err(CommandError::AlreadyDone);
+        }
+        let fee = self.lock_fee(company).ok_or(CommandError::NoOffer)?;
+        if !self.fund.call(fee, self.months_elapsed) {
+            return Err(CommandError::FundExhausted);
+        }
+        self.fund.deal_costs += fee;
+        self.deals[deal].costs += fee;
+        self.deals[deal].lock = Some(FinancingLock {
+            spread_bps: self.economy.credit_spread_bps,
+            max_senior_millis: self.economy.max_senior_millis(),
+            max_mezz_millis: self.economy.max_mezz_millis(),
+            expires: self.date.plus_months(LOCK_MONTHS - 1),
+            fee,
+        });
+        Ok(())
     }
 
     pub(crate) fn drop_deal_record(&mut self, company: usize) {
@@ -252,6 +320,7 @@ impl World {
             coinvest: false,
             coinvest_asked: false,
             indication: None,
+            lock: None,
         });
         self.companies[company].watched = true;
         Ok(())
@@ -340,9 +409,8 @@ impl World {
         if offer.primary < 0 || offer.primary > mul_bps(offer.ev, MAX_PRIMARY_BPS) {
             return Err(CommandError::InvalidOffer);
         }
-        if offer.senior_millis > self.economy.max_senior_millis()
-            || offer.mezz_millis > self.economy.max_mezz_millis()
-        {
+        let (max_senior, max_mezz) = self.lender_caps(company);
+        if offer.senior_millis > max_senior || offer.mezz_millis > max_mezz {
             return Err(CommandError::LendersRefuse);
         }
         let founder = matches!(self.companies[company].owner, Owner::Founder { .. });
@@ -382,7 +450,10 @@ impl World {
         let ownership_bps = ratio_bps(equity.max(0), diluted);
         let seller_bps = ratio_bps(rollover, diluted);
         let converted_bps = 10_000 - ownership_bps - seller_bps;
-        let senior_spread = self.economy.credit_spread_bps;
+        let senior_spread = self
+            .active_lock(company)
+            .map(|lock| lock.spread_bps)
+            .unwrap_or(self.economy.credit_spread_bps);
         let premium = match offer.mezz_kind {
             MezzKind::Notes => NOTES_PREMIUM_BPS,
             MezzKind::Convertible => CONVERTIBLE_PREMIUM_BPS,
@@ -888,8 +959,9 @@ impl World {
         let deal = self.deals[index].clone();
         let mut offer = deal.offer.clone().expect("a bid carries an offer");
         offer.ev = ev;
-        offer.senior_millis = offer.senior_millis.min(self.economy.max_senior_millis());
-        offer.mezz_millis = offer.mezz_millis.min(self.economy.max_mezz_millis());
+        let (max_senior, max_mezz) = self.lender_caps(company);
+        offer.senior_millis = offer.senior_millis.min(max_senior);
+        offer.mezz_millis = offer.mezz_millis.min(max_mezz);
         let mut financing = self.financing(company, &offer);
         if deal.coinvest {
             // Co-investors buy a fifth of the fund's stake at the same price.
@@ -898,12 +970,19 @@ impl World {
         }
         let process = self.companies[company].process.clone();
         // Foreign buyers need a regulator's consent, and some regulators say no.
-        let refusal = match self.companies[company].country.as_str() {
+        // A government that protects trade or tightens rules says no more often.
+        let country = self.companies[company].country.as_str();
+        let refusal = match country {
             "US" => 0,
             "CN" => 2_000,
             _ => 400,
         };
-        if self.rng.chance_bps(refusal) {
+        let refusal = if refusal == 0 {
+            0
+        } else {
+            (refusal + self.economy.approval_drag_for(country)).clamp(0, 6_000)
+        };
+        if self.rng.chance_bps(refusal as u32) {
             self.end_process(company, 6, 12);
             self.deals.remove(index);
             self.post(MessageKind::RegulatorBlocked, Some(company));

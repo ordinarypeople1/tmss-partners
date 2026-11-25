@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useT } from "../../i18n/useT";
-import { BLOCS, type Bloc, type CompanyRow, type GameDate, type MacroCategory, type MacroEventView } from "../../sim/types";
+import { BLOC_ORDER, type Bloc, type CompanyRow, type GameDate, type MacroCategory, type MacroEventView, type Party } from "../../sim/types";
 import { Stat, Tag } from "../charts";
 import { useFormat } from "../format";
 import { useGame, type Screen } from "../game";
 import { Icon } from "../icons";
 import { Overlay } from "../Overlay";
-import { addMonths, daysIn, effectText, effectTone, exposedTo, formatMacroValue, formatSurprise, sameMonth, weekday } from "../macro";
+import { addMonths, blocIndex, daysIn, effectText, effectTone, exposedTo, formatMacroValue, formatSurprise, partyName, sameMonth, weekday } from "../macro";
 import "./Calendar.css";
 
 /** Months the calendar pages back and ahead of the open month. */
@@ -16,7 +16,7 @@ const AHEAD = 12;
 const CELL_CHIPS = 3;
 
 type Layer = MacroCategory | "mine";
-const LAYERS: Layer[] = ["central_bank", "data", "politics", "mine"];
+const LAYERS: Layer[] = ["central_bank", "data", "politics", "breaking", "mine"];
 
 /** Something with a date that is the player's own, not the world's. */
 interface MineItem {
@@ -48,7 +48,7 @@ export function Calendar() {
   const events = view.calendar.events;
 
   const [shown, setShown] = useState<GameDate>(open);
-  const [blocs, setBlocs] = useState<Bloc[]>(BLOCS);
+  const [blocs, setBlocs] = useState<Bloc[]>(BLOC_ORDER);
   const [layers, setLayers] = useState<Layer[]>(LAYERS);
   const [majorOnly, setMajorOnly] = useState(false);
   const [mineOnly, setMineOnly] = useState(false);
@@ -210,11 +210,13 @@ export function Calendar() {
         data-bloc={event.bloc}
         data-importance={event.importance}
         data-resolved={event.actual !== null}
+        data-breaking={event.breaking || undefined}
         data-surprise={event.actual === null ? undefined : surprise >= 100 ? "above" : surprise <= -100 ? "below" : "inline"}
         aria-pressed={picked === key}
         onClick={() => pick(event.date, key)}
       >
         <i aria-hidden="true" />
+        {event.breaking ? <b className="cal-breaking">{t("calendar.breaking")}</b> : null}
         <span>{compact ? eventLabel(event) : t(`macro.event.${event.kind}`)}</span>
         {event.importance >= 3 ? <b className="cal-star" aria-label={t("calendar.major")}>★</b> : null}
         {exposed ? <Icon name="portfolio" size={12} title={t("calendar.exposedTip")} /> : null}
@@ -270,22 +272,28 @@ export function Calendar() {
           </div>
         </div>
         <div className="cal-strip-part cal-moods">
-          {BLOCS.map((bloc, index) => (
-            <Stat
-              key={bloc}
-              label={t("calendar.mood", { bloc: t(`bloc.${bloc}`) })}
-              value={f.integer(view.economy.uncertainty[index])}
-              tone={view.economy.uncertainty[index] >= 50 ? "warn" : undefined}
-              hint={t("calendar.moodHint", { multiple: f.signedPct(view.economy.bloc_multiple_bps[index], 1) })}
-            />
-          ))}
+          {BLOC_ORDER.map((bloc) => {
+            const index = blocIndex(bloc);
+            const uncertainty = view.economy.uncertainty[index] ?? 0;
+            return (
+              <Stat
+                key={bloc}
+                label={t("calendar.mood", { bloc: t(`bloc.${bloc}`) })}
+                value={f.integer(uncertainty)}
+                tone={uncertainty >= 50 ? "warn" : undefined}
+                hint={t("calendar.moodHint", { multiple: f.signedPct(view.economy.bloc_multiple_bps[index] ?? 0, 1) })}
+              />
+            );
+          })}
+          <Stat label={t("calendar.trade")} value={f.pct(view.economy.trade_drag_bps, 1)} tone={view.economy.trade_drag_bps >= 150 ? "warn" : undefined} />
+          <Stat label={t("calendar.energy")} value={f.pct(view.economy.energy_shock_bps, 1)} tone={view.economy.energy_shock_bps >= 200 ? "warn" : undefined} />
           <p className="cal-mood-note muted">{t("calendar.moodTip")}</p>
         </div>
       </section>
 
       <section className="cal-filters" aria-label={t("calendar.filters")}>
         <div className="cal-filter-group">
-          {BLOCS.map((bloc) => (
+          {BLOC_ORDER.map((bloc) => (
             <button key={bloc} type="button" className="chip" data-bloc={bloc} aria-pressed={blocs.includes(bloc)} onClick={() => toggle(blocs, bloc, setBlocs)}>
               <i aria-hidden="true" />
               {t(`bloc.${bloc}`)}
@@ -435,22 +443,46 @@ function MineDetail({ item, label, onDone }: { item: MineItem; label: string; on
   );
 }
 
+const AXES = ["tax", "trade", "regulation", "fiscal"] as const;
+
+function Platform({ party }: { party: Party }) {
+  const t = useT();
+  return (
+    <span className="cal-platform">
+      {AXES.map((axis) =>
+        party[axis] === 0 ? null : (
+          <Tag key={axis} tone={axis === "fiscal" ? "muted" : party[axis] > 0 ? "warn" : "good"}>
+            {t(`calendar.axis.${axis}.${party[axis] > 0 ? "up" : "down"}`)}
+          </Tag>
+        ),
+      )}
+    </span>
+  );
+}
+
 function EventDetail({ event, exposed, onDone }: { event: MacroEventView; exposed: CompanyRow[]; onDone: () => void }) {
   const t = useT();
   const f = useFormat();
   const game = useGame();
   const { view } = game;
-  const election = event.unit === "party";
+  const race = event.race ?? event.measure?.race ?? null;
+  const raceState = race === null ? null : (view.calendar.races.find((item) => item.race === race) ?? null);
+  const outcome = event.unit === "party" || event.unit === "vote";
   const value = (amount: number | null, resolved = true) =>
-    amount === null ? t("calendar.unknown") : formatMacroValue(t, f, event.unit, amount, resolved);
+    amount === null ? t("calendar.unknown") : formatMacroValue(t, f, event.unit, amount, resolved, race);
   const history = view.calendar.events
     .filter((item) => item.kind === event.kind && item.surprise_centi !== null && compareDates(item.date, event.date) <= 0)
     .slice(-6);
+  const callable =
+    sameMonth(event.date, view.date) && event.actual === null && !event.breaking && (event.category === "data" || event.category === "central_bank");
 
   return (
     <div className="stack">
       <div className="row between">
-        <h2 className="card-title">{t(`macro.event.${event.kind}`)}</h2>
+        <h2 className="card-title">
+          {event.breaking ? <b className="cal-breaking">{t("calendar.breaking")}</b> : null}
+          {t(`macro.event.${event.kind}`)}
+        </h2>
         <Tag tone={event.importance >= 3 ? "accent" : "muted"}>{t(`bloc.${event.bloc}`)}</Tag>
       </div>
       <p className="muted">
@@ -459,10 +491,22 @@ function EventDetail({ event, exposed, onDone }: { event: MacroEventView; expose
         {t(`calendar.layer.${event.category}`)}
       </p>
       <p>{t(`macro.about.${event.kind}`)}</p>
+      {event.measure ? (
+        <p>
+          <strong>{t(`calendar.measure.${event.kind}.${event.measure.direction > 0 ? "up" : "down"}`)}</strong>
+          {" · "}
+          {t("calendar.proposedBy", { party: partyName(t, event.measure.race, event.measure.party) })}
+        </p>
+      ) : null}
+      {event.target ? <p>{t("calendar.target", { bloc: t(`bloc.${event.target}`) })}</p> : null}
 
-      {election ? (
+      {event.unit === "severity" ? (
         <div className="cal-stats">
-          <Stat label={t("calendar.poll")} value={value(event.consensus, false)} />
+          <Stat label={t("calendar.severity")} value={value(event.actual)} tone="bad" />
+        </div>
+      ) : outcome ? (
+        <div className="cal-stats">
+          <Stat label={t(event.unit === "party" ? "calendar.poll" : "calendar.odds")} value={value(event.consensus, false)} />
           <Stat label={t("calendar.winner")} value={value(event.actual)} tone={event.upset ? "warn" : undefined} hint={event.upset ? t("calendar.upset") : undefined} />
         </div>
       ) : (
@@ -482,7 +526,27 @@ function EventDetail({ event, exposed, onDone }: { event: MacroEventView; expose
         </div>
       )}
 
-      {event.consensus === null && event.actual === null && !election ? <p className="muted">{t("calendar.noConsensus")}</p> : null}
+      {event.consensus === null && event.actual === null && !outcome ? <p className="muted">{t("calendar.noConsensus")}</p> : null}
+
+      {event.call ? (
+        <p className="cal-call">
+          <Icon name="meet" size={14} />
+          {event.call[0] === event.call[1]
+            ? t("calendar.call.decision", { value: value(event.call[0]) })
+            : t("calendar.call.range", { low: value(event.call[0]), high: value(event.call[1]) })}
+        </p>
+      ) : callable ? (
+        <button
+          type="button"
+          className="btn small"
+          disabled={view.attention.left < 1}
+          onClick={() => game.act({ type: "call_economist", event: event.id })}
+        >
+          <Icon name="meet" size={14} />
+          {t("calendar.call.ask")}
+          <span className="cost">{t("calendar.call.cost")}</span>
+        </button>
+      ) : null}
 
       {event.stance !== null ? (
         <div className="cal-stance" aria-label={t(`calendar.stance.${event.stance}`)}>
@@ -496,13 +560,14 @@ function EventDetail({ event, exposed, onDone }: { event: MacroEventView; expose
         </div>
       ) : null}
 
-      {election ? (
+      {raceState && event.race ? (
         <ul className="cal-parties">
-          {view.calendar.parties.map((party, index) => (
+          {raceState.parties.map((party, index) => (
             <li key={index}>
-              <strong>{t(`party.${index}`)}</strong>
-              <Tag tone={party.lean > 0 ? "good" : party.lean < 0 ? "warn" : "muted"}>{t(`calendar.lean.${party.lean > 0 ? "pro" : party.lean < 0 ? "con" : "mid"}`)}</Tag>
-              {view.calendar.incumbent === index ? <Tag tone="muted">{t("calendar.incumbent")}</Tag> : null}
+              <strong>{partyName(t, raceState.race, index)}</strong>
+              <Platform party={party} />
+              {raceState.executive === index ? <Tag tone="muted">{t("calendar.incumbent")}</Tag> : null}
+              {raceState.legislature === index ? <Tag tone="muted">{t("calendar.majority")}</Tag> : null}
             </li>
           ))}
         </ul>
@@ -524,10 +589,10 @@ function EventDetail({ event, exposed, onDone }: { event: MacroEventView; expose
           </ul>
         </div>
       ) : event.actual !== null ? (
-        <p className="muted">{t("calendar.noEffects")}</p>
+        <p className="muted">{t(event.unit === "vote" && event.actual === 0 ? "calendar.noEffectsFailed" : "calendar.noEffects")}</p>
       ) : null}
 
-      {history.length > 0 && !election ? (
+      {history.length > 0 && !outcome ? (
         <div className="stack">
           <h3 className="card-title">{t("calendar.history")}</h3>
           <ol className="cal-history">

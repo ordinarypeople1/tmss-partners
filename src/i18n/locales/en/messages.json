@@ -207,5 +207,16 @@
   "msg.macro_surprise.body": "Actual {actual} against a consensus of {consensus}. Surprise {z}.",
   "msg.election.title": "{event}: {winner} wins",
   "msg.election.body": "As the polls said. Uncertainty lifts.",
-  "msg.election.upsetBody": "Against the polls. Uncertainty lingers for a while."
+  "msg.election.upsetBody": "Against the polls. Uncertainty lingers for a while.",
+  "msg.election.snapTitle": "Snap {event}: {winner} wins",
+  "msg.law_vote.passedTitle": "{bloc} {law} passes",
+  "msg.law_vote.failedTitle": "{bloc} {law} fails",
+  "msg.law_vote.passedBody": "{what}. It takes effect.",
+  "msg.law_vote.failedBody": "The push for {what} failed.",
+  "msg.macro_shock.title": "Breaking: {event}, {bloc}",
+  "msg.macro_shock.tariff_shock": "{bloc} puts tariffs on {target}. Severity: {severity}.",
+  "msg.macro_shock.geopolitics": "Tension around {bloc}. Energy jumps. Severity: {severity}.",
+  "msg.macro_shock.bank_stress": "Banks in {bloc} wobble. Lenders pull back. Severity: {severity}.",
+  "msg.macro_alert.title": "{count} releases this month touch our holdings",
+  "msg.macro_alert.body": "{companies} holdings are exposed. See the calendar."
 }

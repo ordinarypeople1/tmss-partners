@@ -2,6 +2,9 @@
   --bloc-us: var(--s1);
   --bloc-ez: var(--s3);
   --bloc-cn: var(--s2);
+  --bloc-gb: var(--s4);
+  --bloc-jp: var(--s5);
+  --bloc-kr: var(--s6);
 }
 
 .calendar .cal-nav {
@@ -33,7 +36,7 @@
   gap: 8px;
 }
 .calendar .cal-moods {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 8px;
 }
 
@@ -83,6 +86,31 @@
 .calendar .chip[data-bloc="cn"] i,
 .calendar .cal-chip[data-bloc="cn"] i {
   background: var(--bloc-cn);
+}
+.calendar .chip[data-bloc="gb"] i,
+.calendar .cal-chip[data-bloc="gb"] i {
+  background: var(--bloc-gb);
+}
+.calendar .chip[data-bloc="jp"] i,
+.calendar .cal-chip[data-bloc="jp"] i {
+  background: var(--bloc-jp);
+}
+.calendar .chip[data-bloc="kr"] i,
+.calendar .cal-chip[data-bloc="kr"] i {
+  background: var(--bloc-kr);
+}
+.calendar .cal-chip[data-breaking="true"] {
+  border-color: var(--bad);
+}
+.cal-breaking {
+  flex: none;
+  margin-right: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--bad);
+  color: var(--panel);
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 .calendar .cal-mood-note {
   grid-column: 1 / -1;
@@ -324,4 +352,20 @@
   .calendar .cal-agenda {
     display: block;
   }
+}
+
+.cal-dialog .cal-platform {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cal-dialog .cal-call {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--paper);
+  font-weight: 600;
 }

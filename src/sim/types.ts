@@ -460,6 +460,10 @@ export interface DealView {
   approved_ev: number;
   /** The non-binding indication given in round one, as an enterprise value. */
   indication: number | null;
+  /** Lenders' terms held for the deal, while they hold. */
+  lock: { spread_bps: number; max_senior_millis: number; max_mezz_millis: number; expires: GameDate; fee: number } | null;
+  /** What a lock would cost for the offer on the table; null without an offer. */
+  lock_fee: number | null;
   /** Diligence that can be ordered now: the memorandum supports two streams, the data room the rest. */
   open_streams: DdStream[];
 }
@@ -538,6 +542,8 @@ export interface CompanyView extends CompanyRow {
   management: number | null;
   /** Null until commercial diligence. */
   customer_concentration_bps: number | null;
+  /** Sales to China, sales abroad, energy in costs, in basis points. Null until commercial diligence. */
+  exposure: { china_bps: number; export_bps: number; energy_bps: number } | null;
   /** `stream` is the diligence that finds this kind of issue. */
   issues: { kind: IssueKind; stream: DdStream; severity_bps: number; found: boolean; triggered: boolean }[];
   /** One trait is public; the rest come with the NDA. Each changes a rule (see docs/gdd/systems.md). */
@@ -559,7 +565,10 @@ export type MessageBody =
   | { type: "rate_changed"; from_bps: number; to_bps: number }
   | { type: "phase_changed"; from: Phase; to: Phase }
   | { type: "macro_surprise"; event: number; kind: MacroKind; actual: number; consensus: number; surprise_centi: number }
-  | { type: "election"; event: number; kind: MacroKind; winner: number; upset: boolean }
+  | { type: "election"; event: number; kind: MacroKind; winner: number; upset: boolean; snap: boolean }
+  | { type: "law_vote"; event: number; kind: MacroKind; bloc: Bloc; direction: number; passed: boolean }
+  | { type: "macro_shock"; event: number; kind: MacroKind; bloc: Bloc; target: Bloc | null; severity: number }
+  | { type: "macro_alert"; events: number[]; companies: number }
   | { type: "sale_early_notice"; reason: SaleReason }
   | { type: "owner_opened"; reason: SaleReason }
   | { type: "owner_declined" }
@@ -728,11 +737,19 @@ export interface View {
     history: { policy_rate_bps: number; credit_spread_bps: number; valuation_index: number }[];
     sectors: SectorView[];
     /** Monthly growth the news adds, per bloc in `BLOCS` order. */
-    bloc_growth_bps: [number, number, number];
+    bloc_growth_bps: number[];
     /** What the news does to multiples, per bloc, around zero. */
-    bloc_multiple_bps: [number, number, number];
+    bloc_multiple_bps: number[];
     /** 0–100 per bloc. Owners wait and IPOs stall when it is high. */
-    uncertainty: [number, number, number];
+    uncertainty: number[];
+    /** Added to company tax rates by law, per bloc. */
+    bloc_tax_delta_bps: number[];
+    /** Added to the chance a regulator refuses a foreign buyer, per bloc. */
+    bloc_approval_drag_bps: number[];
+    /** Tariffs in force, as a drag on exporters. */
+    trade_drag_bps: number;
+    /** Energy above normal, as a drag on energy-heavy companies. */
+    energy_shock_bps: number;
   };
   calendar: CalendarView;
   fund: {
@@ -801,7 +818,11 @@ export type Command =
   | { type: "start_exit"; company: number; route: ExitRoute }
   | { type: "decide"; message: number; choice: Choice }
   | { type: "mark_read"; message: number }
-  | { type: "mark_all_read" };
+  | { type: "mark_all_read" }
+  /** One attention: the economist narrows one of this month's releases or meetings. */
+  | { type: "call_economist"; event: number }
+  /** Holds today's credit spread and leverage for a deal for three months, for `lock_fee`. */
+  | { type: "lock_financing"; company: number };
 
 /** `error` is a code from sim-core's CommandError, e.g. "no_attention". */
 export type CommandResult = { ok: true } | { ok: false; error: string };
@@ -929,9 +950,13 @@ export interface DdReport {
 // Macro calendar (crates/sim-core/src/macro_events.rs)
 // ---------------------------------------------------------------------------
 
-/** United States, euro area (Germany and France), China. Index order of the per-bloc arrays. */
-export type Bloc = "us" | "ez" | "cn";
-export const BLOCS: Bloc[] = ["us", "ez", "cn"];
+/** Index order of every per-bloc array. Germany and France share the euro area. */
+export type Bloc = "us" | "ez" | "cn" | "gb" | "jp" | "kr";
+export const BLOCS: Bloc[] = ["us", "ez", "cn", "gb", "jp", "kr"];
+/** The order the screen lists them in. */
+export const BLOC_ORDER: Bloc[] = ["us", "ez", "gb", "jp", "kr", "cn"];
+
+export type Race = "us" | "gb" | "de" | "fr" | "jp" | "kr";
 
 export type MacroKind =
   | "fomc"
@@ -945,15 +970,39 @@ export type MacroKind =
   | "ecb"
   | "ez_hicp"
   | "ifo"
+  | "de_election"
+  | "fr_election"
   | "cn_activity"
   | "cn_trade"
   | "cn_lpr"
-  | "cn_npc";
+  | "cn_npc"
+  | "boe"
+  | "uk_cpi"
+  | "uk_budget"
+  | "uk_election"
+  | "boj"
+  | "tankan"
+  | "shunto"
+  | "jp_election"
+  | "bok"
+  | "kr_exports"
+  | "kr_election"
+  | "kr_general"
+  | "tax_bill"
+  | "trade_act"
+  | "regulation_rule"
+  | "tariff_shock"
+  | "geopolitics"
+  | "bank_stress";
 
-export type MacroCategory = "central_bank" | "data" | "politics";
+export type MacroCategory = "central_bank" | "data" | "politics" | "breaking";
 
-/** `party`: party 0's poll share in basis points before the vote, the winner's index after. */
-export type MacroUnit = "rate_bps" | "pct_bps" | "jobs_k" | "index_tenths" | "party";
+/**
+ * `party`: party 0's poll share in basis points before the vote, the winner's index after.
+ * `vote`: the chance a law passes in basis points before, 1 passed or 0 failed after.
+ * `severity`: 1 to 3, shocks only.
+ */
+export type MacroUnit = "rate_bps" | "pct_bps" | "jobs_k" | "index_tenths" | "points" | "party" | "vote" | "severity";
 
 export type MacroEffect =
   | { channel: "policy_rate"; delta_bps: number }
@@ -961,21 +1010,38 @@ export type MacroEffect =
   | { channel: "bloc_growth"; bloc: Bloc; delta_bps: number }
   | { channel: "bloc_multiple"; bloc: Bloc; delta_bps: number }
   | { channel: "sector_cycle"; sector: string; delta_bps: number }
-  | { channel: "uncertainty"; bloc: Bloc; delta: number };
+  | { channel: "uncertainty"; bloc: Bloc; delta: number }
+  | { channel: "tax_rate"; bloc: Bloc; delta_bps: number }
+  | { channel: "approval_drag"; bloc: Bloc; delta_bps: number }
+  | { channel: "trade_drag"; delta_bps: number }
+  | { channel: "energy_cost"; delta_bps: number };
+
+/** A law after an election. `direction` +1 raises taxes, protects trade or tightens rules. */
+export interface Measure {
+  race: Race;
+  party: number;
+  direction: number;
+}
 
 export interface MacroEventView {
   id: number;
   kind: MacroKind;
   bloc: Bloc;
+  /** A tariff's target. */
+  target: Bloc | null;
+  /** Not on the schedule: it appears the month it happens. */
+  breaking: boolean;
+  measure: Measure | null;
+  race: Race | null;
   category: MacroCategory;
   unit: MacroUnit;
   /** 1–3. */
   importance: number;
-  /** Sector ids whose cycle the release pushes. */
+  /** Sector ids whose cycle the event pushes. */
   sectors: string[];
   date: GameDate;
   day: number;
-  /** The open month's releases, and the polls for every election ahead. Null otherwise. */
+  /** The open month's releases; polls and the odds on laws ahead. Null otherwise. */
   consensus: number | null;
   range: [number, number] | null;
   previous: number | null;
@@ -987,12 +1053,29 @@ export interface MacroEventView {
   stance: number | null;
   upset: boolean;
   effects: MacroEffect[];
+  /** The economist's narrower window, once asked. */
+  call: [number, number] | null;
+  /** Holdings the event reaches, by company index. */
+  exposed: number[];
+}
+
+/** A platform on four axes, each −1, 0 or +1: taxes up, trade protected, rules tighter, spending up. */
+export interface Party {
+  tax: number;
+  trade: number;
+  regulation: number;
+  fiscal: number;
+}
+
+export interface RaceState {
+  race: Race;
+  parties: [Party, Party];
+  poll_bps: number;
+  executive: number | null;
+  legislature: number | null;
 }
 
 export interface CalendarView {
   events: MacroEventView[];
-  /** Two fictional parties. `lean` +1 reads business-friendly, −1 the other way. */
-  parties: { lean: number }[];
-  poll_bps: number;
-  incumbent: number | null;
+  races: RaceState[];
 }
