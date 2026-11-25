@@ -27,7 +27,6 @@
   "calendar.weekday.6": "六",
   "calendar.more": "+{count, number, ::integer}",
   "calendar.empty": "本月无日程",
-  "calendar.pick": "选择一个日程在此查看",
   "calendar.dayOf": "{date} {day}日",
   "calendar.major": "主要",
   "calendar.exposedTip": "涉及持有、交易中或关注的公司",

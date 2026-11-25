@@ -27,7 +27,6 @@
   "calendar.weekday.6": "토",
   "calendar.more": "+{count, number, ::integer}",
   "calendar.empty": "이 달에 보이는 일정 없음",
-  "calendar.pick": "일정을 고르면 여기에 연다",
   "calendar.dayOf": "{date} {day}일",
   "calendar.major": "주요",
   "calendar.exposedTip": "보유·딜·관심 회사에 닿는다",

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useT } from "../../i18n/useT";
 import { BLOCS, type Bloc, type CompanyRow, type GameDate, type MacroCategory, type MacroEventView } from "../../sim/types";
 import { Stat, Tag } from "../charts";
 import { useFormat } from "../format";
 import { useGame, type Screen } from "../game";
 import { Icon } from "../icons";
+import { Overlay } from "../Overlay";
 import { addMonths, daysIn, effectText, effectTone, exposedTo, formatMacroValue, formatSurprise, sameMonth, weekday } from "../macro";
 import "./Calendar.css";
 
@@ -350,21 +351,51 @@ export function Calendar() {
           </ol>
         </section>
 
-        <aside className="card cal-detail" aria-live="polite">
-          {selected === null ? (
-            <p className="muted">{t("calendar.pick")}</p>
-          ) : selected.type === "mine" ? (
-            <MineDetail item={selected.item} label={mineLabel(selected.item)} />
-          ) : (
-            <EventDetail event={selected.event} exposed={exposure.get(selected.event.id) ?? []} />
-          )}
-        </aside>
       </div>
+
+      {selected === null ? null : (
+        <EntryDialog
+          label={selected.type === "mine" ? mineLabel(selected.item) : t(`macro.event.${selected.event.kind}`)}
+          onClose={() => setPicked(null)}
+        >
+          {selected.type === "mine" ? (
+            <MineDetail item={selected.item} label={mineLabel(selected.item)} onDone={() => setPicked(null)} />
+          ) : (
+            <EventDetail event={selected.event} exposed={exposure.get(selected.event.id) ?? []} onDone={() => setPicked(null)} />
+          )}
+        </EntryDialog>
+      )}
     </div>
   );
 }
 
-function MineDetail({ item, label }: { item: MineItem; label: string }) {
+/** One event or deadline over the calendar. Escape, the scrim or the button closes it. */
+function EntryDialog({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+  const t = useT();
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <Overlay>
+      <div className="talk-scrim" role="dialog" aria-modal="true" aria-label={label} onClick={onClose}>
+        <div className="talk cal-dialog" onClick={(event) => event.stopPropagation()}>
+          {children}
+          <button type="button" className="btn primary" autoFocus onClick={onClose}>
+            {t("talk.close")}
+          </button>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+function MineDetail({ item, label, onDone }: { item: MineItem; label: string; onDone: () => void }) {
   const t = useT();
   const f = useFormat();
   const game = useGame();
@@ -377,11 +408,25 @@ function MineDetail({ item, label }: { item: MineItem; label: string }) {
       <p className="muted">{t("calendar.dayOf", { date: f.date(item.date), day: item.day })}</p>
       <p>{t(`calendar.mineAbout.${item.kind}`)}</p>
       <div className="row">
-        <button type="button" className="btn small" onClick={() => game.go(item.screen)}>
+        <button
+          type="button"
+          className="btn small"
+          onClick={() => {
+            onDone();
+            game.go(item.screen);
+          }}
+        >
           {t(`nav.${item.screen}`)}
         </button>
         {item.company !== null ? (
-          <button type="button" className="btn ghost small" onClick={() => game.select(item.company)}>
+          <button
+            type="button"
+            className="btn ghost small"
+            onClick={() => {
+              onDone();
+              game.select(item.company);
+            }}
+          >
             {t("calendar.openCompany")}
           </button>
         ) : null}
@@ -390,7 +435,7 @@ function MineDetail({ item, label }: { item: MineItem; label: string }) {
   );
 }
 
-function EventDetail({ event, exposed }: { event: MacroEventView; exposed: CompanyRow[] }) {
+function EventDetail({ event, exposed, onDone }: { event: MacroEventView; exposed: CompanyRow[]; onDone: () => void }) {
   const t = useT();
   const f = useFormat();
   const game = useGame();
@@ -504,7 +549,14 @@ function EventDetail({ event, exposed }: { event: MacroEventView; exposed: Compa
           <ul className="cal-exposed">
             {exposed.map((row) => (
               <li key={row.i}>
-                <button type="button" className="btn ghost small" onClick={() => game.select(row.i)}>
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  onClick={() => {
+                    onDone();
+                    game.select(row.i);
+                  }}
+                >
                   {row.short}
                 </button>
                 <small className="muted">{t(row.owner.kind === "player" ? "calendar.held" : row.in_deal ? "calendar.inDeal" : "calendar.watched")}</small>

@@ -27,7 +27,6 @@
   "calendar.weekday.6": "土",
   "calendar.more": "+{count, number, ::integer}",
   "calendar.empty": "この月の予定なし",
-  "calendar.pick": "予定を選ぶとここに開く",
   "calendar.dayOf": "{date} {day}日",
   "calendar.major": "主要",
   "calendar.exposedTip": "保有・案件・ウォッチ中の会社に関係",

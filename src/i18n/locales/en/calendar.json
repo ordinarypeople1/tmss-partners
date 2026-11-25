@@ -27,7 +27,6 @@
   "calendar.weekday.6": "Sat",
   "calendar.more": "+{count, number, ::integer}",
   "calendar.empty": "Nothing on this month",
-  "calendar.pick": "Pick an event to open it here",
   "calendar.dayOf": "Day {day}, {date}",
   "calendar.major": "Major",
   "calendar.exposedTip": "Touches a holding, deal or watched company",
