@@ -42,5 +42,22 @@
   "map.ping": "今月の動き",
   "map.legend.fogShort": "NDA前",
   "map.tools.show": "地図ツール",
-  "map.tools.hide": "ツールを隠す"
+  "map.tools.hide": "ツールを隠す",
+  "map.layer.macro": "マクロ",
+  "map.macro.measure.uncertainty": "不確実性",
+  "map.macro.measure.rate": "政策金利",
+  "map.macro.measure.multiple": "倍率の傾き",
+  "map.macro.low.uncertainty": "低",
+  "map.macro.high.uncertainty": "高",
+  "map.macro.low.rate": "中立未満",
+  "map.macro.high.rate": "中立超",
+  "map.macro.low.multiple": "上昇",
+  "map.macro.high.multiple": "下落",
+  "map.macro.value.uncertainty": "不確実性 {value}",
+  "map.macro.value.rate": "金利 {value}",
+  "map.macro.value.multiple": "倍率 {value}",
+  "map.macro.next": "次: {event} {month}/{day}",
+  "map.macro.none": "主要イベントなし",
+  "map.macro.touched": "今月の主要発表が関わる会社",
+  "map.macro.nextYear": "次: {event} {year, number, ::group-off}/{month}/{day}"
 }

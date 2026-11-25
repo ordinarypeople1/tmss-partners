@@ -42,5 +42,22 @@
   "map.ping": "News this month",
   "map.legend.fogShort": "Pre-NDA",
   "map.tools.show": "Map tools",
-  "map.tools.hide": "Hide tools"
+  "map.tools.hide": "Hide tools",
+  "map.layer.macro": "Macro",
+  "map.macro.measure.uncertainty": "Uncertainty",
+  "map.macro.measure.rate": "Policy rate",
+  "map.macro.measure.multiple": "Multiple tilt",
+  "map.macro.low.uncertainty": "Low",
+  "map.macro.high.uncertainty": "High",
+  "map.macro.low.rate": "Below neutral",
+  "map.macro.high.rate": "Above neutral",
+  "map.macro.low.multiple": "Up",
+  "map.macro.high.multiple": "Down",
+  "map.macro.value.uncertainty": "Uncertainty {value}",
+  "map.macro.value.rate": "Rate {value}",
+  "map.macro.value.multiple": "Multiples {value}",
+  "map.macro.next": "Next: {event} {month}/{day}",
+  "map.macro.none": "No major event ahead",
+  "map.macro.touched": "Reached by a major release this month",
+  "map.macro.nextYear": "Next: {event} {year, number, ::group-off}/{month}/{day}"
 }

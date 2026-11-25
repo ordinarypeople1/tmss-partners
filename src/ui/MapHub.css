@@ -523,3 +523,34 @@
     border-radius: 6px 0 0 6px;
   }
 }
+
+.map-macro {
+  display: grid;
+  gap: 1px;
+  min-width: 96px;
+  padding: 6px 9px 6px 12px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--swatch);
+  border-radius: 8px;
+  background: var(--raised);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+.map-macro:disabled {
+  cursor: default;
+}
+.map-macro b {
+  font-size: 0.8rem;
+}
+.map-macro span {
+  font-weight: 700;
+}
+.map-macro small {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
